@@ -1,6 +1,6 @@
 interface QueryOptions {
   path: `v1/${string}`;
-  method?: "GET" | "POST" | "PUT";
+  method?: "GET" | "POST" | "PUT" | "DELETE";
   payload?: Record<string, unknown>;
   params?: Record<string, string>;
   headers?: Record<string, string>;
@@ -24,6 +24,44 @@ interface ContactSuccessResponse {
 interface DeleteSuccessResponse {
   success: true;
   message: "Contact deleted.";
+}
+
+interface SuppressionContact {
+  /**
+   * The contact's Loops-assigned ID.
+   */
+  id: string;
+  /**
+   * The contact's email address.
+   */
+  email: string;
+  /**
+   * The contact's unique user ID.
+   */
+  userId: string | null;
+}
+
+interface SuppressionRemovalQuota {
+  /**
+   * The number of suppression removals you can request in a rolling 30 day period.
+   */
+  limit: number;
+  /**
+   * The remaining number of suppression removals left in the current 30 day period.
+   */
+  remaining: number;
+}
+
+interface CheckContactSuppressionSuccessResponse {
+  contact: SuppressionContact;
+  isSuppressed: boolean;
+  removalQuota: SuppressionRemovalQuota;
+}
+
+interface RemoveContactSuppressionSuccessResponse {
+  success: true;
+  message: string;
+  removalQuota: SuppressionRemovalQuota;
 }
 
 interface ErrorResponse {
@@ -321,7 +359,7 @@ class LoopsClient {
     }
 
     const url = new URL(path, this.apiRoot);
-    if (params && method === "GET") {
+    if (params) {
       Object.entries(params).forEach(([key, value]) =>
         url.searchParams.append(key, value as string)
       );
@@ -525,6 +563,73 @@ class LoopsClient {
   }
 
   /**
+   * Check whether a contact is suppressed by email or user ID.
+   *
+   * @param {Object} params
+   * @param {string} [params.email] The email address of the contact.
+   * @param {string} [params.userId] The user ID of the contact.
+   *
+   * @see https://loops.so/docs/api-reference/check-contact-suppression
+   *
+   * @returns {Object} Suppression status and removal quota (JSON)
+   */
+  async checkContactSuppression({
+    email,
+    userId,
+  }: {
+    email?: string;
+    userId?: string;
+  }): Promise<CheckContactSuppressionSuccessResponse> {
+    if (email && userId)
+      throw new ValidationError("Only one parameter is permitted.");
+    if (!email && !userId)
+      throw new ValidationError(
+        "You must provide an `email` or `userId` value."
+      );
+    const params: { email?: string; userId?: string } = {};
+    if (email) params["email"] = email;
+    else if (userId) params["userId"] = userId;
+    return this._makeQuery({
+      path: "v1/contacts/suppression",
+      params,
+    });
+  }
+
+  /**
+   * Remove suppression for a contact by email or user ID.
+   *
+   * @param {Object} params
+   * @param {string} [params.email] The email address of the contact.
+   * @param {string} [params.userId] The user ID of the contact.
+   *
+   * @see https://loops.so/docs/api-reference/remove-contact-suppression
+   *
+   * @returns {Object} Confirmation and remaining removal quota (JSON)
+   */
+  async removeContactSuppression({
+    email,
+    userId,
+  }: {
+    email?: string;
+    userId?: string;
+  }): Promise<RemoveContactSuppressionSuccessResponse> {
+    if (email && userId)
+      throw new ValidationError("Only one parameter is permitted.");
+    if (!email && !userId)
+      throw new ValidationError(
+        "You must provide an `email` or `userId` value."
+      );
+    const params: { email?: string; userId?: string } = {};
+    if (email) params["email"] = email;
+    else if (userId) params["userId"] = userId;
+    return this._makeQuery({
+      path: "v1/contacts/suppression",
+      method: "DELETE",
+      params,
+    });
+  }
+
+  /**
    * Create a new contact property.
    *
    * @param {string} name The name of the property. Should be in camelCase like "planName".
@@ -721,6 +826,10 @@ export {
   ApiKeyErrorResponse,
   ContactSuccessResponse,
   DeleteSuccessResponse,
+  SuppressionContact,
+  SuppressionRemovalQuota,
+  CheckContactSuppressionSuccessResponse,
+  RemoveContactSuppressionSuccessResponse,
   ErrorResponse,
   Contact,
   ContactProperty,

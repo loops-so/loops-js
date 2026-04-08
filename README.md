@@ -96,6 +96,8 @@ You can use custom contact properties in API calls. Please make sure to [add cus
 - [updateContact()](#updatecontact)
 - [findContact()](#findcontact)
 - [deleteContact()](#deletecontact)
+- [checkContactSuppression()](#checkcontactsuppression)
+- [removeContactSuppression()](#removecontactsuppression)
 - [createContactProperty()](#createcontactproperty)
 - [getContactProperties()](#getcontactproperties)
 - [getMailingLists()](#getmailinglists)
@@ -358,6 +360,122 @@ HTTP 404 Not Found
 {
   "success": false,
   "message": "An error message here."
+}
+```
+
+---
+
+### checkContactSuppression()
+
+Check whether a contact is suppressed, either by email address or `userId`.
+
+[API Reference](https://loops.so/docs/api-reference/check-contact-suppression)
+
+#### Parameters
+
+You must use one parameter in the request.
+
+| Name     | Type   | Required | Notes |
+| -------- | ------ | -------- | ----- |
+| `email`  | string | No       |       |
+| `userId` | string | No       |       |
+
+#### Example
+
+```javascript
+const resp = await loops.checkContactSuppression({ email: "hello@gmail.com" });
+
+const resp = await loops.checkContactSuppression({ userId: "12345" });
+```
+
+#### Response
+
+```json
+{
+  "contact": {
+    "id": "cll6b3i8901a9jx0oyktl2m4u",
+    "email": "adam@loops.so",
+    "userId": null
+  },
+  "isSuppressed": true,
+  "removalQuota": {
+    "limit": 100,
+    "remaining": 4
+  }
+}
+```
+
+Error handling is done through the `APIError` class, which provides `statusCode` and `json` properties containing the API's error response details. For implementation examples, see the [Usage section](#usage).
+
+```json
+HTTP 400 Bad Request
+{
+  "success": false,
+  "message": "An email or userId is required."
+}
+```
+
+```json
+HTTP 404 Not Found
+{
+  "success": false,
+  "message": "This contact was not found."
+}
+```
+
+---
+
+### removeContactSuppression()
+
+Remove suppression for a contact, either by email address or `userId`.
+
+[API Reference](https://loops.so/docs/api-reference/remove-contact-suppression)
+
+#### Parameters
+
+You must use one parameter in the request.
+
+| Name     | Type   | Required | Notes |
+| -------- | ------ | -------- | ----- |
+| `email`  | string | No       |       |
+| `userId` | string | No       |       |
+
+#### Example
+
+```javascript
+const resp = await loops.removeContactSuppression({ email: "hello@gmail.com" });
+
+const resp = await loops.removeContactSuppression({ userId: "12345" });
+```
+
+#### Response
+
+```json
+{
+  "success": true,
+  "message": "Email removed from suppression list.",
+  "removalQuota": {
+    "limit": 100,
+    "remaining": 4
+  }
+}
+```
+
+Error handling is done through the `APIError` class, which provides `statusCode` and `json` properties containing the API's error response details. For implementation examples, see the [Usage section](#usage).
+
+```json
+HTTP 400 Bad Request
+{
+  "success": false,
+  "message": "This contact is not suppressed."
+}
+```
+
+```json
+HTTP 404 Not Found
+{
+  "success": false,
+  "message": "This contact was not found."
 }
 ```
 
@@ -770,6 +888,7 @@ const resp = await loops.getTransactionalEmails({ perPage: 15 });
 
 ## Version history
 
+- `v6.3.0` (Apr 8, 2026) - Added [`checkContactSuppression()`](#checkcontactsuppression) and [`removeContactSuppression()`](#removecontactsuppression) methods.
 - `v6.2.0` (Feb 9, 2026) - Support for the new arrays feature in sendTransactionalEmail.
 - `v6.1.2` (Jan 29, 2026) - Added `rawBody` to `APIError` in the case no JSON is received from the server (thanks to [@leipert](https://github.com/leipert)).
 - `v6.0.1` (Oct 15, 2025) - Added `optInStatus` to contact object in [`findContact()`](#findcontact) for the new double opt-in feature.
