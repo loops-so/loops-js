@@ -247,6 +247,156 @@ describe("LoopsClient", () => {
     });
   });
 
+  describe("checkContactSuppression", () => {
+    it("should check suppression status by email", async () => {
+      const email = "test@example.com";
+      const mockResponse = {
+        contact: {
+          id: "cll6b3i8901a9jx0oyktl2m4u",
+          email,
+          userId: null,
+        },
+        isSuppressed: true,
+        removalQuota: {
+          limit: 100,
+          remaining: 10,
+        },
+      };
+
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        text: () => Promise.resolve(JSON.stringify(mockResponse)),
+      });
+
+      const result = await client.checkContactSuppression({ email });
+
+      expect(result).toEqual(mockResponse);
+      expect(fetch).toHaveBeenCalledWith(
+        expect.stringContaining("v1/contacts/suppression?email=test%40example.com"),
+        expect.objectContaining({
+          method: "GET",
+        })
+      );
+    });
+
+    it("should check suppression status by userId", async () => {
+      const userId = "user_123";
+      const mockResponse = {
+        contact: {
+          id: "cll6b3i8901a9jx0oyktl2m4u",
+          email: "test@example.com",
+          userId,
+        },
+        isSuppressed: false,
+        removalQuota: {
+          limit: 100,
+          remaining: 99,
+        },
+      };
+
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        text: () => Promise.resolve(JSON.stringify(mockResponse)),
+      });
+
+      const result = await client.checkContactSuppression({ userId });
+
+      expect(result).toEqual(mockResponse);
+      expect(fetch).toHaveBeenCalledWith(
+        expect.stringContaining("v1/contacts/suppression?userId=user_123"),
+        expect.objectContaining({
+          method: "GET",
+        })
+      );
+    });
+
+    it("should throw error when both email and userId are provided", async () => {
+      await expect(
+        client.checkContactSuppression({
+          email: "test@example.com",
+          userId: "user_123",
+        })
+      ).rejects.toThrow(ValidationError);
+    });
+
+    it("should throw error when neither email nor userId is provided", async () => {
+      await expect(client.checkContactSuppression({})).rejects.toThrow(
+        ValidationError
+      );
+    });
+  });
+
+  describe("removeContactSuppression", () => {
+    it("should remove suppression by email", async () => {
+      const email = "test@example.com";
+      const mockResponse = {
+        success: true,
+        message: "Email removed from suppression list.",
+        removalQuota: {
+          limit: 100,
+          remaining: 9,
+        },
+      };
+
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        text: () => Promise.resolve(JSON.stringify(mockResponse)),
+      });
+
+      const result = await client.removeContactSuppression({ email });
+
+      expect(result).toEqual(mockResponse);
+      expect(fetch).toHaveBeenCalledWith(
+        expect.stringContaining("v1/contacts/suppression?email=test%40example.com"),
+        expect.objectContaining({
+          method: "DELETE",
+        })
+      );
+    });
+
+    it("should remove suppression by userId", async () => {
+      const userId = "user_123";
+      const mockResponse = {
+        success: true,
+        message: "User removed from suppression list.",
+        removalQuota: {
+          limit: 100,
+          remaining: 8,
+        },
+      };
+
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        text: () => Promise.resolve(JSON.stringify(mockResponse)),
+      });
+
+      const result = await client.removeContactSuppression({ userId });
+
+      expect(result).toEqual(mockResponse);
+      expect(fetch).toHaveBeenCalledWith(
+        expect.stringContaining("v1/contacts/suppression?userId=user_123"),
+        expect.objectContaining({
+          method: "DELETE",
+        })
+      );
+    });
+
+    it("should throw error when both email and userId are provided", async () => {
+      await expect(
+        client.removeContactSuppression({
+          email: "test@example.com",
+          userId: "user_123",
+        })
+      ).rejects.toThrow(ValidationError);
+    });
+
+    it("should throw error when neither email nor userId is provided", async () => {
+      await expect(client.removeContactSuppression({})).rejects.toThrow(
+        ValidationError
+      );
+    });
+  });
+
   describe("createContactProperty", () => {
     it("should create contact property successfully", async () => {
       const name = "customField";
