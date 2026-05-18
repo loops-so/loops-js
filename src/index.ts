@@ -254,6 +254,151 @@ interface ListTransactionalsResponse {
   data: TransactionalEmail[];
 }
 
+interface ThemeStyles {
+  backgroundColor?: string;
+  backgroundXPadding?: number;
+  backgroundYPadding?: number;
+  bodyColor?: string;
+  bodyXPadding?: number;
+  bodyYPadding?: number;
+  bodyFontFamily?: string;
+  bodyFontCategory?: string;
+  borderColor?: string;
+  borderWidth?: number;
+  borderRadius?: number;
+  buttonBodyColor?: string;
+  buttonBodyXPadding?: number;
+  buttonBodyYPadding?: number;
+  buttonBorderColor?: string;
+  buttonBorderWidth?: number;
+  buttonBorderRadius?: number;
+  buttonTextColor?: string;
+  buttonTextFormat?: number;
+  buttonTextFontSize?: number;
+  dividerColor?: string;
+  dividerBorderWidth?: number;
+  textBaseColor?: string;
+  textBaseFontSize?: number;
+  textBaseLineHeight?: number;
+  textBaseLetterSpacing?: number;
+  textLinkColor?: string;
+  heading1Color?: string;
+  heading1FontSize?: number;
+  heading1LineHeight?: number;
+  heading1LetterSpacing?: number;
+  heading2Color?: string;
+  heading2FontSize?: number;
+  heading2LineHeight?: number;
+  heading2LetterSpacing?: number;
+  heading3Color?: string;
+  heading3FontSize?: number;
+  heading3LineHeight?: number;
+  heading3LetterSpacing?: number;
+}
+
+interface Theme {
+  themeId: string;
+  name: string;
+  styles: ThemeStyles;
+  isDefault: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface ListThemesResponse {
+  success: true;
+  pagination: PaginationData;
+  data: Theme[];
+}
+
+interface ThemeResponse {
+  success: true;
+  themeId: string;
+  name: string;
+  styles: ThemeStyles;
+  isDefault: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface Component {
+  componentId: string;
+  name: string;
+  lmx: string;
+}
+
+interface ListComponentsResponse {
+  success: true;
+  pagination: PaginationData;
+  data: Component[];
+}
+
+interface ComponentResponse {
+  success: true;
+  componentId: string;
+  name: string;
+  lmx: string;
+}
+
+interface CampaignListItem {
+  campaignId: string;
+  emailMessageId: string | null;
+  name: string;
+  subject: string;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface ListCampaignsResponse {
+  success: true;
+  pagination: PaginationData;
+  data: CampaignListItem[];
+}
+
+interface CreateCampaignResponse {
+  success: true;
+  campaignId: string;
+  name: string;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+  emailMessageId: string;
+  emailMessageContentRevisionId: string | null;
+}
+
+interface CampaignResponse {
+  success: true;
+  campaignId: string;
+  name: string;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+  emailMessageId: string | null;
+}
+
+interface EmailMessageWarning {
+  rule: string;
+  severity: "warning";
+  message: string;
+  path?: string;
+}
+
+interface EmailMessageResponse {
+  success: true;
+  emailMessageId: string;
+  campaignId: string | null;
+  subject: string;
+  previewText: string;
+  fromName: string;
+  fromEmail: string;
+  replyToEmail: string;
+  lmx: string;
+  contentRevisionId: string | null;
+  updatedAt: string;
+  warnings?: EmailMessageWarning[];
+}
+
 class RateLimitExceededError extends Error {
   limit: number;
   remaining: number;
@@ -815,6 +960,264 @@ class LoopsClient {
       params,
     });
   }
+
+  /**
+   * Get dedicated sending IP addresses.
+   *
+   * @see https://loops.so/docs/api-reference/get-dedicated-sending-ips
+   *
+   * @returns {string[]} List of IP addresses
+   */
+  async getDedicatedSendingIps(): Promise<string[]> {
+    return this._makeQuery({
+      path: "v1/dedicated-sending-ips",
+    });
+  }
+
+  /**
+   * List email themes.
+   *
+   * @param {Object} params
+   * @param {number} [params.perPage] How many results to return in each request. Must be between 10 and 50. Defaults to 20.
+   * @param {string} [params.cursor] A cursor, to return a specific page of results. Cursors can be found from the `pagination.nextCursor` value in each response.
+   *
+   * @see https://loops.so/docs/api-reference/list-themes
+   *
+   * @returns {Object} List of themes (JSON)
+   */
+  async getThemes({
+    perPage,
+    cursor,
+  }: {
+    perPage?: number;
+    cursor?: string;
+  } = {}): Promise<ListThemesResponse> {
+    const params: { perPage: string; cursor?: string } = {
+      perPage: (perPage || 20).toString(),
+    };
+    if (cursor) params["cursor"] = cursor;
+    return this._makeQuery({
+      path: "v1/themes",
+      params,
+    });
+  }
+
+  /**
+   * Get a theme by ID.
+   *
+   * @param {string} themeId The ID of the theme.
+   *
+   * @see https://loops.so/docs/api-reference/get-theme
+   *
+   * @returns {Object} Theme (JSON)
+   */
+  async getTheme(themeId: string): Promise<ThemeResponse> {
+    return this._makeQuery({
+      path: `v1/themes/${themeId}`,
+    });
+  }
+
+  /**
+   * List email components.
+   *
+   * @param {Object} params
+   * @param {number} [params.perPage] How many results to return in each request. Must be between 10 and 50. Defaults to 20.
+   * @param {string} [params.cursor] A cursor, to return a specific page of results. Cursors can be found from the `pagination.nextCursor` value in each response.
+   *
+   * @see https://loops.so/docs/api-reference/list-components
+   *
+   * @returns {Object} List of components (JSON)
+   */
+  async getComponents({
+    perPage,
+    cursor,
+  }: {
+    perPage?: number;
+    cursor?: string;
+  } = {}): Promise<ListComponentsResponse> {
+    const params: { perPage: string; cursor?: string } = {
+      perPage: (perPage || 20).toString(),
+    };
+    if (cursor) params["cursor"] = cursor;
+    return this._makeQuery({
+      path: "v1/components",
+      params,
+    });
+  }
+
+  /**
+   * Get a component by ID.
+   *
+   * @param {string} componentId The ID of the component.
+   *
+   * @see https://loops.so/docs/api-reference/get-component
+   *
+   * @returns {Object} Component (JSON)
+   */
+  async getComponent(componentId: string): Promise<ComponentResponse> {
+    return this._makeQuery({
+      path: `v1/components/${componentId}`,
+    });
+  }
+
+  /**
+   * List campaigns.
+   *
+   * @param {Object} params
+   * @param {number} [params.perPage] How many results to return in each request. Must be between 10 and 50. Defaults to 20.
+   * @param {string} [params.cursor] A cursor, to return a specific page of results. Cursors can be found from the `pagination.nextCursor` value in each response.
+   *
+   * @see https://loops.so/docs/api-reference/list-campaigns
+   *
+   * @returns {Object} List of campaigns (JSON)
+   */
+  async getCampaigns({
+    perPage,
+    cursor,
+  }: {
+    perPage?: number;
+    cursor?: string;
+  } = {}): Promise<ListCampaignsResponse> {
+    const params: { perPage: string; cursor?: string } = {
+      perPage: (perPage || 20).toString(),
+    };
+    if (cursor) params["cursor"] = cursor;
+    return this._makeQuery({
+      path: "v1/campaigns",
+      params,
+    });
+  }
+
+  /**
+   * Create a draft campaign.
+   *
+   * @param {Object} params
+   * @param {string} params.name The campaign name.
+   *
+   * @see https://loops.so/docs/api-reference/create-campaign
+   *
+   * @returns {Object} Created campaign (JSON)
+   */
+  async createCampaign({ name }: { name: string }): Promise<CreateCampaignResponse> {
+    return this._makeQuery({
+      path: "v1/campaigns",
+      method: "POST",
+      payload: { name },
+    });
+  }
+
+  /**
+   * Get a campaign by ID.
+   *
+   * @param {string} campaignId The ID of the campaign.
+   *
+   * @see https://loops.so/docs/api-reference/get-campaign
+   *
+   * @returns {Object} Campaign (JSON)
+   */
+  async getCampaign(campaignId: string): Promise<CampaignResponse> {
+    return this._makeQuery({
+      path: `v1/campaigns/${campaignId}`,
+    });
+  }
+
+  /**
+   * Update a draft campaign's name.
+   *
+   * @param {string} campaignId The ID of the campaign.
+   * @param {Object} params
+   * @param {string} params.name The campaign name.
+   *
+   * @see https://loops.so/docs/api-reference/update-campaign
+   *
+   * @returns {Object} Updated campaign (JSON)
+   */
+  async updateCampaign(
+    campaignId: string,
+    { name }: { name: string }
+  ): Promise<CampaignResponse> {
+    return this._makeQuery({
+      path: `v1/campaigns/${campaignId}`,
+      method: "POST",
+      payload: { name },
+    });
+  }
+
+  /**
+   * Get an email message by ID.
+   *
+   * @param {string} emailMessageId The ID of the email message.
+   *
+   * @see https://loops.so/docs/api-reference/get-email-message
+   *
+   * @returns {Object} Email message (JSON)
+   */
+  async getEmailMessage(emailMessageId: string): Promise<EmailMessageResponse> {
+    return this._makeQuery({
+      path: `v1/email-messages/${emailMessageId}`,
+    });
+  }
+
+  /**
+   * Update an email message.
+   *
+   * @param {string} emailMessageId The ID of the email message.
+   * @param {Object} params
+   * @param {string} [params.expectedRevisionId] The `contentRevisionId` you last fetched. Used for optimistic concurrency.
+   * @param {string} [params.subject] The email subject.
+   * @param {string} [params.previewText] The email preview text.
+   * @param {string} [params.fromName] The sender name.
+   * @param {string} [params.fromEmail] The sender username (without `@` or domain).
+   * @param {string} [params.replyToEmail] Reply-to email. Must be empty or a valid email address.
+   * @param {string} [params.lmx] The email body serialized as LMX.
+   *
+   * @see https://loops.so/docs/api-reference/update-email-message
+   *
+   * @returns {Object} Updated email message (JSON)
+   */
+  async updateEmailMessage(
+    emailMessageId: string,
+    {
+      expectedRevisionId,
+      subject,
+      previewText,
+      fromName,
+      fromEmail,
+      replyToEmail,
+      lmx,
+    }: {
+      expectedRevisionId?: string;
+      subject?: string;
+      previewText?: string;
+      fromName?: string;
+      fromEmail?: string;
+      replyToEmail?: string;
+      lmx?: string;
+    }
+  ): Promise<EmailMessageResponse> {
+    const payload: {
+      expectedRevisionId?: string;
+      subject?: string;
+      previewText?: string;
+      fromName?: string;
+      fromEmail?: string;
+      replyToEmail?: string;
+      lmx?: string;
+    } = {};
+    if (expectedRevisionId !== undefined)
+      payload.expectedRevisionId = expectedRevisionId;
+    if (subject !== undefined) payload.subject = subject;
+    if (previewText !== undefined) payload.previewText = previewText;
+    if (fromName !== undefined) payload.fromName = fromName;
+    if (fromEmail !== undefined) payload.fromEmail = fromEmail;
+    if (replyToEmail !== undefined) payload.replyToEmail = replyToEmail;
+    if (lmx !== undefined) payload.lmx = lmx;
+    return this._makeQuery({
+      path: `v1/email-messages/${emailMessageId}`,
+      method: "POST",
+      payload,
+    });
+  }
 }
 
 export {
@@ -847,4 +1250,17 @@ export {
   TransactionalEmail,
   ListTransactionalsResponse,
   MailingLists,
+  ThemeStyles,
+  Theme,
+  ListThemesResponse,
+  ThemeResponse,
+  Component,
+  ListComponentsResponse,
+  ComponentResponse,
+  CampaignListItem,
+  ListCampaignsResponse,
+  CreateCampaignResponse,
+  CampaignResponse,
+  EmailMessageWarning,
+  EmailMessageResponse,
 };

@@ -104,6 +104,17 @@ You can use custom contact properties in API calls. Please make sure to [add cus
 - [sendEvent()](#sendevent)
 - [sendTransactionalEmail()](#sendtransactionalemail)
 - [getTransactionalEmails()](#gettransactionalemails)
+- [getDedicatedSendingIps()](#getdedicatedsendingips)
+- [getThemes()](#getthemes)
+- [getTheme()](#gettheme)
+- [getComponents()](#getcomponents)
+- [getComponent()](#getcomponent)
+- [getCampaigns()](#getcampaigns)
+- [createCampaign()](#createcampaign)
+- [getCampaign()](#getcampaign)
+- [updateCampaign()](#updatecampaign)
+- [getEmailMessage()](#getemailmessage)
+- [updateEmailMessage()](#updateemailmessage)
 
 ---
 
@@ -886,8 +897,489 @@ const resp = await loops.getTransactionalEmails({ perPage: 15 });
 
 ---
 
+### getDedicatedSendingIps()
+
+Get a list of Loops' dedicated sending IP addresses. This is intended for rare cases where you need to whitelist Loops' sending IPs.
+
+[API Reference](https://loops.so/docs/api-reference/dedicated-sending-ips)
+
+#### Parameters
+
+None
+
+#### Example
+
+```javascript
+const resp = await loops.getDedicatedSendingIps();
+```
+
+#### Response
+
+```json
+[
+  "1.2.3.4",
+  "5.6.7.8"
+]
+```
+
+Error handling is done through the `APIError` class, which provides `statusCode` and `json` properties containing the API's error response details. For implementation examples, see the [Usage section](#usage).
+
+---
+
+### getThemes()
+
+Retrieve a paginated list of email themes, most recently created first. Requires the content API to be enabled for your team.
+
+[API Reference](https://loops.so/docs/api-reference/list-themes)
+
+#### Parameters
+
+| Name      | Type    | Required | Notes                                                                                                                         |
+| --------- | ------- | -------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `perPage` | integer | No       | How many results to return per page. Must be between 10 and 50. Defaults to 20 if omitted.                                    |
+| `cursor`  | string  | No       | A cursor, to return a specific page of results. Cursors can be found from the `pagination.nextCursor` value in each response. |
+
+#### Example
+
+```javascript
+const resp = await loops.getThemes();
+
+const resp = await loops.getThemes({ perPage: 15, cursor: "clyo0q4wo01p59fsecyxqsh38" });
+```
+
+#### Response
+
+```json
+{
+  "success": true,
+  "pagination": {
+    "totalResults": 1,
+    "returnedResults": 1,
+    "perPage": 20,
+    "totalPages": 1,
+    "nextCursor": null,
+    "nextPage": null
+  },
+  "data": [
+    {
+      "themeId": "theme_123",
+      "name": "Default",
+      "styles": {
+        "backgroundColor": "#ffffff"
+      },
+      "isDefault": true,
+      "createdAt": "2025-01-01T00:00:00.000Z",
+      "updatedAt": "2025-01-01T00:00:00.000Z"
+    }
+  ]
+}
+```
+
+Error handling is done through the `APIError` class, which provides `statusCode` and `json` properties containing the API's error response details. For implementation examples, see the [Usage section](#usage).
+
+---
+
+### getTheme()
+
+Retrieve a single theme by ID. Requires the content API to be enabled for your team.
+
+[API Reference](https://loops.so/docs/api-reference/get-theme)
+
+#### Parameters
+
+| Name      | Type   | Required | Notes                |
+| --------- | ------ | -------- | -------------------- |
+| `themeId` | string | Yes      | The ID of the theme. |
+
+#### Example
+
+```javascript
+const resp = await loops.getTheme("theme_123");
+```
+
+#### Response
+
+```json
+{
+  "success": true,
+  "themeId": "theme_123",
+  "name": "Default",
+  "styles": {
+    "backgroundColor": "#ffffff"
+  },
+  "isDefault": true,
+  "createdAt": "2025-01-01T00:00:00.000Z",
+  "updatedAt": "2025-01-01T00:00:00.000Z"
+}
+```
+
+Error handling is done through the `APIError` class, which provides `statusCode` and `json` properties containing the API's error response details. For implementation examples, see the [Usage section](#usage).
+
+---
+
+### getComponents()
+
+Retrieve a paginated list of email components. Requires the content API to be enabled for your team.
+
+[API Reference](https://loops.so/docs/api-reference/list-components)
+
+#### Parameters
+
+| Name      | Type    | Required | Notes                                                                                                                         |
+| --------- | ------- | -------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `perPage` | integer | No       | How many results to return per page. Must be between 10 and 50. Defaults to 20 if omitted.                                    |
+| `cursor`  | string  | No       | A cursor, to return a specific page of results. Cursors can be found from the `pagination.nextCursor` value in each response. |
+
+#### Example
+
+```javascript
+const resp = await loops.getComponents();
+
+const resp = await loops.getComponents({ perPage: 15 });
+```
+
+#### Response
+
+```json
+{
+  "success": true,
+  "pagination": {
+    "totalResults": 1,
+    "returnedResults": 1,
+    "perPage": 20,
+    "totalPages": 1,
+    "nextCursor": null,
+    "nextPage": null
+  },
+  "data": [
+    {
+      "componentId": "comp_123",
+      "name": "Header",
+      "lmx": "<Section>...</Section>"
+    }
+  ]
+}
+```
+
+Error handling is done through the `APIError` class, which provides `statusCode` and `json` properties containing the API's error response details. For implementation examples, see the [Usage section](#usage).
+
+---
+
+### getComponent()
+
+Retrieve a single component by ID. Requires the content API to be enabled for your team.
+
+[API Reference](https://loops.so/docs/api-reference/get-component)
+
+#### Parameters
+
+| Name          | Type   | Required | Notes                     |
+| ------------- | ------ | -------- | ------------------------- |
+| `componentId` | string | Yes      | The ID of the component. |
+
+#### Example
+
+```javascript
+const resp = await loops.getComponent("comp_123");
+```
+
+#### Response
+
+```json
+{
+  "success": true,
+  "componentId": "comp_123",
+  "name": "Header",
+  "lmx": "<Section>...</Section>"
+}
+```
+
+Error handling is done through the `APIError` class, which provides `statusCode` and `json` properties containing the API's error response details. For implementation examples, see the [Usage section](#usage).
+
+---
+
+### getCampaigns()
+
+Retrieve a paginated list of campaigns. Requires the content API to be enabled for your team.
+
+[API Reference](https://loops.so/docs/api-reference/list-campaigns)
+
+#### Parameters
+
+| Name      | Type    | Required | Notes                                                                                                                         |
+| --------- | ------- | -------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `perPage` | integer | No       | How many results to return per page. Must be between 10 and 50. Defaults to 20 if omitted.                                    |
+| `cursor`  | string  | No       | A cursor, to return a specific page of results. Cursors can be found from the `pagination.nextCursor` value in each response. |
+
+#### Example
+
+```javascript
+const resp = await loops.getCampaigns();
+
+const resp = await loops.getCampaigns({ perPage: 15 });
+```
+
+#### Response
+
+```json
+{
+  "success": true,
+  "pagination": {
+    "totalResults": 1,
+    "returnedResults": 1,
+    "perPage": 20,
+    "totalPages": 1,
+    "nextCursor": null,
+    "nextPage": null
+  },
+  "data": [
+    {
+      "campaignId": "camp_123",
+      "emailMessageId": "msg_123",
+      "name": "Spring announcement",
+      "subject": "",
+      "status": "Draft",
+      "createdAt": "2025-01-01T00:00:00.000Z",
+      "updatedAt": "2025-01-01T00:00:00.000Z"
+    }
+  ]
+}
+```
+
+Error handling is done through the `APIError` class, which provides `statusCode` and `json` properties containing the API's error response details. For implementation examples, see the [Usage section](#usage).
+
+---
+
+### createCampaign()
+
+Create a new draft campaign. An empty email message is created automatically and its `emailMessageId` is returned. Use [`updateEmailMessage()`](#updateemailmessage) to set subject, sender, preview text, and LMX content. Requires the content API to be enabled for your team.
+
+[API Reference](https://loops.so/docs/api-reference/create-campaign)
+
+#### Parameters
+
+| Name   | Type   | Required | Notes              |
+| ------ | ------ | -------- | ------------------ |
+| `name` | string | Yes      | The campaign name. |
+
+#### Example
+
+```javascript
+const resp = await loops.createCampaign({ name: "Spring announcement" });
+```
+
+#### Response
+
+```json
+{
+  "success": true,
+  "campaignId": "camp_123",
+  "name": "Spring announcement",
+  "status": "Draft",
+  "createdAt": "2025-01-01T00:00:00.000Z",
+  "updatedAt": "2025-01-01T00:00:00.000Z",
+  "emailMessageId": "msg_123",
+  "emailMessageContentRevisionId": "rev_123"
+}
+```
+
+Error handling is done through the `APIError` class, which provides `statusCode` and `json` properties containing the API's error response details. For implementation examples, see the [Usage section](#usage).
+
+---
+
+### getCampaign()
+
+Retrieve a single campaign by ID. Requires the content API to be enabled for your team.
+
+[API Reference](https://loops.so/docs/api-reference/get-campaign)
+
+#### Parameters
+
+| Name         | Type   | Required | Notes                   |
+| ------------ | ------ | -------- | ----------------------- |
+| `campaignId` | string | Yes      | The ID of the campaign. |
+
+#### Example
+
+```javascript
+const resp = await loops.getCampaign("camp_123");
+```
+
+#### Response
+
+```json
+{
+  "success": true,
+  "campaignId": "camp_123",
+  "name": "Spring announcement",
+  "status": "Draft",
+  "createdAt": "2025-01-01T00:00:00.000Z",
+  "updatedAt": "2025-01-01T00:00:00.000Z",
+  "emailMessageId": "msg_123"
+}
+```
+
+Error handling is done through the `APIError` class, which provides `statusCode` and `json` properties containing the API's error response details. For implementation examples, see the [Usage section](#usage).
+
+---
+
+### updateCampaign()
+
+Update a draft campaign's name. Campaigns can only be updated while in draft status. Requires the content API to be enabled for your team.
+
+[API Reference](https://loops.so/docs/api-reference/update-campaign)
+
+#### Parameters
+
+| Name         | Type   | Required | Notes                   |
+| ------------ | ------ | -------- | ----------------------- |
+| `campaignId` | string | Yes      | The ID of the campaign. |
+| `name`       | string | Yes      | The campaign name.      |
+
+#### Example
+
+```javascript
+const resp = await loops.updateCampaign("camp_123", { name: "Updated name" });
+```
+
+#### Response
+
+```json
+{
+  "success": true,
+  "campaignId": "camp_123",
+  "name": "Updated name",
+  "status": "Draft",
+  "createdAt": "2025-01-01T00:00:00.000Z",
+  "updatedAt": "2025-01-02T00:00:00.000Z",
+  "emailMessageId": "msg_123"
+}
+```
+
+Error handling is done through the `APIError` class, which provides `statusCode` and `json` properties containing the API's error response details. For implementation examples, see the [Usage section](#usage).
+
+```json
+HTTP 409 Conflict
+{
+  "success": false,
+  "message": "Campaign is not in draft status."
+}
+```
+
+---
+
+### getEmailMessage()
+
+Retrieve an email message, including its compiled LMX content. Requires the content API to be enabled for your team.
+
+[API Reference](https://loops.so/docs/api-reference/get-email-message)
+
+#### Parameters
+
+| Name              | Type   | Required | Notes                        |
+| ----------------- | ------ | -------- | ---------------------------- |
+| `emailMessageId`  | string | Yes      | The ID of the email message. |
+
+#### Example
+
+```javascript
+const resp = await loops.getEmailMessage("msg_123");
+```
+
+#### Response
+
+```json
+{
+  "success": true,
+  "emailMessageId": "msg_123",
+  "campaignId": "camp_123",
+  "subject": "Hello",
+  "previewText": "Preview text",
+  "fromName": "Loops",
+  "fromEmail": "hello",
+  "replyToEmail": "",
+  "lmx": "<Email>...</Email>",
+  "contentRevisionId": "rev_123",
+  "updatedAt": "2025-01-01T00:00:00.000Z"
+}
+```
+
+Error handling is done through the `APIError` class, which provides `statusCode` and `json` properties containing the API's error response details. For implementation examples, see the [Usage section](#usage).
+
+---
+
+### updateEmailMessage()
+
+Update fields on an email message (subject, preview text, sender, LMX content). The campaign must be in draft status. Supply `expectedRevisionId` matching the current `contentRevisionId` — the server rejects mismatched revisions with 409. Requires the content API to be enabled for your team.
+
+[API Reference](https://loops.so/docs/api-reference/update-email-message)
+
+#### Parameters
+
+| Name                   | Type   | Required | Notes                                                                                                                                          |
+| ---------------------- | ------ | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `emailMessageId`       | string | Yes      | The ID of the email message.                                                                                                                   |
+| `expectedRevisionId`   | string | No       | The `contentRevisionId` you last fetched. Used for optimistic concurrency.                                                                     |
+| `subject`              | string | No       | The email subject.                                                                                                                             |
+| `previewText`          | string | No       | The email preview text.                                                                                                                        |
+| `fromName`             | string | No       | The sender name.                                                                                                                               |
+| `fromEmail`            | string | No       | The sender username (without `@` or domain). The team's sending domain is appended automatically.                                              |
+| `replyToEmail`         | string | No       | Reply-to email. Must be empty or a valid email address.                                                                                        |
+| `lmx`                  | string | No       | The email body serialized as LMX. Styles must be embedded in the LMX `<Style />` tag.                                                          |
+
+#### Example
+
+```javascript
+const resp = await loops.updateEmailMessage("msg_123", {
+  expectedRevisionId: "rev_123",
+  subject: "Hello",
+  previewText: "Preview text",
+  fromName: "Loops",
+  fromEmail: "hello",
+  lmx: "<Email>...</Email>",
+});
+```
+
+#### Response
+
+```json
+{
+  "success": true,
+  "emailMessageId": "msg_123",
+  "campaignId": "camp_123",
+  "subject": "Hello",
+  "previewText": "Preview text",
+  "fromName": "Loops",
+  "fromEmail": "hello",
+  "replyToEmail": "",
+  "lmx": "<Email>...</Email>",
+  "contentRevisionId": "rev_456",
+  "updatedAt": "2025-01-02T00:00:00.000Z",
+  "warnings": [
+    {
+      "rule": "example",
+      "severity": "warning",
+      "message": "Example warning"
+    }
+  ]
+}
+```
+
+Error handling is done through the `APIError` class, which provides `statusCode` and `json` properties containing the API's error response details. For implementation examples, see the [Usage section](#usage).
+
+```json
+HTTP 409 Conflict
+{
+  "success": false,
+  "message": "Content revision ID is stale."
+}
+```
+
+---
+
 ## Version history
 
+- `v6.4.0` (May 18, 2026) - Added [`getDedicatedSendingIps()`](#getdedicatedsendingips), and endpoints for creating and editing campaings ([`getThemes()`](#getthemes), [`getTheme()`](#gettheme), [`getComponents()`](#getcomponents), [`getComponent()`](#getcomponent), [`getCampaigns()`](#getcampaigns), [`createCampaign()`](#createcampaign), [`getCampaign()`](#getcampaign), [`updateCampaign()`](#updatecampaign), [`getEmailMessage()`](#getemailmessage), and [`updateEmailMessage()`](#updateemailmessage)).
 - `v6.3.0` (Apr 8, 2026) - Added [`checkContactSuppression()`](#checkcontactsuppression) and [`removeContactSuppression()`](#removecontactsuppression) methods.
 - `v6.2.0` (Feb 9, 2026) - Support for the new arrays feature in sendTransactionalEmail.
 - `v6.1.2` (Jan 29, 2026) - Added `rawBody` to `APIError` in the case no JSON is received from the server (thanks to [@leipert](https://github.com/leipert)).
