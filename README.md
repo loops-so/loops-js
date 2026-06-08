@@ -99,22 +99,29 @@ You can use custom contact properties in API calls. Please make sure to [add cus
 - [checkContactSuppression()](#checkcontactsuppression)
 - [removeContactSuppression()](#removecontactsuppression)
 - [createContactProperty()](#createcontactproperty)
-- [getContactProperties()](#getcontactproperties)
-- [getMailingLists()](#getmailinglists)
+- [listContactProperties()](#listcontactproperties)
+- [listMailingLists()](#listmailinglists)
 - [sendEvent()](#sendevent)
 - [sendTransactionalEmail()](#sendtransactionalemail)
-- [getTransactionalEmails()](#gettransactionalemails)
-- [getDedicatedSendingIps()](#getdedicatedsendingips)
-- [getThemes()](#getthemes)
+- [listTransactionalEmails()](#listtransactionalemails)
+- [getTransactionalEmail()](#gettransactionalemail)
+- [createTransactionalEmail()](#createtransactionalemail)
+- [updateTransactionalEmail()](#updatetransactionalemail)
+- [ensureTransactionalEmailDraft()](#ensuretransactionalemaildraft)
+- [publishTransactionalEmail()](#publishtransactionalemail)
+- [listDedicatedSendingIps()](#listdedicatedsendingips)
+- [listThemes()](#listthemes)
 - [getTheme()](#gettheme)
-- [getComponents()](#getcomponents)
+- [listComponents()](#listcomponents)
 - [getComponent()](#getcomponent)
-- [getCampaigns()](#getcampaigns)
+- [listCampaigns()](#listcampaigns)
 - [createCampaign()](#createcampaign)
 - [getCampaign()](#getcampaign)
 - [updateCampaign()](#updatecampaign)
 - [getEmailMessage()](#getemailmessage)
 - [updateEmailMessage()](#updateemailmessage)
+- [createUpload()](#createupload)
+- [completeUpload()](#completeupload)
 
 ---
 
@@ -531,7 +538,7 @@ HTTP 400 Bad Request
 
 ---
 
-### getContactProperties()
+### listContactProperties()
 
 Get a list of your account's contact properties.
 
@@ -546,9 +553,9 @@ Get a list of your account's contact properties.
 #### Example
 
 ```javascript
-const resp = await loops.getContactProperties();
+const resp = await loops.listContactProperties();
 
-const resp = await loops.getContactProperties("custom");
+const resp = await loops.listContactProperties("custom");
 ```
 
 #### Response
@@ -617,7 +624,7 @@ This method will return a list of contact property objects containing `key`, `la
 
 ---
 
-### getMailingLists()
+### listMailingLists()
 
 Get a list of your account's mailing lists. [Read more about mailing lists](https://loops.so/docs/contacts/mailing-lists)
 
@@ -630,7 +637,7 @@ None
 #### Example
 
 ```javascript
-const resp = await loops.getMailingLists();
+const resp = await loops.listMailingLists();
 ```
 
 #### Response
@@ -835,9 +842,9 @@ HTTP 400 Bad Request
 
 ---
 
-### getTransactionalEmails()
+### listTransactionalEmails()
 
-Get a list of published transactional emails.
+Get a paginated list of transactional emails, most recently created first.
 
 [API Reference](https://loops.so/docs/api-reference/list-transactional-emails)
 
@@ -851,9 +858,9 @@ Get a list of published transactional emails.
 #### Example
 
 ```javascript
-const resp = await loops.getTransactionalEmails();
+const resp = await loops.listTransactionalEmails();
 
-const resp = await loops.getTransactionalEmails({ perPage: 15 });
+const resp = await loops.listTransactionalEmails({ perPage: 15 });
 ```
 
 #### Response
@@ -866,28 +873,27 @@ const resp = await loops.getTransactionalEmails({ perPage: 15 });
     "perPage": 20,
     "totalPages": 2,
     "nextCursor": "clyo0q4wo01p59fsecyxqsh38",
-    "nextPage": "https://app.loops.so/api/v1/transactional?cursor=clyo0q4wo01p59fsecyxqsh38&perPage=20"
+    "nextPage": "https://app.loops.so/api/v1/transactional-emails?cursor=clyo0q4wo01p59fsecyxqsh38&perPage=20"
   },
   "data": [
     {
       "id": "clfn0k1yg001imo0fdeqg30i8",
-      "lastUpdated": "2023-11-06T17:48:07.249Z",
+      "name": "Sign up confirmation",
+      "draftEmailMessageId": null,
+      "publishedEmailMessageId": "msg_123",
+      "createdAt": "2023-11-06T17:48:07.249Z",
+      "updatedAt": "2023-11-06T17:48:07.249Z",
       "dataVariables": []
     },
     {
       "id": "cll42l54f20i1la0lfooe3z12",
-      "lastUpdated": "2025-02-02T02:56:28.845Z",
+      "name": "Password reset",
+      "draftEmailMessageId": "msg_456",
+      "publishedEmailMessageId": "msg_789",
+      "createdAt": "2025-02-02T02:56:28.845Z",
+      "updatedAt": "2025-02-02T02:56:28.845Z",
       "dataVariables": [
         "confirmationUrl"
-      ]
-    },
-    {
-      "id": "clw6rbuwp01rmeiyndm80155l",
-      "lastUpdated": "2024-05-14T19:02:52.000Z",
-      "dataVariables": [
-        "firstName",
-        "lastName",
-        "inviteLink"
       ]
     },
     ...
@@ -897,7 +903,110 @@ const resp = await loops.getTransactionalEmails({ perPage: 15 });
 
 ---
 
-### getDedicatedSendingIps()
+### getTransactionalEmail()
+
+Retrieve a single transactional email by ID.
+
+[API Reference](https://loops.so/docs/api-reference/get-transactional-email)
+
+#### Parameters
+
+| Name              | Type   | Required | Notes                                |
+| ----------------- | ------ | -------- | ------------------------------------ |
+| `transactionalId` | string | Yes      | The ID of the transactional email.   |
+
+#### Example
+
+```javascript
+const resp = await loops.getTransactionalEmail("trans_123");
+```
+
+---
+
+### createTransactionalEmail()
+
+Create a new transactional email. An empty draft email message is created automatically.
+
+[API Reference](https://loops.so/docs/api-reference/create-transactional-email)
+
+#### Parameters
+
+| Name   | Type   | Required | Notes                              |
+| ------ | ------ | -------- | ---------------------------------- |
+| `name` | string | Yes      | The name of the transactional email. |
+
+#### Example
+
+```javascript
+const resp = await loops.createTransactionalEmail({ name: "Welcome email" });
+```
+
+---
+
+### updateTransactionalEmail()
+
+Update a transactional email by ID.
+
+[API Reference](https://loops.so/docs/api-reference/update-transactional-email)
+
+#### Parameters
+
+| Name              | Type   | Required | Notes                              |
+| ----------------- | ------ | -------- | ---------------------------------- |
+| `transactionalId` | string | Yes      | The ID of the transactional email. |
+| `name`            | string | Yes      | The name of the transactional email. |
+
+#### Example
+
+```javascript
+const resp = await loops.updateTransactionalEmail("trans_123", {
+  name: "Updated name",
+});
+```
+
+---
+
+### ensureTransactionalEmailDraft()
+
+Ensure a transactional email has a draft email message. Use [`updateEmailMessage()`](#updateemailmessage) to edit the draft content.
+
+[API Reference](https://loops.so/docs/api-reference/ensure-transactional-email-draft)
+
+#### Parameters
+
+| Name              | Type   | Required | Notes                              |
+| ----------------- | ------ | -------- | ---------------------------------- |
+| `transactionalId` | string | Yes      | The ID of the transactional email. |
+
+#### Example
+
+```javascript
+const resp = await loops.ensureTransactionalEmailDraft("trans_123");
+```
+
+---
+
+### publishTransactionalEmail()
+
+Publish a transactional email's current draft.
+
+[API Reference](https://loops.so/docs/api-reference/publish-transactional-email)
+
+#### Parameters
+
+| Name              | Type   | Required | Notes                              |
+| ----------------- | ------ | -------- | ---------------------------------- |
+| `transactionalId` | string | Yes      | The ID of the transactional email. |
+
+#### Example
+
+```javascript
+const resp = await loops.publishTransactionalEmail("trans_123");
+```
+
+---
+
+### listDedicatedSendingIps()
 
 Get a list of Loops' dedicated sending IP addresses. This is intended for rare cases where you need to whitelist Loops' sending IPs.
 
@@ -910,7 +1019,7 @@ None
 #### Example
 
 ```javascript
-const resp = await loops.getDedicatedSendingIps();
+const resp = await loops.listDedicatedSendingIps();
 ```
 
 #### Response
@@ -926,7 +1035,7 @@ Error handling is done through the `APIError` class, which provides `statusCode`
 
 ---
 
-### getThemes()
+### listThemes()
 
 Retrieve a paginated list of email themes, most recently created first. Requires the content API to be enabled for your team.
 
@@ -942,9 +1051,9 @@ Retrieve a paginated list of email themes, most recently created first. Requires
 #### Example
 
 ```javascript
-const resp = await loops.getThemes();
+const resp = await loops.listThemes();
 
-const resp = await loops.getThemes({ perPage: 15, cursor: "clyo0q4wo01p59fsecyxqsh38" });
+const resp = await loops.listThemes({ perPage: 15, cursor: "clyo0q4wo01p59fsecyxqsh38" });
 ```
 
 #### Response
@@ -1017,7 +1126,7 @@ Error handling is done through the `APIError` class, which provides `statusCode`
 
 ---
 
-### getComponents()
+### listComponents()
 
 Retrieve a paginated list of email components. Requires the content API to be enabled for your team.
 
@@ -1033,9 +1142,9 @@ Retrieve a paginated list of email components. Requires the content API to be en
 #### Example
 
 ```javascript
-const resp = await loops.getComponents();
+const resp = await loops.listComponents();
 
-const resp = await loops.getComponents({ perPage: 15 });
+const resp = await loops.listComponents({ perPage: 15 });
 ```
 
 #### Response
@@ -1098,7 +1207,7 @@ Error handling is done through the `APIError` class, which provides `statusCode`
 
 ---
 
-### getCampaigns()
+### listCampaigns()
 
 Retrieve a paginated list of campaigns. Requires the content API to be enabled for your team.
 
@@ -1114,9 +1223,9 @@ Retrieve a paginated list of campaigns. Requires the content API to be enabled f
 #### Example
 
 ```javascript
-const resp = await loops.getCampaigns();
+const resp = await loops.listCampaigns();
 
-const resp = await loops.getCampaigns({ perPage: 15 });
+const resp = await loops.listCampaigns({ perPage: 15 });
 ```
 
 #### Response
@@ -1377,9 +1486,58 @@ HTTP 409 Conflict
 
 ---
 
+### createUpload()
+
+Request a pre-signed URL to upload an image asset. Upload the file with an HTTP `PUT` to the returned `presignedUrl`, then call [`completeUpload()`](#completeupload).
+
+[API Reference](https://loops.so/docs/api-reference/create-upload)
+
+#### Parameters
+
+| Name            | Type    | Required | Notes                                                                                      |
+| --------------- | ------- | -------- | ------------------------------------------------------------------------------------------ |
+| `contentType`   | string  | Yes      | MIME type (`image/jpeg`, `image/png`, `image/gif`, or `image/webp`).                       |
+| `contentLength` | integer | Yes      | File size in bytes. Must be a positive integer no greater than 4,000,000 bytes.            |
+
+#### Example
+
+```javascript
+const resp = await loops.createUpload({
+  contentType: "image/png",
+  contentLength: 102400,
+});
+```
+
+---
+
+### completeUpload()
+
+Finalize an asset after the file has been uploaded to the pre-signed URL.
+
+[API Reference](https://loops.so/docs/api-reference/complete-upload)
+
+#### Parameters
+
+| Name | Type   | Required | Notes                                                      |
+| ---- | ------ | -------- | ---------------------------------------------------------- |
+| `id` | string | Yes      | The `emailAssetId` returned from [`createUpload()`](#createupload). |
+
+#### Example
+
+```javascript
+const resp = await loops.completeUpload("asset_123");
+```
+
+---
+
 ## Version history
 
-- `v6.4.0` (May 18, 2026) - Added [`getDedicatedSendingIps()`](#getdedicatedsendingips), and endpoints for creating and editing campaings ([`getThemes()`](#getthemes), [`getTheme()`](#gettheme), [`getComponents()`](#getcomponents), [`getComponent()`](#getcomponent), [`getCampaigns()`](#getcampaigns), [`createCampaign()`](#createcampaign), [`getCampaign()`](#getcampaign), [`updateCampaign()`](#updatecampaign), [`getEmailMessage()`](#getemailmessage), and [`updateEmailMessage()`](#updateemailmessage)).
+- `v7.0.0` (Jun 8, 2026)
+  - Added transactional email management ([`getTransactionalEmail()`](#gettransactionalemail), [`createTransactionalEmail()`](#createtransactionalemail), [`updateTransactionalEmail()`](#updatetransactionalemail), [`ensureTransactionalEmailDraft()`](#ensuretransactionalemaildraft), [`publishTransactionalEmail()`](#publishtransactionalemail))
+  - Added image uploads ([`createUpload()`](#createupload), [`completeUpload()`](#completeupload)).
+  - Renamed list methods to use a consistent `list` naming pattern (breaking change): [`listContactProperties()`](#listcontactproperties), [`listMailingLists()`](#listmailinglists), [`listTransactionalEmails()`](#listtransactionalemails), [`listDedicatedSendingIps()`](#listdedicatedsendingips), [`listThemes()`](#listthemes), [`listComponents()`](#listcomponents), and [`listCampaigns()`](#listcampaigns). 
+  - Note: [`listTransactionalEmails()`](#listtransactionalemails) uses a new underlying API endpoint returns an updated response shape.
+- `v6.4.0` (May 18, 2026) - Added `getDedicatedSendingIps()`, and endpoints for creating and editing campaings (`getThemes()`, [`getTheme()`](#gettheme), `getComponents()`, [`getComponent()`](#getcomponent), `getCampaigns()`, [`createCampaign()`](#createcampaign), [`getCampaign()`](#getcampaign), [`updateCampaign()`](#updatecampaign), [`getEmailMessage()`](#getemailmessage), and [`updateEmailMessage()`](#updateemailmessage)).
 - `v6.3.0` (Apr 8, 2026) - Added [`checkContactSuppression()`](#checkcontactsuppression) and [`removeContactSuppression()`](#removecontactsuppression) methods.
 - `v6.2.0` (Feb 9, 2026) - Support for the new arrays feature in sendTransactionalEmail.
 - `v6.1.2` (Jan 29, 2026) - Added `rawBody` to `APIError` in the case no JSON is received from the server (thanks to [@leipert](https://github.com/leipert)).
@@ -1391,21 +1549,21 @@ HTTP 409 Conflict
   - `ValidationError` is now thrown when parameters are not added correctly.
   - `Error` is now returned if the API key is missing.
   - Added tests.
-- `v4.1.0` (Feb 27, 2025) - Support for new [List transactional emails](#gettransactionalemails) endpoint.
+- `v4.1.0` (Feb 27, 2025) - Support for new [List transactional emails](#listtransactionalemails) endpoint.
 - `v4.0.0` (Jan 16, 2025)
   - Added `APIError` to more easily understand API errors. [See usage example](#usage).
   - Added support for two new contact property endpoints: [List contact properties](#listcontactproperties) and [Create contact property](#createcontactproperty).
   - Deprecated and removed the `getCustomFields()` method (you can now use [`listContactProperties()`](#listcontactproperties) instead).
-- `v3.4.1` (Dec 18, 2024) - Support for a new `description` attribute in [`getMailingLists()`](#getmailinglists).
+- `v3.4.1` (Dec 18, 2024) - Support for a new `description` attribute in [`listMailingLists()`](#listmailinglists).
 - `v3.4.0` (Oct 29, 2024) - Added rate limit handling with [`RateLimitExceededError`](#handling-rate-limits).
 - `v3.3.0` (Sep 9, 2024) - Added [`testApiKey()`](#testapikey) method.
 - `v3.2.0` (Aug 23, 2024) - Added support for a new `mailingLists` attribute in [`findContact()`](#findcontact).
-- `v3.1.1` (Aug 16, 2024) - Support for a new `isPublic` attribute in [`getMailingLists()`](#getmailinglists).
+- `v3.1.1` (Aug 16, 2024) - Support for a new `isPublic` attribute in [`listMailingLists()`](#listmailinglists).
 - `v3.1.0` (Aug 12, 2024) - The SDK now accepts `null` as a value for contact properties in `createContact()`, `updateContact()` and `sendEvent()`, which allows you to reset/empty properties.
 - `v3.0.0` (Jul 2, 2024) - [`sendTransactionalEmail()`](#sendtransactionalemail) now accepts an object instead of separate parameters (breaking change).
 - `v2.2.0` (Jul 2, 2024) - Deprecated. Added new `addToAudience` option to [`sendTransactionalEmail()`](#sendtransactionalemail).
 - `v2.1.1` (Jun 20, 2024) - Added support for mailing lists in [`createContact()`](#createcontact), [`updateContact()`](#updatecontact) and [`sendEvent()`](#sendevent).
-- `v2.1.0` (Jun 19, 2024) - Added support for new [List mailing lists](#getmailinglists) endpoint.
+- `v2.1.0` (Jun 19, 2024) - Added support for new [List mailing lists](#listmailinglists) endpoint.
 - `v2.0.0` (Apr 19, 2024)
   - Added `userId` as a parameter to [`findContact()`](#findcontact). This includes a breaking change for the `findContact()` parameters.
   - `userId` values must now be strings (could have also been numbers previously).

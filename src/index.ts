@@ -254,6 +254,75 @@ interface ListTransactionalsResponse {
   data: TransactionalEmail[];
 }
 
+interface TransactionalEmailResource {
+  /** The ID of the transactional email. */
+  id: string;
+  /** The name of the transactional email. */
+  name: string;
+  /** The ID of the draft email message, or `null` if none. */
+  draftEmailMessageId: string | null;
+  /** The ID of the published email message, or `null` if none. */
+  publishedEmailMessageId: string | null;
+  /** The date the transactional email was created in ECMA-262 date-time format. */
+  createdAt: string;
+  /** The date the transactional email was last updated in ECMA-262 date-time format. */
+  updatedAt: string;
+  /**
+   * Data variable names used by the published email.
+   * Empty for unpublished transactional emails.
+   */
+  dataVariables: string[];
+}
+
+interface ListTransactionalsResourceResponse {
+  pagination: PaginationData;
+  data: TransactionalEmailResource[];
+}
+
+interface TransactionalResponse {
+  id: string;
+  name: string;
+  draftEmailMessageId: string | null;
+  publishedEmailMessageId: string | null;
+  createdAt: string;
+  updatedAt: string;
+  dataVariables: string[];
+}
+
+interface TransactionalDraftResponse {
+  id: string;
+  name: string;
+  draftEmailMessageId: string | null;
+  /**
+   * The `contentRevisionId` of the draft email message.
+   * Pass this as `expectedRevisionId` on your first update via `updateEmailMessage()`.
+   */
+  draftEmailMessageContentRevisionId: string | null;
+  publishedEmailMessageId: string | null;
+  createdAt: string;
+  updatedAt: string;
+  dataVariables: string[];
+}
+
+interface CreateUploadResponse {
+  /**
+   * The ID of the created asset.
+   * Pass this to `completeUpload()` once the file has been uploaded.
+   */
+  emailAssetId: string;
+  /**
+   * The pre-signed URL to upload the file to with an HTTP `PUT` request.
+   * Send the same `Content-Type` and `Content-Length` used in the create request.
+   */
+  presignedUrl: string;
+}
+
+interface CompleteUploadResponse {
+  emailAssetId: string;
+  /** The public URL of the uploaded asset. */
+  finalUrl: string;
+}
+
 interface ThemeStyles {
   backgroundColor?: string;
   backgroundXPadding?: number;
@@ -799,7 +868,7 @@ class LoopsClient {
   }
 
   /**
-   * Get contact properties.
+   * List contact properties.
    *
    * @param {"all" | "custom"} [list] Return all or just custom properties.
    *
@@ -807,7 +876,7 @@ class LoopsClient {
    *
    * @returns {Object} List of contact properties (JSON)
    */
-  async getCustomProperties(
+  async listContactProperties(
     list?: "all" | "custom"
   ): Promise<ContactProperty[]> {
     return this._makeQuery({
@@ -817,13 +886,13 @@ class LoopsClient {
   }
 
   /**
-   * Get mailing lists.
+   * List mailing lists.
    *
    * @see https://loops.so/docs/api-reference/list-mailing-lists
    *
    * @returns {Object} List of mailing lists (JSON)
    */
-  async getMailingLists(): Promise<MailingList[]> {
+  async listMailingLists(): Promise<MailingList[]> {
     return this._makeQuery({
       path: "v1/lists",
     });
@@ -934,7 +1003,7 @@ class LoopsClient {
   }
 
   /**
-   * List published transactional emails.
+   * List transactional emails.
    *
    * @param {Object} params
    * @param {number} [params.perPage] How many results to return in each request. Must be between 10 and 50. Defaults to 20.
@@ -944,31 +1013,128 @@ class LoopsClient {
    *
    * @returns {Object} List of transactional emails (JSON)
    */
-  async getTransactionalEmails({
+  async listTransactionalEmails({
     perPage,
     cursor,
   }: {
     perPage?: number;
     cursor?: string;
-  } = {}): Promise<ListTransactionalsResponse> {
-    let params: { perPage: string; cursor?: string } = {
+  } = {}): Promise<ListTransactionalsResourceResponse> {
+    const params: { perPage: string; cursor?: string } = {
       perPage: (perPage || 20).toString(),
     };
     if (cursor) params["cursor"] = cursor;
     return this._makeQuery({
-      path: "v1/transactional",
+      path: "v1/transactional-emails",
       params,
     });
   }
 
   /**
-   * Get dedicated sending IP addresses.
+   * Get a transactional email by ID.
+   *
+   * @param {string} transactionalId The ID of the transactional email.
+   *
+   * @see https://loops.so/docs/api-reference/get-transactional-email
+   *
+   * @returns {Object} Transactional email (JSON)
+   */
+  async getTransactionalEmail(
+    transactionalId: string
+  ): Promise<TransactionalResponse> {
+    return this._makeQuery({
+      path: `v1/transactional-emails/${transactionalId}`,
+    });
+  }
+
+  /**
+   * Create a transactional email.
+   *
+   * @param {Object} params
+   * @param {string} params.name The name of the transactional email.
+   *
+   * @see https://loops.so/docs/api-reference/create-transactional-email
+   *
+   * @returns {Object} Created transactional email with draft (JSON)
+   */
+  async createTransactionalEmail({
+    name,
+  }: {
+    name: string;
+  }): Promise<TransactionalDraftResponse> {
+    return this._makeQuery({
+      path: "v1/transactional-emails",
+      method: "POST",
+      payload: { name },
+    });
+  }
+
+  /**
+   * Update a transactional email.
+   *
+   * @param {string} transactionalId The ID of the transactional email.
+   * @param {Object} params
+   * @param {string} params.name The name of the transactional email.
+   *
+   * @see https://loops.so/docs/api-reference/update-transactional-email
+   *
+   * @returns {Object} Updated transactional email (JSON)
+   */
+  async updateTransactionalEmail(
+    transactionalId: string,
+    { name }: { name: string }
+  ): Promise<TransactionalResponse> {
+    return this._makeQuery({
+      path: `v1/transactional-emails/${transactionalId}`,
+      method: "POST",
+      payload: { name },
+    });
+  }
+
+  /**
+   * Ensure a transactional email has a draft email message.
+   *
+   * @param {string} transactionalId The ID of the transactional email.
+   *
+   * @see https://loops.so/docs/api-reference/ensure-transactional-email-draft
+   *
+   * @returns {Object} Transactional email with draft (JSON)
+   */
+  async ensureTransactionalEmailDraft(
+    transactionalId: string
+  ): Promise<TransactionalDraftResponse> {
+    return this._makeQuery({
+      path: `v1/transactional-emails/${transactionalId}/draft`,
+      method: "POST",
+    });
+  }
+
+  /**
+   * Publish a transactional email draft.
+   *
+   * @param {string} transactionalId The ID of the transactional email.
+   *
+   * @see https://loops.so/docs/api-reference/publish-transactional-email
+   *
+   * @returns {Object} Published transactional email (JSON)
+   */
+  async publishTransactionalEmail(
+    transactionalId: string
+  ): Promise<TransactionalResponse> {
+    return this._makeQuery({
+      path: `v1/transactional-emails/${transactionalId}/publish`,
+      method: "POST",
+    });
+  }
+
+  /**
+   * List dedicated sending IP addresses.
    *
    * @see https://loops.so/docs/api-reference/get-dedicated-sending-ips
    *
    * @returns {string[]} List of IP addresses
    */
-  async getDedicatedSendingIps(): Promise<string[]> {
+  async listDedicatedSendingIps(): Promise<string[]> {
     return this._makeQuery({
       path: "v1/dedicated-sending-ips",
     });
@@ -985,7 +1151,7 @@ class LoopsClient {
    *
    * @returns {Object} List of themes (JSON)
    */
-  async getThemes({
+  async listThemes({
     perPage,
     cursor,
   }: {
@@ -1028,7 +1194,7 @@ class LoopsClient {
    *
    * @returns {Object} List of components (JSON)
    */
-  async getComponents({
+  async listComponents({
     perPage,
     cursor,
   }: {
@@ -1071,7 +1237,7 @@ class LoopsClient {
    *
    * @returns {Object} List of campaigns (JSON)
    */
-  async getCampaigns({
+  async listCampaigns({
     perPage,
     cursor,
   }: {
@@ -1218,6 +1384,47 @@ class LoopsClient {
       payload,
     });
   }
+
+  /**
+   * Create an upload.
+   *
+   * @param {Object} params
+   * @param {string} params.contentType The MIME type of the file to upload. Supported types are `image/jpeg`, `image/png`, `image/gif` and `image/webp`.
+   * @param {number} params.contentLength The size of the file in bytes. Must be a positive integer no greater than 4,000,000 bytes.
+   *
+   * @see https://loops.so/docs/api-reference/create-upload
+   *
+   * @returns {Object} Pre-signed upload URL (JSON)
+   */
+  async createUpload({
+    contentType,
+    contentLength,
+  }: {
+    contentType: string;
+    contentLength: number;
+  }): Promise<CreateUploadResponse> {
+    return this._makeQuery({
+      path: "v1/uploads",
+      method: "POST",
+      payload: { contentType, contentLength },
+    });
+  }
+
+  /**
+   * Complete an upload.
+   *
+   * @param {string} id The `emailAssetId` returned when the upload was created.
+   *
+   * @see https://loops.so/docs/api-reference/complete-upload
+   *
+   * @returns {Object} Public URL of the uploaded asset (JSON)
+   */
+  async completeUpload(id: string): Promise<CompleteUploadResponse> {
+    return this._makeQuery({
+      path: `v1/uploads/${id}/complete`,
+      method: "POST",
+    });
+  }
 }
 
 export {
@@ -1249,6 +1456,12 @@ export {
   PaginationData,
   TransactionalEmail,
   ListTransactionalsResponse,
+  TransactionalEmailResource,
+  ListTransactionalsResourceResponse,
+  TransactionalResponse,
+  TransactionalDraftResponse,
+  CreateUploadResponse,
+  CompleteUploadResponse,
   MailingLists,
   ThemeStyles,
   Theme,

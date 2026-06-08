@@ -816,7 +816,10 @@ describe("LoopsClient", () => {
         {
           id: "trans_123",
           name: "Welcome Email",
-          lastUpdated: "2023-01-02T00:00:00.000Z",
+          draftEmailMessageId: "msg_draft_123",
+          publishedEmailMessageId: "msg_pub_123",
+          createdAt: "2023-01-01T00:00:00.000Z",
+          updatedAt: "2023-01-02T00:00:00.000Z",
           dataVariables: ["name", "product"],
         },
       ];
@@ -837,21 +840,21 @@ describe("LoopsClient", () => {
         text: () => Promise.resolve(JSON.stringify(mockResponse)),
       });
 
-      const result = await client.getTransactionalEmails();
+      const result = await client.listTransactionalEmails();
 
       expect(result).toEqual(mockResponse);
       expect(fetch).toHaveBeenCalledWith(
-        expect.stringContaining("v1/transactional"),
+        expect.stringContaining("v1/transactional-emails?perPage=20"),
         expect.objectContaining({
           method: "GET",
         })
       );
 
-      // Type checking
       result.data.forEach((email) => {
         expect(typeof email.id).toBe("string");
         expect(typeof email.name).toBe("string");
-        expect(typeof email.lastUpdated).toBe("string");
+        expect(typeof email.createdAt).toBe("string");
+        expect(typeof email.updatedAt).toBe("string");
         expect(Array.isArray(email.dataVariables)).toBe(true);
         expect(email.dataVariables.length).toBe(2);
       });
@@ -864,6 +867,8 @@ describe("LoopsClient", () => {
           returnedResults: 0,
           perPage: 20,
           totalPages: 0,
+          nextCursor: null,
+          nextPage: null,
         },
         data: [],
       };
@@ -873,11 +878,11 @@ describe("LoopsClient", () => {
         text: () => Promise.resolve(JSON.stringify(mockResponse)),
       });
 
-      const result = await client.getTransactionalEmails();
+      const result = await client.listTransactionalEmails();
 
       expect(result.data).toEqual([]);
       expect(fetch).toHaveBeenCalledWith(
-        expect.stringContaining("v1/transactional"),
+        expect.stringContaining("v1/transactional-emails?perPage=20"),
         expect.objectContaining({
           method: "GET",
         })
@@ -885,7 +890,207 @@ describe("LoopsClient", () => {
     });
   });
 
-  describe("getDedicatedSendingIps", () => {
+  describe("getTransactionalEmail", () => {
+    it("should get a transactional email by ID", async () => {
+      const mockResponse = {
+        id: "trans_123",
+        name: "Welcome Email",
+        draftEmailMessageId: null,
+        publishedEmailMessageId: "msg_pub_123",
+        createdAt: "2023-01-01T00:00:00.000Z",
+        updatedAt: "2023-01-02T00:00:00.000Z",
+        dataVariables: ["name"],
+      };
+
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        text: () => Promise.resolve(JSON.stringify(mockResponse)),
+      });
+
+      const result = await client.getTransactionalEmail("trans_123");
+
+      expect(result).toEqual(mockResponse);
+      expect(fetch).toHaveBeenCalledWith(
+        expect.stringContaining("v1/transactional-emails/trans_123"),
+        expect.objectContaining({ method: "GET" })
+      );
+    });
+  });
+
+  describe("createTransactionalEmail", () => {
+    it("should create a transactional email", async () => {
+      const mockResponse = {
+        id: "trans_123",
+        name: "Welcome Email",
+        draftEmailMessageId: "msg_draft_123",
+        draftEmailMessageContentRevisionId: "rev_123",
+        publishedEmailMessageId: null,
+        createdAt: "2023-01-01T00:00:00.000Z",
+        updatedAt: "2023-01-01T00:00:00.000Z",
+        dataVariables: [],
+      };
+
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        text: () => Promise.resolve(JSON.stringify(mockResponse)),
+      });
+
+      const result = await client.createTransactionalEmail({
+        name: "Welcome Email",
+      });
+
+      expect(result).toEqual(mockResponse);
+      expect(fetch).toHaveBeenCalledWith(
+        expect.stringContaining("v1/transactional-emails"),
+        expect.objectContaining({
+          method: "POST",
+          body: JSON.stringify({ name: "Welcome Email" }),
+        })
+      );
+    });
+  });
+
+  describe("updateTransactionalEmail", () => {
+    it("should update a transactional email", async () => {
+      const mockResponse = {
+        id: "trans_123",
+        name: "Updated Email",
+        draftEmailMessageId: "msg_draft_123",
+        publishedEmailMessageId: "msg_pub_123",
+        createdAt: "2023-01-01T00:00:00.000Z",
+        updatedAt: "2023-01-02T00:00:00.000Z",
+        dataVariables: ["name"],
+      };
+
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        text: () => Promise.resolve(JSON.stringify(mockResponse)),
+      });
+
+      const result = await client.updateTransactionalEmail("trans_123", {
+        name: "Updated Email",
+      });
+
+      expect(result).toEqual(mockResponse);
+      expect(fetch).toHaveBeenCalledWith(
+        expect.stringContaining("v1/transactional-emails/trans_123"),
+        expect.objectContaining({
+          method: "POST",
+          body: JSON.stringify({ name: "Updated Email" }),
+        })
+      );
+    });
+  });
+
+  describe("ensureTransactionalEmailDraft", () => {
+    it("should ensure a transactional email draft exists", async () => {
+      const mockResponse = {
+        id: "trans_123",
+        name: "Welcome Email",
+        draftEmailMessageId: "msg_draft_123",
+        draftEmailMessageContentRevisionId: "rev_123",
+        publishedEmailMessageId: "msg_pub_123",
+        createdAt: "2023-01-01T00:00:00.000Z",
+        updatedAt: "2023-01-02T00:00:00.000Z",
+        dataVariables: ["name"],
+      };
+
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        text: () => Promise.resolve(JSON.stringify(mockResponse)),
+      });
+
+      const result = await client.ensureTransactionalEmailDraft("trans_123");
+
+      expect(result).toEqual(mockResponse);
+      expect(fetch).toHaveBeenCalledWith(
+        expect.stringContaining("v1/transactional-emails/trans_123/draft"),
+        expect.objectContaining({ method: "POST" })
+      );
+    });
+  });
+
+  describe("publishTransactionalEmail", () => {
+    it("should publish a transactional email draft", async () => {
+      const mockResponse = {
+        id: "trans_123",
+        name: "Welcome Email",
+        draftEmailMessageId: null,
+        publishedEmailMessageId: "msg_pub_123",
+        createdAt: "2023-01-01T00:00:00.000Z",
+        updatedAt: "2023-01-02T00:00:00.000Z",
+        dataVariables: ["name"],
+      };
+
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        text: () => Promise.resolve(JSON.stringify(mockResponse)),
+      });
+
+      const result = await client.publishTransactionalEmail("trans_123");
+
+      expect(result).toEqual(mockResponse);
+      expect(fetch).toHaveBeenCalledWith(
+        expect.stringContaining("v1/transactional-emails/trans_123/publish"),
+        expect.objectContaining({ method: "POST" })
+      );
+    });
+  });
+
+  describe("createUpload", () => {
+    it("should create an upload", async () => {
+      const mockResponse = {
+        emailAssetId: "asset_123",
+        presignedUrl: "https://example.com/upload",
+      };
+
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        text: () => Promise.resolve(JSON.stringify(mockResponse)),
+      });
+
+      const result = await client.createUpload({
+        contentType: "image/png",
+        contentLength: 102400,
+      });
+
+      expect(result).toEqual(mockResponse);
+      expect(fetch).toHaveBeenCalledWith(
+        expect.stringContaining("v1/uploads"),
+        expect.objectContaining({
+          method: "POST",
+          body: JSON.stringify({
+            contentType: "image/png",
+            contentLength: 102400,
+          }),
+        })
+      );
+    });
+  });
+
+  describe("completeUpload", () => {
+    it("should complete an upload", async () => {
+      const mockResponse = {
+        emailAssetId: "asset_123",
+        finalUrl: "https://cdn.example.com/asset_123.png",
+      };
+
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        text: () => Promise.resolve(JSON.stringify(mockResponse)),
+      });
+
+      const result = await client.completeUpload("asset_123");
+
+      expect(result).toEqual(mockResponse);
+      expect(fetch).toHaveBeenCalledWith(
+        expect.stringContaining("v1/uploads/asset_123/complete"),
+        expect.objectContaining({ method: "POST" })
+      );
+    });
+  });
+
+  describe("listDedicatedSendingIps", () => {
     it("should return a list of IP addresses", async () => {
       const mockResponse = ["1.2.3.4", "5.6.7.8"];
 
@@ -894,7 +1099,7 @@ describe("LoopsClient", () => {
         text: () => Promise.resolve(JSON.stringify(mockResponse)),
       });
 
-      const result = await client.getDedicatedSendingIps();
+      const result = await client.listDedicatedSendingIps();
 
       expect(result).toEqual(mockResponse);
       expect(fetch).toHaveBeenCalledWith(
@@ -904,7 +1109,7 @@ describe("LoopsClient", () => {
     });
   });
 
-  describe("getThemes", () => {
+  describe("listThemes", () => {
     it("should list themes with pagination", async () => {
       const mockResponse = {
         success: true,
@@ -933,7 +1138,7 @@ describe("LoopsClient", () => {
         text: () => Promise.resolve(JSON.stringify(mockResponse)),
       });
 
-      const result = await client.getThemes({ perPage: 10, cursor: "abc" });
+      const result = await client.listThemes({ perPage: 10, cursor: "abc" });
 
       expect(result).toEqual(mockResponse);
       expect(fetch).toHaveBeenCalledWith(
@@ -970,7 +1175,7 @@ describe("LoopsClient", () => {
     });
   });
 
-  describe("getComponents", () => {
+  describe("listComponents", () => {
     it("should list components with pagination", async () => {
       const mockResponse = {
         success: true,
@@ -996,7 +1201,7 @@ describe("LoopsClient", () => {
         text: () => Promise.resolve(JSON.stringify(mockResponse)),
       });
 
-      const result = await client.getComponents();
+      const result = await client.listComponents();
 
       expect(result).toEqual(mockResponse);
       expect(fetch).toHaveBeenCalledWith(
@@ -1030,7 +1235,7 @@ describe("LoopsClient", () => {
     });
   });
 
-  describe("getCampaigns", () => {
+  describe("listCampaigns", () => {
     it("should list campaigns", async () => {
       const mockResponse = {
         success: true,
@@ -1060,7 +1265,7 @@ describe("LoopsClient", () => {
         text: () => Promise.resolve(JSON.stringify(mockResponse)),
       });
 
-      const result = await client.getCampaigns();
+      const result = await client.listCampaigns();
 
       expect(result).toEqual(mockResponse);
       expect(fetch).toHaveBeenCalledWith(
