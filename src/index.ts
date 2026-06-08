@@ -216,24 +216,6 @@ interface PaginationData {
   nextPage: string | null;
 }
 
-interface TransactionalEmail {
-  /** The ID of the transactional email. */
-  id: string;
-  /**
-   * The name of the transactional email.
-   */
-  name: string;
-  /**
-   * The date the email was last updated in ECMA-262 date-time format.
-   * @see https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-date-time-string-format
-   */
-  lastUpdated: string;
-  /**
-   * Data variables in the transactional email.
-   */
-  dataVariables: string[];
-}
-
 interface ContactProperty {
   /**
    * The property's name.
@@ -247,11 +229,6 @@ interface ContactProperty {
    * The type of property.
    */
   type: "string" | "number" | "boolean" | "date";
-}
-
-interface ListTransactionalsResponse {
-  pagination: PaginationData;
-  data: TransactionalEmail[];
 }
 
 interface TransactionalEmailResource {
@@ -274,34 +251,17 @@ interface TransactionalEmailResource {
   dataVariables: string[];
 }
 
-interface ListTransactionalsResourceResponse {
-  pagination: PaginationData;
-  data: TransactionalEmailResource[];
-}
-
-interface TransactionalResponse {
-  id: string;
-  name: string;
-  draftEmailMessageId: string | null;
-  publishedEmailMessageId: string | null;
-  createdAt: string;
-  updatedAt: string;
-  dataVariables: string[];
-}
-
-interface TransactionalDraftResponse {
-  id: string;
-  name: string;
-  draftEmailMessageId: string | null;
+interface TransactionalDraftResponse extends TransactionalEmailResource {
   /**
    * The `contentRevisionId` of the draft email message.
    * Pass this as `expectedRevisionId` on your first update via `updateEmailMessage()`.
    */
   draftEmailMessageContentRevisionId: string | null;
-  publishedEmailMessageId: string | null;
-  createdAt: string;
-  updatedAt: string;
-  dataVariables: string[];
+}
+
+interface ListTransactionalsResourceResponse {
+  pagination: PaginationData;
+  data: TransactionalEmailResource[];
 }
 
 interface CreateUploadResponse {
@@ -1041,7 +1001,7 @@ class LoopsClient {
    */
   async getTransactionalEmail(
     transactionalId: string
-  ): Promise<TransactionalResponse> {
+  ): Promise<TransactionalEmailResource> {
     return this._makeQuery({
       path: `v1/transactional-emails/${transactionalId}`,
     });
@@ -1083,7 +1043,7 @@ class LoopsClient {
   async updateTransactionalEmail(
     transactionalId: string,
     { name }: { name: string }
-  ): Promise<TransactionalResponse> {
+  ): Promise<TransactionalEmailResource> {
     return this._makeQuery({
       path: `v1/transactional-emails/${transactionalId}`,
       method: "POST",
@@ -1120,7 +1080,7 @@ class LoopsClient {
    */
   async publishTransactionalEmail(
     transactionalId: string
-  ): Promise<TransactionalResponse> {
+  ): Promise<TransactionalEmailResource> {
     return this._makeQuery({
       path: `v1/transactional-emails/${transactionalId}/publish`,
       method: "POST",
@@ -1454,12 +1414,9 @@ export {
   TransactionalAttachment,
   MailingList,
   PaginationData,
-  TransactionalEmail,
-  ListTransactionalsResponse,
   TransactionalEmailResource,
-  ListTransactionalsResourceResponse,
-  TransactionalResponse,
   TransactionalDraftResponse,
+  ListTransactionalsResourceResponse,
   CreateUploadResponse,
   CompleteUploadResponse,
   MailingLists,
