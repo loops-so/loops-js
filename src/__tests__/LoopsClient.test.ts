@@ -897,6 +897,7 @@ describe("LoopsClient", () => {
         name: "Welcome Email",
         draftEmailMessageId: null,
         publishedEmailMessageId: "msg_pub_123",
+        transactionalGroupId: null,
         createdAt: "2023-01-01T00:00:00.000Z",
         updatedAt: "2023-01-02T00:00:00.000Z",
         dataVariables: ["name"],
@@ -925,6 +926,7 @@ describe("LoopsClient", () => {
         draftEmailMessageId: "msg_draft_123",
         draftEmailMessageContentRevisionId: "rev_123",
         publishedEmailMessageId: null,
+        transactionalGroupId: null,
         createdAt: "2023-01-01T00:00:00.000Z",
         updatedAt: "2023-01-01T00:00:00.000Z",
         dataVariables: [],
@@ -957,6 +959,7 @@ describe("LoopsClient", () => {
         name: "Updated Email",
         draftEmailMessageId: "msg_draft_123",
         publishedEmailMessageId: "msg_pub_123",
+        transactionalGroupId: null,
         createdAt: "2023-01-01T00:00:00.000Z",
         updatedAt: "2023-01-02T00:00:00.000Z",
         dataVariables: ["name"],
@@ -990,6 +993,7 @@ describe("LoopsClient", () => {
         draftEmailMessageId: "msg_draft_123",
         draftEmailMessageContentRevisionId: "rev_123",
         publishedEmailMessageId: "msg_pub_123",
+        transactionalGroupId: null,
         createdAt: "2023-01-01T00:00:00.000Z",
         updatedAt: "2023-01-02T00:00:00.000Z",
         dataVariables: ["name"],
@@ -1017,6 +1021,7 @@ describe("LoopsClient", () => {
         name: "Welcome Email",
         draftEmailMessageId: null,
         publishedEmailMessageId: "msg_pub_123",
+        transactionalGroupId: null,
         createdAt: "2023-01-01T00:00:00.000Z",
         updatedAt: "2023-01-02T00:00:00.000Z",
         dataVariables: ["name"],
@@ -1112,7 +1117,6 @@ describe("LoopsClient", () => {
   describe("listThemes", () => {
     it("should list themes with pagination", async () => {
       const mockResponse = {
-        success: true,
         pagination: {
           totalResults: 1,
           returnedResults: 1,
@@ -1123,7 +1127,7 @@ describe("LoopsClient", () => {
         },
         data: [
           {
-            themeId: "theme_123",
+            id: "theme_123",
             name: "Default",
             styles: { backgroundColor: "#ffffff" },
             isDefault: true,
@@ -1151,8 +1155,7 @@ describe("LoopsClient", () => {
   describe("getTheme", () => {
     it("should get a theme by ID", async () => {
       const mockResponse = {
-        success: true,
-        themeId: "theme_123",
+        id: "theme_123",
         name: "Default",
         styles: {},
         isDefault: true,
@@ -1178,7 +1181,6 @@ describe("LoopsClient", () => {
   describe("listComponents", () => {
     it("should list components with pagination", async () => {
       const mockResponse = {
-        success: true,
         pagination: {
           totalResults: 1,
           returnedResults: 1,
@@ -1189,7 +1191,7 @@ describe("LoopsClient", () => {
         },
         data: [
           {
-            componentId: "comp_123",
+            id: "comp_123",
             name: "Header",
             lmx: "<Section />",
           },
@@ -1214,8 +1216,7 @@ describe("LoopsClient", () => {
   describe("getComponent", () => {
     it("should get a component by ID", async () => {
       const mockResponse = {
-        success: true,
-        componentId: "comp_123",
+        id: "comp_123",
         name: "Header",
         lmx: "<Section />",
       };
@@ -1235,10 +1236,23 @@ describe("LoopsClient", () => {
     });
   });
 
+  const campaignFixture = {
+    id: "camp_123",
+    name: "Spring announcement",
+    status: "Draft",
+    createdAt: "2025-01-01T00:00:00.000Z",
+    updatedAt: "2025-01-01T00:00:00.000Z",
+    emailMessageId: "msg_123",
+    campaignGroupId: null,
+    mailingListId: null,
+    audienceSegmentId: null,
+    audienceFilter: null,
+    scheduling: { method: "now" as const, timestamp: null },
+  };
+
   describe("listCampaigns", () => {
     it("should list campaigns", async () => {
       const mockResponse = {
-        success: true,
         pagination: {
           totalResults: 1,
           returnedResults: 1,
@@ -1247,17 +1261,7 @@ describe("LoopsClient", () => {
           nextCursor: null,
           nextPage: null,
         },
-        data: [
-          {
-            campaignId: "camp_123",
-            emailMessageId: "msg_123",
-            name: "Spring announcement",
-            subject: "",
-            status: "Draft",
-            createdAt: "2025-01-01T00:00:00.000Z",
-            updatedAt: "2025-01-01T00:00:00.000Z",
-          },
-        ],
+        data: [campaignFixture],
       };
 
       global.fetch = jest.fn().mockResolvedValue({
@@ -1278,13 +1282,7 @@ describe("LoopsClient", () => {
   describe("createCampaign", () => {
     it("should create a draft campaign", async () => {
       const mockResponse = {
-        success: true,
-        campaignId: "camp_123",
-        name: "Spring announcement",
-        status: "Draft",
-        createdAt: "2025-01-01T00:00:00.000Z",
-        updatedAt: "2025-01-01T00:00:00.000Z",
-        emailMessageId: "msg_123",
+        ...campaignFixture,
         emailMessageContentRevisionId: "rev_123",
       };
 
@@ -1308,15 +1306,7 @@ describe("LoopsClient", () => {
 
   describe("getCampaign", () => {
     it("should get a campaign by ID", async () => {
-      const mockResponse = {
-        success: true,
-        campaignId: "camp_123",
-        name: "Spring announcement",
-        status: "Draft",
-        createdAt: "2025-01-01T00:00:00.000Z",
-        updatedAt: "2025-01-01T00:00:00.000Z",
-        emailMessageId: "msg_123",
-      };
+      const mockResponse = campaignFixture;
 
       global.fetch = jest.fn().mockResolvedValue({
         ok: true,
@@ -1336,13 +1326,9 @@ describe("LoopsClient", () => {
   describe("updateCampaign", () => {
     it("should update a draft campaign", async () => {
       const mockResponse = {
-        success: true,
-        campaignId: "camp_123",
+        ...campaignFixture,
         name: "Updated name",
-        status: "Draft",
-        createdAt: "2025-01-01T00:00:00.000Z",
         updatedAt: "2025-01-02T00:00:00.000Z",
-        emailMessageId: "msg_123",
       };
 
       global.fetch = jest.fn().mockResolvedValue({
@@ -1368,14 +1354,14 @@ describe("LoopsClient", () => {
   describe("getEmailMessage", () => {
     it("should get an email message by ID", async () => {
       const mockResponse = {
-        success: true,
-        emailMessageId: "msg_123",
+        id: "msg_123",
         campaignId: "camp_123",
         subject: "Hello",
         previewText: "Preview",
         fromName: "Loops",
         fromEmail: "hello",
         replyToEmail: "",
+        emailFormat: "styled",
         lmx: "<Email />",
         contentRevisionId: "rev_123",
         updatedAt: "2025-01-01T00:00:00.000Z",
@@ -1399,14 +1385,14 @@ describe("LoopsClient", () => {
   describe("updateEmailMessage", () => {
     it("should update an email message", async () => {
       const mockResponse = {
-        success: true,
-        emailMessageId: "msg_123",
+        id: "msg_123",
         campaignId: "camp_123",
         subject: "Updated subject",
         previewText: "Preview",
         fromName: "Loops",
         fromEmail: "hello",
         replyToEmail: "",
+        emailFormat: "styled",
         lmx: "<Email />",
         contentRevisionId: "rev_456",
         updatedAt: "2025-01-02T00:00:00.000Z",
