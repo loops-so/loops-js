@@ -76,7 +76,7 @@ describe("LoopsClient", () => {
   describe("createContact", () => {
     it("should create a contact with the provided email", async () => {
       const email = "test@example.com";
-      const mockResponse = { success: true, id: "123" };
+      const mockResponse = { success: true, id: "clw9h3y5a014yl70k9m2n4p8q" };
 
       global.fetch = jest.fn().mockResolvedValue({
         ok: true,
@@ -102,7 +102,7 @@ describe("LoopsClient", () => {
         age: 30,
         isActive: true,
       };
-      const mockResponse = { success: true, id: "123" };
+      const mockResponse = { success: true, id: "clw9h3y5a014yl70k9m2n4p8q" };
 
       global.fetch = jest.fn().mockResolvedValue({
         ok: true,
@@ -159,9 +159,9 @@ describe("LoopsClient", () => {
         userGroup: "customers",
       };
       const mailingLists = {
-        newsletter_id: true,
+        cm06f5v0e45nf0ml5754o9cix: true,
       };
-      const mockResponse = { success: true, id: "123" };
+      const mockResponse = { success: true, id: "clw9h3y5a014yl70k9m2n4p8q" };
 
       global.fetch = jest.fn().mockResolvedValue({
         ok: true,
@@ -185,16 +185,16 @@ describe("LoopsClient", () => {
     });
 
     it("should update contact by userId", async () => {
-      const userId = "user_123";
+      const userId = "1234567890";
       const properties = {
         firstName: "John",
         lastName: "Doe",
         userGroup: "customers",
       };
       const mailingLists = {
-        newsletter_id: true,
+        cm06f5v0e45nf0ml5754o9cix: true,
       };
-      const mockResponse = { success: true, id: "123" };
+      const mockResponse = { success: true, id: "clw9h3y5a014yl70k9m2n4p8q" };
 
       global.fetch = jest.fn().mockResolvedValue({
         ok: true,
@@ -221,7 +221,7 @@ describe("LoopsClient", () => {
       const email = "nonexistent@example.com";
       const mockResponse = {
         success: true,
-        id: "123",
+        id: "clw9h3y5a014yl70k9m2n4p8q",
       };
 
       global.fetch = jest.fn().mockResolvedValue({
@@ -280,7 +280,7 @@ describe("LoopsClient", () => {
     });
 
     it("should check suppression status by userId", async () => {
-      const userId = "user_123";
+      const userId = "1234567890";
       const mockResponse = {
         contact: {
           id: "cll6b3i8901a9jx0oyktl2m4u",
@@ -303,7 +303,7 @@ describe("LoopsClient", () => {
 
       expect(result).toEqual(mockResponse);
       expect(fetch).toHaveBeenCalledWith(
-        expect.stringContaining("v1/contacts/suppression?userId=user_123"),
+        expect.stringContaining("v1/contacts/suppression?userId=1234567890"),
         expect.objectContaining({
           method: "GET",
         })
@@ -314,7 +314,7 @@ describe("LoopsClient", () => {
       await expect(
         client.checkContactSuppression({
           email: "test@example.com",
-          userId: "user_123",
+          userId: "1234567890",
         })
       ).rejects.toThrow(ValidationError);
     });
@@ -355,7 +355,7 @@ describe("LoopsClient", () => {
     });
 
     it("should remove suppression by userId", async () => {
-      const userId = "user_123";
+      const userId = "1234567890";
       const mockResponse = {
         success: true,
         message: "User removed from suppression list.",
@@ -374,7 +374,7 @@ describe("LoopsClient", () => {
 
       expect(result).toEqual(mockResponse);
       expect(fetch).toHaveBeenCalledWith(
-        expect.stringContaining("v1/contacts/suppression?userId=user_123"),
+        expect.stringContaining("v1/contacts/suppression?userId=1234567890"),
         expect.objectContaining({
           method: "DELETE",
         })
@@ -385,7 +385,7 @@ describe("LoopsClient", () => {
       await expect(
         client.removeContactSuppression({
           email: "test@example.com",
-          userId: "user_123",
+          userId: "1234567890",
         })
       ).rejects.toThrow(ValidationError);
     });
@@ -484,7 +484,7 @@ describe("LoopsClient", () => {
           source: "web",
         },
         mailingLists: {
-          newsletter_id: true,
+          cm06f5v0e45nf0ml5754o9cix: true,
         },
       };
       const mockResponse = { success: true };
@@ -514,7 +514,7 @@ describe("LoopsClient", () => {
 
     it("should send an event successfully with userId", async () => {
       const eventData = {
-        userId: "user_123",
+        userId: "1234567890",
         eventName: "test_event",
       };
       const mockResponse = { success: true };
@@ -583,7 +583,7 @@ describe("LoopsClient", () => {
         email: "test@example.com",
         eventName: "test_event",
         headers: {
-          "Idempotency-Key": "unique_key_123",
+          "Idempotency-Key": "550e8400-e29b-41d4-a716-446655440000",
         },
       };
       const mockResponse = { success: true };
@@ -603,7 +603,9 @@ describe("LoopsClient", () => {
 
       // Verify headers using Headers object methods
       const headers = requestOptions.headers;
-      expect(headers.get("Idempotency-Key")).toBe("unique_key_123");
+      expect(headers.get("Idempotency-Key")).toBe(
+        "550e8400-e29b-41d4-a716-446655440000"
+      );
 
       // Verify the body doesn't contain idempotency key
       expect(requestOptions.body).toBe(
@@ -645,7 +647,7 @@ describe("LoopsClient", () => {
   describe("sendTransactionalEmail", () => {
     it("should send a transactional email successfully", async () => {
       const emailData = {
-        transactionalId: "email_123",
+        transactionalId: "clfq6dinn000yl70fgwwyp82l",
         email: "test@example.com",
         dataVariables: {
           name: "John",
@@ -676,7 +678,7 @@ describe("LoopsClient", () => {
 
     it("should handle error when sending transactional email fails", async () => {
       const emailData = {
-        transactionalId: "invalid_id",
+        transactionalId: "clx0i4z6b015yl70r9s0t1u2v",
         email: "test@example.com",
       };
       const mockResponse = {
@@ -814,10 +816,10 @@ describe("LoopsClient", () => {
     it("should list transactional emails successfully", async () => {
       const mockTransactionalEmails = [
         {
-          id: "trans_123",
+          id: "clfn0k1yg001imo0fdeqg30i8",
           name: "Welcome Email",
-          draftEmailMessageId: "msg_draft_123",
-          publishedEmailMessageId: "msg_pub_123",
+          draftEmailMessageId: "clm8k2n4p000yl70f6g7h8i9j",
+          publishedEmailMessageId: "clm8k2n4p001yl70k1l2m3n4o",
           createdAt: "2023-01-01T00:00:00.000Z",
           updatedAt: "2023-01-02T00:00:00.000Z",
           dataVariables: ["name", "product"],
@@ -893,10 +895,10 @@ describe("LoopsClient", () => {
   describe("getTransactionalEmail", () => {
     it("should get a transactional email by ID", async () => {
       const mockResponse = {
-        id: "trans_123",
+        id: "clfn0k1yg001imo0fdeqg30i8",
         name: "Welcome Email",
         draftEmailMessageId: null,
-        publishedEmailMessageId: "msg_pub_123",
+        publishedEmailMessageId: "clm8k2n4p001yl70k1l2m3n4o",
         transactionalGroupId: null,
         createdAt: "2023-01-01T00:00:00.000Z",
         updatedAt: "2023-01-02T00:00:00.000Z",
@@ -908,11 +910,11 @@ describe("LoopsClient", () => {
         text: () => Promise.resolve(JSON.stringify(mockResponse)),
       });
 
-      const result = await client.getTransactionalEmail("trans_123");
+      const result = await client.getTransactionalEmail("clfn0k1yg001imo0fdeqg30i8");
 
       expect(result).toEqual(mockResponse);
       expect(fetch).toHaveBeenCalledWith(
-        expect.stringContaining("v1/transactional-emails/trans_123"),
+        expect.stringContaining("v1/transactional-emails/clfn0k1yg001imo0fdeqg30i8"),
         expect.objectContaining({ method: "GET" })
       );
     });
@@ -921,10 +923,10 @@ describe("LoopsClient", () => {
   describe("createTransactionalEmail", () => {
     it("should create a transactional email", async () => {
       const mockResponse = {
-        id: "trans_123",
+        id: "clfn0k1yg001imo0fdeqg30i8",
         name: "Welcome Email",
-        draftEmailMessageId: "msg_draft_123",
-        draftEmailMessageContentRevisionId: "rev_123",
+        draftEmailMessageId: "clm8k2n4p000yl70f6g7h8i9j",
+        draftEmailMessageContentRevisionId: "clv8g2x4z012yl70n5o6p7q8r",
         publishedEmailMessageId: null,
         transactionalGroupId: null,
         createdAt: "2023-01-01T00:00:00.000Z",
@@ -955,10 +957,10 @@ describe("LoopsClient", () => {
   describe("updateTransactionalEmail", () => {
     it("should update a transactional email", async () => {
       const mockResponse = {
-        id: "trans_123",
+        id: "clfn0k1yg001imo0fdeqg30i8",
         name: "Updated Email",
-        draftEmailMessageId: "msg_draft_123",
-        publishedEmailMessageId: "msg_pub_123",
+        draftEmailMessageId: "clm8k2n4p000yl70f6g7h8i9j",
+        publishedEmailMessageId: "clm8k2n4p001yl70k1l2m3n4o",
         transactionalGroupId: null,
         createdAt: "2023-01-01T00:00:00.000Z",
         updatedAt: "2023-01-02T00:00:00.000Z",
@@ -970,13 +972,13 @@ describe("LoopsClient", () => {
         text: () => Promise.resolve(JSON.stringify(mockResponse)),
       });
 
-      const result = await client.updateTransactionalEmail("trans_123", {
+      const result = await client.updateTransactionalEmail("clfn0k1yg001imo0fdeqg30i8", {
         name: "Updated Email",
       });
 
       expect(result).toEqual(mockResponse);
       expect(fetch).toHaveBeenCalledWith(
-        expect.stringContaining("v1/transactional-emails/trans_123"),
+        expect.stringContaining("v1/transactional-emails/clfn0k1yg001imo0fdeqg30i8"),
         expect.objectContaining({
           method: "POST",
           body: JSON.stringify({ name: "Updated Email" }),
@@ -988,11 +990,11 @@ describe("LoopsClient", () => {
   describe("ensureTransactionalEmailDraft", () => {
     it("should ensure a transactional email draft exists", async () => {
       const mockResponse = {
-        id: "trans_123",
+        id: "clfn0k1yg001imo0fdeqg30i8",
         name: "Welcome Email",
-        draftEmailMessageId: "msg_draft_123",
-        draftEmailMessageContentRevisionId: "rev_123",
-        publishedEmailMessageId: "msg_pub_123",
+        draftEmailMessageId: "clm8k2n4p000yl70f6g7h8i9j",
+        draftEmailMessageContentRevisionId: "clv8g2x4z012yl70n5o6p7q8r",
+        publishedEmailMessageId: "clm8k2n4p001yl70k1l2m3n4o",
         transactionalGroupId: null,
         createdAt: "2023-01-01T00:00:00.000Z",
         updatedAt: "2023-01-02T00:00:00.000Z",
@@ -1004,11 +1006,11 @@ describe("LoopsClient", () => {
         text: () => Promise.resolve(JSON.stringify(mockResponse)),
       });
 
-      const result = await client.ensureTransactionalEmailDraft("trans_123");
+      const result = await client.ensureTransactionalEmailDraft("clfn0k1yg001imo0fdeqg30i8");
 
       expect(result).toEqual(mockResponse);
       expect(fetch).toHaveBeenCalledWith(
-        expect.stringContaining("v1/transactional-emails/trans_123/draft"),
+        expect.stringContaining("v1/transactional-emails/clfn0k1yg001imo0fdeqg30i8/draft"),
         expect.objectContaining({ method: "POST" })
       );
     });
@@ -1017,10 +1019,10 @@ describe("LoopsClient", () => {
   describe("publishTransactionalEmail", () => {
     it("should publish a transactional email draft", async () => {
       const mockResponse = {
-        id: "trans_123",
+        id: "clfn0k1yg001imo0fdeqg30i8",
         name: "Welcome Email",
         draftEmailMessageId: null,
-        publishedEmailMessageId: "msg_pub_123",
+        publishedEmailMessageId: "clm8k2n4p001yl70k1l2m3n4o",
         transactionalGroupId: null,
         createdAt: "2023-01-01T00:00:00.000Z",
         updatedAt: "2023-01-02T00:00:00.000Z",
@@ -1032,11 +1034,11 @@ describe("LoopsClient", () => {
         text: () => Promise.resolve(JSON.stringify(mockResponse)),
       });
 
-      const result = await client.publishTransactionalEmail("trans_123");
+      const result = await client.publishTransactionalEmail("clfn0k1yg001imo0fdeqg30i8");
 
       expect(result).toEqual(mockResponse);
       expect(fetch).toHaveBeenCalledWith(
-        expect.stringContaining("v1/transactional-emails/trans_123/publish"),
+        expect.stringContaining("v1/transactional-emails/clfn0k1yg001imo0fdeqg30i8/publish"),
         expect.objectContaining({ method: "POST" })
       );
     });
@@ -1045,7 +1047,7 @@ describe("LoopsClient", () => {
   describe("createUpload", () => {
     it("should create an upload", async () => {
       const mockResponse = {
-        emailAssetId: "asset_123",
+        emailAssetId: "clu7f1w3y011yl70m5n6o7p8q",
         presignedUrl: "https://example.com/upload",
       };
 
@@ -1076,8 +1078,8 @@ describe("LoopsClient", () => {
   describe("completeUpload", () => {
     it("should complete an upload", async () => {
       const mockResponse = {
-        emailAssetId: "asset_123",
-        finalUrl: "https://cdn.example.com/asset_123.png",
+        emailAssetId: "clu7f1w3y011yl70m5n6o7p8q",
+        finalUrl: "https://cdn.example.com/clu7f1w3y011yl70m5n6o7p8q.png",
       };
 
       global.fetch = jest.fn().mockResolvedValue({
@@ -1085,11 +1087,11 @@ describe("LoopsClient", () => {
         text: () => Promise.resolve(JSON.stringify(mockResponse)),
       });
 
-      const result = await client.completeUpload("asset_123");
+      const result = await client.completeUpload("clu7f1w3y011yl70m5n6o7p8q");
 
       expect(result).toEqual(mockResponse);
       expect(fetch).toHaveBeenCalledWith(
-        expect.stringContaining("v1/uploads/asset_123/complete"),
+        expect.stringContaining("v1/uploads/clu7f1w3y011yl70m5n6o7p8q/complete"),
         expect.objectContaining({ method: "POST" })
       );
     });
@@ -1127,7 +1129,7 @@ describe("LoopsClient", () => {
         },
         data: [
           {
-            id: "theme_123",
+            id: "clo1z5q7s004yl70y3z4a5b6c",
             name: "Default",
             styles: { backgroundColor: "#ffffff" },
             isDefault: true,
@@ -1155,7 +1157,7 @@ describe("LoopsClient", () => {
   describe("getTheme", () => {
     it("should get a theme by ID", async () => {
       const mockResponse = {
-        id: "theme_123",
+        id: "clo1z5q7s004yl70y3z4a5b6c",
         name: "Default",
         styles: {},
         isDefault: true,
@@ -1168,11 +1170,11 @@ describe("LoopsClient", () => {
         text: () => Promise.resolve(JSON.stringify(mockResponse)),
       });
 
-      const result = await client.getTheme("theme_123");
+      const result = await client.getTheme("clo1z5q7s004yl70y3z4a5b6c");
 
       expect(result).toEqual(mockResponse);
       expect(fetch).toHaveBeenCalledWith(
-        expect.stringContaining("v1/themes/theme_123"),
+        expect.stringContaining("v1/themes/clo1z5q7s004yl70y3z4a5b6c"),
         expect.objectContaining({ method: "GET" })
       );
     });
@@ -1191,7 +1193,7 @@ describe("LoopsClient", () => {
         },
         data: [
           {
-            id: "comp_123",
+            id: "clp2a6r8t005yl70d7e8f9g0h",
             name: "Header",
             lmx: "<Section />",
           },
@@ -1216,7 +1218,7 @@ describe("LoopsClient", () => {
   describe("getComponent", () => {
     it("should get a component by ID", async () => {
       const mockResponse = {
-        id: "comp_123",
+        id: "clp2a6r8t005yl70d7e8f9g0h",
         name: "Header",
         lmx: "<Section />",
       };
@@ -1226,23 +1228,23 @@ describe("LoopsClient", () => {
         text: () => Promise.resolve(JSON.stringify(mockResponse)),
       });
 
-      const result = await client.getComponent("comp_123");
+      const result = await client.getComponent("clp2a6r8t005yl70d7e8f9g0h");
 
       expect(result).toEqual(mockResponse);
       expect(fetch).toHaveBeenCalledWith(
-        expect.stringContaining("v1/components/comp_123"),
+        expect.stringContaining("v1/components/clp2a6r8t005yl70d7e8f9g0h"),
         expect.objectContaining({ method: "GET" })
       );
     });
   });
 
   const campaignFixture = {
-    id: "camp_123",
+    id: "cln0y4p6r003yl70i1j2k3l4m",
     name: "Spring announcement",
     status: "Draft",
     createdAt: "2025-01-01T00:00:00.000Z",
     updatedAt: "2025-01-01T00:00:00.000Z",
-    emailMessageId: "msg_123",
+    emailMessageId: "clm9x3o5q002yl70a8b3c4d5e",
     campaignGroupId: null,
     mailingListId: null,
     audienceSegmentId: null,
@@ -1283,7 +1285,7 @@ describe("LoopsClient", () => {
     it("should create a draft campaign", async () => {
       const mockResponse = {
         ...campaignFixture,
-        emailMessageContentRevisionId: "rev_123",
+        emailMessageContentRevisionId: "clv8g2x4z012yl70n5o6p7q8r",
       };
 
       global.fetch = jest.fn().mockResolvedValue({
@@ -1313,11 +1315,11 @@ describe("LoopsClient", () => {
         text: () => Promise.resolve(JSON.stringify(mockResponse)),
       });
 
-      const result = await client.getCampaign("camp_123");
+      const result = await client.getCampaign("cln0y4p6r003yl70i1j2k3l4m");
 
       expect(result).toEqual(mockResponse);
       expect(fetch).toHaveBeenCalledWith(
-        expect.stringContaining("v1/campaigns/camp_123"),
+        expect.stringContaining("v1/campaigns/cln0y4p6r003yl70i1j2k3l4m"),
         expect.objectContaining({ method: "GET" })
       );
     });
@@ -1336,13 +1338,13 @@ describe("LoopsClient", () => {
         text: () => Promise.resolve(JSON.stringify(mockResponse)),
       });
 
-      const result = await client.updateCampaign("camp_123", {
+      const result = await client.updateCampaign("cln0y4p6r003yl70i1j2k3l4m", {
         name: "Updated name",
       });
 
       expect(result).toEqual(mockResponse);
       expect(fetch).toHaveBeenCalledWith(
-        expect.stringContaining("v1/campaigns/camp_123"),
+        expect.stringContaining("v1/campaigns/cln0y4p6r003yl70i1j2k3l4m"),
         expect.objectContaining({
           method: "POST",
           body: JSON.stringify({ name: "Updated name" }),
@@ -1354,8 +1356,8 @@ describe("LoopsClient", () => {
   describe("getEmailMessage", () => {
     it("should get an email message by ID", async () => {
       const mockResponse = {
-        id: "msg_123",
-        campaignId: "camp_123",
+        id: "clm9x3o5q002yl70a8b3c4d5e",
+        campaignId: "cln0y4p6r003yl70i1j2k3l4m",
         subject: "Hello",
         previewText: "Preview",
         fromName: "Loops",
@@ -1363,7 +1365,7 @@ describe("LoopsClient", () => {
         replyToEmail: "",
         emailFormat: "styled",
         lmx: "<Email />",
-        contentRevisionId: "rev_123",
+        contentRevisionId: "clv8g2x4z012yl70n5o6p7q8r",
         updatedAt: "2025-01-01T00:00:00.000Z",
       };
 
@@ -1372,11 +1374,11 @@ describe("LoopsClient", () => {
         text: () => Promise.resolve(JSON.stringify(mockResponse)),
       });
 
-      const result = await client.getEmailMessage("msg_123");
+      const result = await client.getEmailMessage("clm9x3o5q002yl70a8b3c4d5e");
 
       expect(result).toEqual(mockResponse);
       expect(fetch).toHaveBeenCalledWith(
-        expect.stringContaining("v1/email-messages/msg_123"),
+        expect.stringContaining("v1/email-messages/clm9x3o5q002yl70a8b3c4d5e"),
         expect.objectContaining({ method: "GET" })
       );
     });
@@ -1385,8 +1387,8 @@ describe("LoopsClient", () => {
   describe("updateEmailMessage", () => {
     it("should update an email message", async () => {
       const mockResponse = {
-        id: "msg_123",
-        campaignId: "camp_123",
+        id: "clm9x3o5q002yl70a8b3c4d5e",
+        campaignId: "cln0y4p6r003yl70i1j2k3l4m",
         subject: "Updated subject",
         previewText: "Preview",
         fromName: "Loops",
@@ -1394,7 +1396,7 @@ describe("LoopsClient", () => {
         replyToEmail: "",
         emailFormat: "styled",
         lmx: "<Email />",
-        contentRevisionId: "rev_456",
+        contentRevisionId: "clv8g2x4z013yl70s9t0u1v2w",
         updatedAt: "2025-01-02T00:00:00.000Z",
         warnings: [
           {
@@ -1410,19 +1412,19 @@ describe("LoopsClient", () => {
         text: () => Promise.resolve(JSON.stringify(mockResponse)),
       });
 
-      const result = await client.updateEmailMessage("msg_123", {
-        expectedRevisionId: "rev_123",
+      const result = await client.updateEmailMessage("clm9x3o5q002yl70a8b3c4d5e", {
+        expectedRevisionId: "clv8g2x4z012yl70n5o6p7q8r",
         subject: "Updated subject",
         lmx: "<Email />",
       });
 
       expect(result).toEqual(mockResponse);
       expect(fetch).toHaveBeenCalledWith(
-        expect.stringContaining("v1/email-messages/msg_123"),
+        expect.stringContaining("v1/email-messages/clm9x3o5q002yl70a8b3c4d5e"),
         expect.objectContaining({
           method: "POST",
           body: JSON.stringify({
-            expectedRevisionId: "rev_123",
+            expectedRevisionId: "clv8g2x4z012yl70n5o6p7q8r",
             subject: "Updated subject",
             lmx: "<Email />",
           }),
@@ -1443,7 +1445,7 @@ describe("LoopsClient", () => {
       });
 
       await expect(
-        client.updateEmailMessage("msg_123", { subject: "Updated" })
+        client.updateEmailMessage("clm9x3o5q002yl70a8b3c4d5e", { subject: "Updated" })
       ).rejects.toThrow(APIError);
     });
   });

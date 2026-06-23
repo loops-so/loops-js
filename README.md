@@ -214,7 +214,7 @@ const resp = await loops.createContact({
 ```json
 {
   "success": true,
-  "id": "id_of_contact"
+  "id": "clw9h3y5a014yl70k9m2n4p8q"
 }
 ```
 
@@ -278,7 +278,7 @@ const resp = await loops.updateContact({
 ```json
 {
   "success": true,
-  "id": "id_of_contact"
+  "id": "clw9h3y5a014yl70k9m2n4p8q"
 }
 ```
 
@@ -894,7 +894,7 @@ const resp = await loops.listTransactionalEmails({ perPage: 15 });
       "id": "clfn0k1yg001imo0fdeqg30i8",
       "name": "Sign up confirmation",
       "draftEmailMessageId": null,
-      "publishedEmailMessageId": "msg_123",
+      "publishedEmailMessageId": "clm9x3o5q002yl70a8b3c4d5e",
       "transactionalGroupId": null,
       "createdAt": "2023-11-06T17:48:07.249Z",
       "updatedAt": "2023-11-06T17:48:07.249Z",
@@ -903,9 +903,9 @@ const resp = await loops.listTransactionalEmails({ perPage: 15 });
     {
       "id": "cll42l54f20i1la0lfooe3z12",
       "name": "Password reset",
-      "draftEmailMessageId": "msg_456",
-      "publishedEmailMessageId": "msg_789",
-      "transactionalGroupId": "grp_123",
+      "draftEmailMessageId": "clm8k2n4p000yl70f6g7h8i9j",
+      "publishedEmailMessageId": "clm8k2n4p001yl70k1l2m3n4o",
+      "transactionalGroupId": "clq3b7s9u006yl70p5q6r7s8t",
       "createdAt": "2025-02-02T02:56:28.845Z",
       "updatedAt": "2025-02-02T02:56:28.845Z",
       "dataVariables": [
@@ -934,7 +934,7 @@ Retrieve a single transactional email by ID.
 #### Example
 
 ```javascript
-const resp = await loops.getTransactionalEmail("trans_123");
+const resp = await loops.getTransactionalEmail("clfn0k1yg001imo0fdeqg30i8");
 ```
 
 ---
@@ -977,12 +977,12 @@ Update a transactional email by ID. At least one field is required.
 #### Example
 
 ```javascript
-const resp = await loops.updateTransactionalEmail("trans_123", {
+const resp = await loops.updateTransactionalEmail("clfn0k1yg001imo0fdeqg30i8", {
   name: "Updated name",
 });
 
-const resp = await loops.updateTransactionalEmail("trans_123", {
-  transactionalGroupId: "grp_123",
+const resp = await loops.updateTransactionalEmail("clfn0k1yg001imo0fdeqg30i8", {
+  transactionalGroupId: "clq3b7s9u006yl70p5q6r7s8t",
 });
 ```
 
@@ -1003,7 +1003,7 @@ Ensure a transactional email has a draft email message. Use [`updateEmailMessage
 #### Example
 
 ```javascript
-const resp = await loops.ensureTransactionalEmailDraft("trans_123");
+const resp = await loops.ensureTransactionalEmailDraft("clfn0k1yg001imo0fdeqg30i8");
 ```
 
 ---
@@ -1023,7 +1023,7 @@ Publish a transactional email's current draft.
 #### Example
 
 ```javascript
-const resp = await loops.publishTransactionalEmail("trans_123");
+const resp = await loops.publishTransactionalEmail("clfn0k1yg001imo0fdeqg30i8");
 ```
 
 ---
@@ -1091,7 +1091,7 @@ const resp = await loops.listThemes({ perPage: 15, cursor: "clyo0q4wo01p59fsecyx
   },
   "data": [
     {
-      "id": "theme_123",
+      "id": "clo1z5q7s004yl70y3z4a5b6c",
       "name": "Default",
       "styles": {
         "backgroundColor": "#ffffff"
@@ -1122,14 +1122,14 @@ Retrieve a single theme by ID.
 #### Example
 
 ```javascript
-const resp = await loops.getTheme("theme_123");
+const resp = await loops.getTheme("clo1z5q7s004yl70y3z4a5b6c");
 ```
 
 #### Response
 
 ```json
 {
-  "id": "theme_123",
+  "id": "clo1z5q7s004yl70y3z4a5b6c",
   "name": "Default",
   "styles": {
     "backgroundColor": "#ffffff"
@@ -1178,7 +1178,7 @@ const resp = await loops.listComponents({ perPage: 15 });
   },
   "data": [
     {
-      "id": "comp_123",
+      "id": "clp2a6r8t005yl70d7e8f9g0h",
       "name": "Header",
       "lmx": "<Section>...</Section>"
     }
@@ -1204,14 +1204,14 @@ Retrieve a single component by ID.
 #### Example
 
 ```javascript
-const resp = await loops.getComponent("comp_123");
+const resp = await loops.getComponent("clp2a6r8t005yl70d7e8f9g0h");
 ```
 
 #### Response
 
 ```json
 {
-  "id": "comp_123",
+  "id": "clp2a6r8t005yl70d7e8f9g0h",
   "name": "Header",
   "lmx": "<Section>...</Section>"
 }
@@ -1255,8 +1255,8 @@ const resp = await loops.listCampaigns({ perPage: 15 });
   },
   "data": [
     {
-      "id": "camp_123",
-      "emailMessageId": "msg_123",
+      "id": "cln0y4p6r003yl70i1j2k3l4m",
+      "emailMessageId": "clm9x3o5q002yl70a8b3c4d5e",
       "name": "Spring announcement",
       "status": "Draft",
       "createdAt": "2025-01-01T00:00:00.000Z",
@@ -1301,7 +1301,7 @@ const resp = await loops.createCampaign({ name: "Spring announcement" });
 
 const resp = await loops.createCampaign({
   name: "Spring announcement",
-  mailingListId: "list_123",
+  mailingListId: "cm06f5v0e45nf0ml5754o9cix",
   scheduling: { method: "schedule", timestamp: "2026-06-15T10:00:00.000Z" },
 });
 ```
@@ -1310,13 +1310,13 @@ const resp = await loops.createCampaign({
 
 ```json
 {
-  "id": "camp_123",
+  "id": "cln0y4p6r003yl70i1j2k3l4m",
   "name": "Spring announcement",
   "status": "Draft",
   "createdAt": "2025-01-01T00:00:00.000Z",
   "updatedAt": "2025-01-01T00:00:00.000Z",
-  "emailMessageId": "msg_123",
-  "emailMessageContentRevisionId": "rev_123",
+  "emailMessageId": "clm9x3o5q002yl70a8b3c4d5e",
+  "emailMessageContentRevisionId": "clv8g2x4z012yl70n5o6p7q8r",
   "campaignGroupId": null,
   "mailingListId": null,
   "audienceSegmentId": null,
@@ -1346,19 +1346,19 @@ Retrieve a single campaign by ID.
 #### Example
 
 ```javascript
-const resp = await loops.getCampaign("camp_123");
+const resp = await loops.getCampaign("cln0y4p6r003yl70i1j2k3l4m");
 ```
 
 #### Response
 
 ```json
 {
-  "id": "camp_123",
+  "id": "cln0y4p6r003yl70i1j2k3l4m",
   "name": "Spring announcement",
   "status": "Draft",
   "createdAt": "2025-01-01T00:00:00.000Z",
   "updatedAt": "2025-01-01T00:00:00.000Z",
-  "emailMessageId": "msg_123",
+  "emailMessageId": "clm9x3o5q002yl70a8b3c4d5e",
   "campaignGroupId": null,
   "mailingListId": null,
   "audienceSegmentId": null,
@@ -1394,19 +1394,19 @@ Update a draft campaign's name, group, audience, or scheduling. At least one fie
 #### Example
 
 ```javascript
-const resp = await loops.updateCampaign("camp_123", { name: "Updated name" });
+const resp = await loops.updateCampaign("cln0y4p6r003yl70i1j2k3l4m", { name: "Updated name" });
 ```
 
 #### Response
 
 ```json
 {
-  "id": "camp_123",
+  "id": "cln0y4p6r003yl70i1j2k3l4m",
   "name": "Updated name",
   "status": "Draft",
   "createdAt": "2025-01-01T00:00:00.000Z",
   "updatedAt": "2025-01-02T00:00:00.000Z",
-  "emailMessageId": "msg_123",
+  "emailMessageId": "clm9x3o5q002yl70a8b3c4d5e",
   "campaignGroupId": null,
   "mailingListId": null,
   "audienceSegmentId": null,
@@ -1444,15 +1444,15 @@ Retrieve an email message, including its compiled LMX content.
 #### Example
 
 ```javascript
-const resp = await loops.getEmailMessage("msg_123");
+const resp = await loops.getEmailMessage("clm9x3o5q002yl70a8b3c4d5e");
 ```
 
 #### Response
 
 ```json
 {
-  "id": "msg_123",
-  "campaignId": "camp_123",
+  "id": "clm9x3o5q002yl70a8b3c4d5e",
+  "campaignId": "cln0y4p6r003yl70i1j2k3l4m",
   "subject": "Hello",
   "previewText": "Preview text",
   "fromName": "Loops",
@@ -1460,7 +1460,7 @@ const resp = await loops.getEmailMessage("msg_123");
   "replyToEmail": "",
   "emailFormat": "styled",
   "lmx": "<Email>...</Email>",
-  "contentRevisionId": "rev_123",
+  "contentRevisionId": "clv8g2x4z012yl70n5o6p7q8r",
   "updatedAt": "2025-01-01T00:00:00.000Z"
 }
 ```
@@ -1497,8 +1497,8 @@ Update fields on an email message (subject, preview text, sender, LMX content). 
 #### Example
 
 ```javascript
-const resp = await loops.updateEmailMessage("msg_123", {
-  expectedRevisionId: "rev_123",
+const resp = await loops.updateEmailMessage("clm9x3o5q002yl70a8b3c4d5e", {
+  expectedRevisionId: "clv8g2x4z012yl70n5o6p7q8r",
   subject: "Hello",
   previewText: "Preview text",
   fromName: "Loops",
@@ -1511,8 +1511,8 @@ const resp = await loops.updateEmailMessage("msg_123", {
 
 ```json
 {
-  "id": "msg_123",
-  "campaignId": "camp_123",
+  "id": "clm9x3o5q002yl70a8b3c4d5e",
+  "campaignId": "cln0y4p6r003yl70i1j2k3l4m",
   "subject": "Hello",
   "previewText": "Preview text",
   "fromName": "Loops",
@@ -1520,7 +1520,7 @@ const resp = await loops.updateEmailMessage("msg_123", {
   "replyToEmail": "",
   "emailFormat": "styled",
   "lmx": "<Email>...</Email>",
-  "contentRevisionId": "rev_456",
+  "contentRevisionId": "clv8g2x4z013yl70s9t0u1v2w",
   "updatedAt": "2025-01-02T00:00:00.000Z",
   "warnings": [
     {
@@ -1601,7 +1601,7 @@ Retrieve a single transactional group by ID.
 #### Example
 
 ```javascript
-const resp = await loops.getTransactionalGroup("grp_123");
+const resp = await loops.getTransactionalGroup("clq3b7s9u006yl70p5q6r7s8t");
 ```
 
 ---
@@ -1622,7 +1622,7 @@ Update a transactional group's name or description. At least one field must be p
 #### Example
 
 ```javascript
-const resp = await loops.updateTransactionalGroup("grp_123", {
+const resp = await loops.updateTransactionalGroup("clq3b7s9u006yl70p5q6r7s8t", {
   name: "Updated name",
 });
 ```
@@ -1663,7 +1663,7 @@ Retrieve a single audience segment by ID.
 #### Example
 
 ```javascript
-const resp = await loops.getAudienceSegment("seg_123");
+const resp = await loops.getAudienceSegment("clr4c8t0v008yl70x3y4z5a6b");
 ```
 
 ---
@@ -1724,7 +1724,7 @@ Retrieve a single campaign group by ID.
 #### Example
 
 ```javascript
-const resp = await loops.getCampaignGroup("grp_123");
+const resp = await loops.getCampaignGroup("clq3b7s9u007yl70u9v0w1x2y");
 ```
 
 ---
@@ -1745,7 +1745,7 @@ Update a campaign group's name or description. At least one field must be provid
 #### Example
 
 ```javascript
-const resp = await loops.updateCampaignGroup("grp_123", {
+const resp = await loops.updateCampaignGroup("clq3b7s9u007yl70u9v0w1x2y", {
   description: "Monthly product updates",
 });
 ```
@@ -1770,7 +1770,7 @@ Send a test preview of an email message to one or more addresses.
 #### Example
 
 ```javascript
-const resp = await loops.sendEmailMessagePreview("msg_123", {
+const resp = await loops.sendEmailMessagePreview("clm9x3o5q002yl70a8b3c4d5e", {
   emails: ["test@example.com"],
   contactProperties: {
     firstName: "Alex",
@@ -1814,7 +1814,7 @@ Retrieve a workflow graph with node type names, connections, and selected displa
 #### Example
 
 ```javascript
-const resp = await loops.getWorkflow("wf_123");
+const resp = await loops.getWorkflow("cls5d9u1w009yl70c7d8e9f0g");
 ```
 
 ---
@@ -1834,7 +1834,7 @@ Retrieve detailed data for a single workflow node.
 #### Example
 
 ```javascript
-const resp = await loops.getWorkflowNode("wf_123", "node_456");
+const resp = await loops.getWorkflowNode("cls5d9u1w009yl70c7d8e9f0g", "clt6e0v2x010yl70h1i2j3k4l");
 ```
 
 ---
@@ -1878,7 +1878,7 @@ Finalize an asset after the file has been uploaded to the pre-signed URL.
 #### Example
 
 ```javascript
-const resp = await loops.completeUpload("asset_123");
+const resp = await loops.completeUpload("clu7f1w3y011yl70m5n6o7p8q");
 ```
 
 ---
