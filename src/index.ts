@@ -1108,15 +1108,17 @@ class LoopsClient {
   /**
    * Get a transactional email by ID.
    *
-   * @param {string} id The ID of the transactional email.
+   * @param {string} transactionalId The ID of the transactional email.
    *
    * @see https://loops.so/docs/api-reference/get-transactional-email
    *
    * @returns {Object} Transactional email (JSON)
    */
-  async getTransactionalEmail(id: string): Promise<TransactionalEmailResource> {
+  async getTransactionalEmail(
+    transactionalId: string
+  ): Promise<TransactionalEmailResource> {
     return this._makeQuery({
-      path: `v1/transactional-emails/${id}`,
+      path: `v1/transactional-emails/${transactionalId}`,
     });
   }
 
@@ -1152,7 +1154,7 @@ class LoopsClient {
   /**
    * Update a transactional email.
    *
-   * @param {string} id The ID of the transactional email.
+   * @param {string} transactionalId The ID of the transactional email.
    * @param {Object} params
    * @param {string} [params.name] The name of the transactional email.
    * @param {string} [params.transactionalGroupId] The ID of the group to move this transactional email to.
@@ -1162,7 +1164,7 @@ class LoopsClient {
    * @returns {Object} Updated transactional email (JSON)
    */
   async updateTransactionalEmail(
-    id: string,
+    transactionalId: string,
     {
       name,
       transactionalGroupId,
@@ -1177,7 +1179,7 @@ class LoopsClient {
       payload.transactionalGroupId = transactionalGroupId;
     }
     return this._makeQuery({
-      path: `v1/transactional-emails/${id}`,
+      path: `v1/transactional-emails/${transactionalId}`,
       method: "POST",
       payload,
     });
@@ -1186,17 +1188,17 @@ class LoopsClient {
   /**
    * Ensure a transactional email has a draft email message.
    *
-   * @param {string} id The ID of the transactional email.
+   * @param {string} transactionalId The ID of the transactional email.
    *
    * @see https://loops.so/docs/api-reference/ensure-transactional-email-draft
    *
    * @returns {Object} Transactional email with draft (JSON)
    */
   async ensureTransactionalEmailDraft(
-    id: string
+    transactionalId: string
   ): Promise<TransactionalDraftResponse> {
     return this._makeQuery({
-      path: `v1/transactional-emails/${id}/draft`,
+      path: `v1/transactional-emails/${transactionalId}/draft`,
       method: "POST",
     });
   }
@@ -1204,17 +1206,17 @@ class LoopsClient {
   /**
    * Publish a transactional email draft.
    *
-   * @param {string} id The ID of the transactional email.
+   * @param {string} transactionalId The ID of the transactional email.
    *
    * @see https://loops.so/docs/api-reference/publish-transactional-email
    *
    * @returns {Object} Published transactional email (JSON)
    */
   async publishTransactionalEmail(
-    id: string
+    transactionalId: string
   ): Promise<TransactionalEmailResource> {
     return this._makeQuery({
-      path: `v1/transactional-emails/${id}/publish`,
+      path: `v1/transactional-emails/${transactionalId}/publish`,
       method: "POST",
     });
   }
@@ -1263,15 +1265,17 @@ class LoopsClient {
   /**
    * Get an audience segment by ID.
    *
-   * @param {string} id The ID of the audience segment.
+   * @param {string} audienceSegmentId The ID of the audience segment.
    *
    * @see https://loops.so/docs/api-reference/get-audience-segment
    *
    * @returns {Object} Audience segment (JSON)
    */
-  async getAudienceSegment(id: string): Promise<AudienceSegment> {
+  async getAudienceSegment(
+    audienceSegmentId: string
+  ): Promise<AudienceSegment> {
     return this._makeQuery({
-      path: `v1/audience-segments/${id}`,
+      path: `v1/audience-segments/${audienceSegmentId}`,
     });
   }
 
@@ -1306,15 +1310,15 @@ class LoopsClient {
   /**
    * Get a theme by ID.
    *
-   * @param {string} id The ID of the theme.
+   * @param {string} themeId The ID of the theme.
    *
    * @see https://loops.so/docs/api-reference/get-theme
    *
    * @returns {Object} Theme (JSON)
    */
-  async getTheme(id: string): Promise<ThemeResponse> {
+  async getTheme(themeId: string): Promise<ThemeResponse> {
     return this._makeQuery({
-      path: `v1/themes/${id}`,
+      path: `v1/themes/${themeId}`,
     });
   }
 
@@ -1349,15 +1353,15 @@ class LoopsClient {
   /**
    * Get a component by ID.
    *
-   * @param {string} id The ID of the component.
+   * @param {string} componentId The ID of the component.
    *
    * @see https://loops.so/docs/api-reference/get-component
    *
    * @returns {Object} Component (JSON)
    */
-  async getComponent(id: string): Promise<ComponentResponse> {
+  async getComponent(componentId: string): Promise<ComponentResponse> {
     return this._makeQuery({
-      path: `v1/components/${id}`,
+      path: `v1/components/${componentId}`,
     });
   }
 
@@ -1444,22 +1448,22 @@ class LoopsClient {
   /**
    * Get a campaign by ID.
    *
-   * @param {string} id The ID of the campaign.
+   * @param {string} campaignId The ID of the campaign.
    *
    * @see https://loops.so/docs/api-reference/get-campaign
    *
    * @returns {Object} Campaign (JSON)
    */
-  async getCampaign(id: string): Promise<CampaignResponse> {
+  async getCampaign(campaignId: string): Promise<CampaignResponse> {
     return this._makeQuery({
-      path: `v1/campaigns/${id}`,
+      path: `v1/campaigns/${campaignId}`,
     });
   }
 
   /**
    * Update a draft campaign.
    *
-   * @param {string} id The ID of the campaign.
+   * @param {string} campaignId The ID of the campaign.
    * @param {Object} params
    * @param {string} [params.name] The campaign name.
    * @param {string} [params.campaignGroupId] The ID of the group to move this campaign to.
@@ -1473,7 +1477,7 @@ class LoopsClient {
    * @returns {Object} Updated campaign (JSON)
    */
   async updateCampaign(
-    id: string,
+    campaignId: string,
     {
       name,
       campaignGroupId,
@@ -1507,7 +1511,7 @@ class LoopsClient {
     if (audienceFilter !== undefined) payload.audienceFilter = audienceFilter;
     if (scheduling !== undefined) payload.scheduling = scheduling;
     return this._makeQuery({
-      path: `v1/campaigns/${id}`,
+      path: `v1/campaigns/${campaignId}`,
       method: "POST",
       payload,
     });
@@ -1516,22 +1520,22 @@ class LoopsClient {
   /**
    * Get an email message by ID.
    *
-   * @param {string} id The ID of the email message.
+   * @param {string} emailMessageId The ID of the email message.
    *
    * @see https://loops.so/docs/api-reference/get-email-message
    *
    * @returns {Object} Email message (JSON)
    */
-  async getEmailMessage(id: string): Promise<EmailMessageResponse> {
+  async getEmailMessage(emailMessageId: string): Promise<EmailMessageResponse> {
     return this._makeQuery({
-      path: `v1/email-messages/${id}`,
+      path: `v1/email-messages/${emailMessageId}`,
     });
   }
 
   /**
    * Update an email message.
    *
-   * @param {string} id The ID of the email message.
+   * @param {string} emailMessageId The ID of the email message.
    * @param {Object} params
    * @param {string} [params.expectedRevisionId] The `contentRevisionId` you last fetched. Used for optimistic concurrency.
    * @param {string} [params.subject] The email subject.
@@ -1553,7 +1557,7 @@ class LoopsClient {
    * @returns {Object} Updated email message (JSON)
    */
   async updateEmailMessage(
-    id: string,
+    emailMessageId: string,
     {
       expectedRevisionId,
       subject,
@@ -1624,7 +1628,7 @@ class LoopsClient {
       payload.dataVariablesFallbacks = dataVariablesFallbacks;
     }
     return this._makeQuery({
-      path: `v1/email-messages/${id}`,
+      path: `v1/email-messages/${emailMessageId}`,
       method: "POST",
       payload,
     });
@@ -1633,7 +1637,7 @@ class LoopsClient {
   /**
    * Send a preview of an email message.
    *
-   * @param {string} id The ID of the email message.
+   * @param {string} emailMessageId The ID of the email message.
    * @param {Object} params
    * @param {string[]} params.emails One or more addresses to send the preview to.
    * @param {Record<string, string>} [params.contactProperties] Contact property values to render.
@@ -1645,7 +1649,7 @@ class LoopsClient {
    * @returns {Object} Preview confirmation (JSON)
    */
   async sendEmailMessagePreview(
-    id: string,
+    emailMessageId: string,
     {
       emails,
       contactProperties,
@@ -1672,7 +1676,7 @@ class LoopsClient {
     }
     if (dataVariables !== undefined) payload.dataVariables = dataVariables;
     return this._makeQuery({
-      path: `v1/email-messages/${id}/preview`,
+      path: `v1/email-messages/${emailMessageId}/preview`,
       method: "POST",
       payload,
     });
@@ -1709,15 +1713,15 @@ class LoopsClient {
   /**
    * Get a workflow by ID.
    *
-   * @param {string} id The ID of the workflow.
+   * @param {string} workflowId The ID of the workflow.
    *
    * @see https://loops.so/docs/api-reference/get-workflow
    *
    * @returns {Object} Workflow graph (JSON)
    */
-  async getWorkflow(id: string): Promise<SimplifiedWorkflow> {
+  async getWorkflow(workflowId: string): Promise<SimplifiedWorkflow> {
     return this._makeQuery({
-      path: `v1/workflows/${id}`,
+      path: `v1/workflows/${workflowId}`,
     });
   }
 
@@ -1795,22 +1799,22 @@ class LoopsClient {
   /**
    * Get a campaign group by ID.
    *
-   * @param {string} id The ID of the campaign group.
+   * @param {string} campaignGroupId The ID of the campaign group.
    *
    * @see https://loops.so/docs/api-reference/get-campaign-group
    *
    * @returns {Object} Campaign group (JSON)
    */
-  async getCampaignGroup(id: string): Promise<Group> {
+  async getCampaignGroup(campaignGroupId: string): Promise<Group> {
     return this._makeQuery({
-      path: `v1/campaign-groups/${id}`,
+      path: `v1/campaign-groups/${campaignGroupId}`,
     });
   }
 
   /**
    * Update a campaign group.
    *
-   * @param {string} id The ID of the campaign group.
+   * @param {string} campaignGroupId The ID of the campaign group.
    * @param {Object} params
    * @param {string} [params.name] The group name.
    * @param {string} [params.description] A description for the group.
@@ -1820,7 +1824,7 @@ class LoopsClient {
    * @returns {Object} Updated campaign group (JSON)
    */
   async updateCampaignGroup(
-    id: string,
+    campaignGroupId: string,
     {
       name,
       description,
@@ -1833,7 +1837,7 @@ class LoopsClient {
     if (name !== undefined) payload.name = name;
     if (description !== undefined) payload.description = description;
     return this._makeQuery({
-      path: `v1/campaign-groups/${id}`,
+      path: `v1/campaign-groups/${campaignGroupId}`,
       method: "POST",
       payload,
     });
@@ -1897,22 +1901,24 @@ class LoopsClient {
   /**
    * Get a transactional group by ID.
    *
-   * @param {string} id The ID of the transactional group.
+   * @param {string} transactionalGroupId The ID of the transactional group.
    *
    * @see https://loops.so/docs/api-reference/get-transactional-group
    *
    * @returns {Object} Transactional group (JSON)
    */
-  async getTransactionalGroup(id: string): Promise<Group> {
+  async getTransactionalGroup(
+    transactionalGroupId: string
+  ): Promise<Group> {
     return this._makeQuery({
-      path: `v1/transactional-groups/${id}`,
+      path: `v1/transactional-groups/${transactionalGroupId}`,
     });
   }
 
   /**
    * Update a transactional group.
    *
-   * @param {string} id The ID of the transactional group.
+   * @param {string} transactionalGroupId The ID of the transactional group.
    * @param {Object} params
    * @param {string} [params.name] The group name.
    * @param {string} [params.description] A description for the group.
@@ -1922,7 +1928,7 @@ class LoopsClient {
    * @returns {Object} Updated transactional group (JSON)
    */
   async updateTransactionalGroup(
-    id: string,
+    transactionalGroupId: string,
     {
       name,
       description,
@@ -1935,7 +1941,7 @@ class LoopsClient {
     if (name !== undefined) payload.name = name;
     if (description !== undefined) payload.description = description;
     return this._makeQuery({
-      path: `v1/transactional-groups/${id}`,
+      path: `v1/transactional-groups/${transactionalGroupId}`,
       method: "POST",
       payload,
     });

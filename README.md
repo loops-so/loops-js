@@ -929,7 +929,7 @@ Retrieve a single transactional email by ID.
 
 | Name                  | Type   | Required | Notes                                |
 | --------------------- | ------ | -------- | ------------------------------------ |
-| `id`                  | string | Yes      | The ID of the transactional email.   |
+| `transactionalId`                  | string | Yes      | The ID of the transactional email.   |
 
 #### Example
 
@@ -970,7 +970,7 @@ Update a transactional email by ID. At least one field is required.
 
 | Name                  | Type   | Required | Notes                                                    |
 | --------------------- | ------ | -------- | -------------------------------------------------------- |
-| `id`                  | string | Yes      | The ID of the transactional email.                       |
+| `transactionalId`                  | string | Yes      | The ID of the transactional email.                       |
 | `name`                | string | No       | The name of the transactional email.                     |
 | `transactionalGroupId`| string | No       | The ID of the group to move this transactional email to. |
 
@@ -998,7 +998,7 @@ Ensure a transactional email has a draft email message. Use [`updateEmailMessage
 
 | Name | Type   | Required | Notes                              |
 | ---- | ------ | -------- | ---------------------------------- |
-| `id` | string | Yes      | The ID of the transactional email. |
+| `transactionalId` | string | Yes      | The ID of the transactional email. |
 
 #### Example
 
@@ -1018,7 +1018,7 @@ Publish a transactional email's current draft.
 
 | Name | Type   | Required | Notes                              |
 | ---- | ------ | -------- | ---------------------------------- |
-| `id` | string | Yes      | The ID of the transactional email. |
+| `transactionalId` | string | Yes      | The ID of the transactional email. |
 
 #### Example
 
@@ -1117,7 +1117,7 @@ Retrieve a single theme by ID.
 
 | Name | Type   | Required | Notes                |
 | ---- | ------ | -------- | -------------------- |
-| `id` | string | Yes      | The ID of the theme. |
+| `themeId` | string | Yes      | The ID of the theme. |
 
 #### Example
 
@@ -1199,7 +1199,7 @@ Retrieve a single component by ID.
 
 | Name | Type   | Required | Notes                     |
 | ---- | ------ | -------- | ------------------------- |
-| `id` | string | Yes      | The ID of the component. |
+| `componentId` | string | Yes      | The ID of the component. |
 
 #### Example
 
@@ -1341,7 +1341,7 @@ Retrieve a single campaign by ID.
 
 | Name | Type   | Required | Notes                   |
 | ---- | ------ | -------- | ----------------------- |
-| `id` | string | Yes      | The ID of the campaign. |
+| `campaignId` | string | Yes      | The ID of the campaign. |
 
 #### Example
 
@@ -1383,7 +1383,7 @@ Update a draft campaign's name, group, audience, or scheduling. At least one fie
 
 | Name                | Type   | Required | Notes                                                                                    |
 | ------------------- | ------ | -------- | ---------------------------------------------------------------------------------------- |
-| `id`                | string | Yes      | The ID of the campaign.                                                                  |
+| `campaignId`                | string | Yes      | The ID of the campaign.                                                                  |
 | `name`              | string | No       | The campaign name.                                                                       |
 | `campaignGroupId`   | string | No       | The ID of the group to move this campaign to.                                            |
 | `mailingListId`     | string | No       | The ID of the mailing list to send to.                                                   |
@@ -1439,7 +1439,7 @@ Retrieve an email message, including its compiled LMX content.
 
 | Name | Type   | Required | Notes                        |
 | ---- | ------ | -------- | ---------------------------- |
-| `id` | string | Yes      | The ID of the email message. |
+| `emailMessageId` | string | Yes      | The ID of the email message. |
 
 #### Example
 
@@ -1478,7 +1478,7 @@ Update fields on an email message (subject, preview text, sender, LMX content). 
 
 | Name                           | Type   | Required | Notes                                                                                                                                          |
 | ------------------------------ | ------ | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| `id`                           | string | Yes      | The ID of the email message.                                                                                                                   |
+| `emailMessageId`                           | string | Yes      | The ID of the email message.                                                                                                                   |
 | `expectedRevisionId`           | string | No       | The `contentRevisionId` you last fetched. Used for optimistic concurrency.                                                                     |
 | `subject`                      | string | No       | The email subject.                                                                                                                             |
 | `previewText`                  | string | No       | The email preview text.                                                                                                                        |
@@ -1596,7 +1596,7 @@ Retrieve a single transactional group by ID.
 
 | Name | Type   | Required | Notes                              |
 | ---- | ------ | -------- | ---------------------------------- |
-| `id` | string | Yes      | The ID of the transactional group. |
+| `transactionalGroupId` | string | Yes      | The ID of the transactional group. |
 
 #### Example
 
@@ -1615,7 +1615,7 @@ Update a transactional group's name or description. At least one field must be p
 
 | Name          | Type   | Required | Notes                              |
 | ------------- | ------ | -------- | ---------------------------------- |
-| `id`          | string | Yes      | The ID of the transactional group. |
+| `transactionalGroupId`          | string | Yes      | The ID of the transactional group. |
 | `name`        | string | No       | The group name.                    |
 | `description` | string | No       | A description for the group.       |
 
@@ -1658,7 +1658,7 @@ Retrieve a single audience segment by ID.
 
 | Name | Type   | Required | Notes                            |
 | ---- | ------ | -------- | -------------------------------- |
-| `id` | string | Yes      | The ID of the audience segment. |
+| `audienceSegmentId` | string | Yes      | The ID of the audience segment. |
 
 #### Example
 
@@ -1719,7 +1719,7 @@ Retrieve a single campaign group by ID.
 
 | Name | Type   | Required | Notes                         |
 | ---- | ------ | -------- | ----------------------------- |
-| `id` | string | Yes      | The ID of the campaign group. |
+| `campaignGroupId` | string | Yes      | The ID of the campaign group. |
 
 #### Example
 
@@ -1738,7 +1738,7 @@ Update a campaign group's name or description. At least one field must be provid
 
 | Name          | Type   | Required | Notes                         |
 | ------------- | ------ | -------- | ----------------------------- |
-| `id`          | string | Yes      | The ID of the campaign group. |
+| `campaignGroupId`          | string | Yes      | The ID of the campaign group. |
 | `name`        | string | No       | The group name.               |
 | `description` | string | No       | A description for the group.  |
 
@@ -1761,7 +1761,7 @@ Send a test preview of an email message to one or more addresses.
 
 | Name                | Type     | Required | Notes                                                                                       |
 | ------------------- | -------- | -------- | ------------------------------------------------------------------------------------------- |
-| `id`                | string   | Yes      | The ID of the email message.                                                                |
+| `emailMessageId`                | string   | Yes      | The ID of the email message.                                                                |
 | `emails`            | string[] | Yes      | One or more addresses to send the preview to.                                               |
 | `contactProperties` | object   | No       | Contact property values to render. Accepted for campaign and workflow previews.             |
 | `eventProperties`   | object   | No       | Event property values to render. Accepted for workflow previews only.                       |
@@ -1809,7 +1809,7 @@ Retrieve a workflow graph with node type names, connections, and selected displa
 
 | Name | Type   | Required | Notes                    |
 | ---- | ------ | -------- | ------------------------ |
-| `id` | string | Yes      | The ID of the workflow. |
+| `workflowId` | string | Yes      | The ID of the workflow. |
 
 #### Example
 
@@ -1829,7 +1829,7 @@ Retrieve detailed data for a single workflow node.
 | Name         | Type   | Required | Notes                        |
 | ------------ | ------ | -------- | ---------------------------- |
 | `workflowId` | string | Yes      | The ID of the workflow.      |
-| `id`         | string | Yes      | The ID of the workflow node. |
+| `nodeId`         | string | Yes      | The ID of the workflow node. |
 
 #### Example
 
@@ -1885,7 +1885,7 @@ const resp = await loops.completeUpload("clu7f1w3y011yl70m5n6o7p8q");
 
 ## Version history
 
-- `v7.0.0` (Jun 23, 2026)
+- `v7.0.0` (Jun 24, 2026)
   - Added transactional email management ([`getTransactionalEmail()`](#gettransactionalemail), [`createTransactionalEmail()`](#createtransactionalemail), [`updateTransactionalEmail()`](#updatetransactionalemail), [`ensureTransactionalEmailDraft()`](#ensuretransactionalemaildraft), [`publishTransactionalEmail()`](#publishtransactionalemail)).
   - Added workflows ([`listWorkflows()`](#listworkflows), [`getWorkflow()`](#getworkflow), [`getWorkflowNode()`](#getworkflownode)).
   - Added image uploads ([`createUpload()`](#createupload), [`completeUpload()`](#completeupload)).
@@ -1898,7 +1898,6 @@ const resp = await loops.completeUpload("clu7f1w3y011yl70m5n6o7p8q");
   - Expanded [`updateEmailMessage()`](#updateemailmessage) with `ccEmail`, `bccEmail`, `languageCode`, `emailFormat`, and property fallback maps.
   - Renamed list methods to use a consistent `list` naming pattern (breaking change): [`listContactProperties()`](#listcontactproperties), [`listMailingLists()`](#listmailinglists), [`listTransactionalEmails()`](#listtransactionalemails), [`listDedicatedSendingIps()`](#listdedicatedsendingips), [`listThemes()`](#listthemes), [`listComponents()`](#listcomponents), and [`listCampaigns()`](#listcampaigns). Note `getCustomProperties` is now `listContactProperties`.
   - [`listTransactionalEmails()`](#listtransactionalemails) uses a new underlying API endpoint and returns an updated response shape (including `transactionalGroupId`).
-  - Breaking change: resource ID parameters on get/update methods are now named `id` instead of resource-specific names like `transactionalId` or `campaignId`.
   - Breaking change: API response objects now use `id` instead of `campaignId`, `themeId`, `componentId`, and `emailMessageId`. List and detail responses no longer include a top-level `success` field.
 - `v6.4.0` (May 18, 2026) - Added `getDedicatedSendingIps()`, and endpoints for creating and editing campaings (`getThemes()`, [`getTheme()`](#gettheme), `getComponents()`, [`getComponent()`](#getcomponent), `getCampaigns()`, [`createCampaign()`](#createcampaign), [`getCampaign()`](#getcampaign), [`updateCampaign()`](#updatecampaign), [`getEmailMessage()`](#getemailmessage), and [`updateEmailMessage()`](#updateemailmessage)).
 - `v6.3.0` (Apr 8, 2026) - Added [`checkContactSuppression()`](#checkcontactsuppression) and [`removeContactSuppression()`](#removecontactsuppression) methods.
