@@ -109,7 +109,13 @@ You can use custom contact properties in API calls. Please make sure to [add cus
 - [updateTransactionalEmail()](#updatetransactionalemail)
 - [ensureTransactionalEmailDraft()](#ensuretransactionalemaildraft)
 - [publishTransactionalEmail()](#publishtransactionalemail)
+- [listTransactionalGroups()](#listtransactionalgroups)
+- [createTransactionalGroup()](#createtransactionalgroup)
+- [getTransactionalGroup()](#gettransactionalgroup)
+- [updateTransactionalGroup()](#updatetransactionalgroup)
 - [listDedicatedSendingIps()](#listdedicatedsendingips)
+- [listAudienceSegments()](#listaudiencesegments)
+- [getAudienceSegment()](#getaudiencesegment)
 - [listThemes()](#listthemes)
 - [getTheme()](#gettheme)
 - [listComponents()](#listcomponents)
@@ -118,8 +124,16 @@ You can use custom contact properties in API calls. Please make sure to [add cus
 - [createCampaign()](#createcampaign)
 - [getCampaign()](#getcampaign)
 - [updateCampaign()](#updatecampaign)
+- [listCampaignGroups()](#listcampaigngroups)
+- [createCampaignGroup()](#createcampaigngroup)
+- [getCampaignGroup()](#getcampaigngroup)
+- [updateCampaignGroup()](#updatecampaigngroup)
 - [getEmailMessage()](#getemailmessage)
 - [updateEmailMessage()](#updateemailmessage)
+- [sendEmailMessagePreview()](#sendemailmessagepreview)
+- [listWorkflows()](#listworkflows)
+- [getWorkflow()](#getworkflow)
+- [getWorkflowNode()](#getworkflownode)
 - [createUpload()](#createupload)
 - [completeUpload()](#completeupload)
 
@@ -200,7 +214,7 @@ const resp = await loops.createContact({
 ```json
 {
   "success": true,
-  "id": "id_of_contact"
+  "id": "clw9h3y5a014yl70k9m2n4p8q"
 }
 ```
 
@@ -264,7 +278,7 @@ const resp = await loops.updateContact({
 ```json
 {
   "success": true,
-  "id": "id_of_contact"
+  "id": "clw9h3y5a014yl70k9m2n4p8q"
 }
 ```
 
@@ -880,7 +894,8 @@ const resp = await loops.listTransactionalEmails({ perPage: 15 });
       "id": "clfn0k1yg001imo0fdeqg30i8",
       "name": "Sign up confirmation",
       "draftEmailMessageId": null,
-      "publishedEmailMessageId": "msg_123",
+      "publishedEmailMessageId": "clm9x3o5q002yl70a8b3c4d5e",
+      "transactionalGroupId": null,
       "createdAt": "2023-11-06T17:48:07.249Z",
       "updatedAt": "2023-11-06T17:48:07.249Z",
       "dataVariables": []
@@ -888,8 +903,9 @@ const resp = await loops.listTransactionalEmails({ perPage: 15 });
     {
       "id": "cll42l54f20i1la0lfooe3z12",
       "name": "Password reset",
-      "draftEmailMessageId": "msg_456",
-      "publishedEmailMessageId": "msg_789",
+      "draftEmailMessageId": "clm8k2n4p000yl70f6g7h8i9j",
+      "publishedEmailMessageId": "clm8k2n4p001yl70k1l2m3n4o",
+      "transactionalGroupId": "clq3b7s9u006yl70p5q6r7s8t",
       "createdAt": "2025-02-02T02:56:28.845Z",
       "updatedAt": "2025-02-02T02:56:28.845Z",
       "dataVariables": [
@@ -911,14 +927,14 @@ Retrieve a single transactional email by ID.
 
 #### Parameters
 
-| Name              | Type   | Required | Notes                                |
-| ----------------- | ------ | -------- | ------------------------------------ |
-| `transactionalId` | string | Yes      | The ID of the transactional email.   |
+| Name                  | Type   | Required | Notes                                |
+| --------------------- | ------ | -------- | ------------------------------------ |
+| `transactionalId`                  | string | Yes      | The ID of the transactional email.   |
 
 #### Example
 
 ```javascript
-const resp = await loops.getTransactionalEmail("trans_123");
+const resp = await loops.getTransactionalEmail("clfn0k1yg001imo0fdeqg30i8");
 ```
 
 ---
@@ -931,9 +947,10 @@ Create a new transactional email. An empty draft email message is created automa
 
 #### Parameters
 
-| Name   | Type   | Required | Notes                              |
-| ------ | ------ | -------- | ---------------------------------- |
-| `name` | string | Yes      | The name of the transactional email. |
+| Name                  | Type   | Required | Notes                                                                                    |
+| --------------------- | ------ | -------- | ---------------------------------------------------------------------------------------- |
+| `name`                | string | Yes      | The name of the transactional email.                                                     |
+| `transactionalGroupId`| string | No       | The ID of the group to add this transactional email to. Defaults to the team's default group. |
 
 #### Example
 
@@ -945,22 +962,27 @@ const resp = await loops.createTransactionalEmail({ name: "Welcome email" });
 
 ### updateTransactionalEmail()
 
-Update a transactional email by ID.
+Update a transactional email by ID. At least one field is required.
 
 [API Reference](https://loops.so/docs/api-reference/update-transactional-email)
 
 #### Parameters
 
-| Name              | Type   | Required | Notes                              |
-| ----------------- | ------ | -------- | ---------------------------------- |
-| `transactionalId` | string | Yes      | The ID of the transactional email. |
-| `name`            | string | Yes      | The name of the transactional email. |
+| Name                  | Type   | Required | Notes                                                    |
+| --------------------- | ------ | -------- | -------------------------------------------------------- |
+| `transactionalId`                  | string | Yes      | The ID of the transactional email.                       |
+| `name`                | string | No       | The name of the transactional email.                     |
+| `transactionalGroupId`| string | No       | The ID of the group to move this transactional email to. |
 
 #### Example
 
 ```javascript
-const resp = await loops.updateTransactionalEmail("trans_123", {
+const resp = await loops.updateTransactionalEmail("clfn0k1yg001imo0fdeqg30i8", {
   name: "Updated name",
+});
+
+const resp = await loops.updateTransactionalEmail("clfn0k1yg001imo0fdeqg30i8", {
+  transactionalGroupId: "clq3b7s9u006yl70p5q6r7s8t",
 });
 ```
 
@@ -974,14 +996,14 @@ Ensure a transactional email has a draft email message. Use [`updateEmailMessage
 
 #### Parameters
 
-| Name              | Type   | Required | Notes                              |
-| ----------------- | ------ | -------- | ---------------------------------- |
+| Name | Type   | Required | Notes                              |
+| ---- | ------ | -------- | ---------------------------------- |
 | `transactionalId` | string | Yes      | The ID of the transactional email. |
 
 #### Example
 
 ```javascript
-const resp = await loops.ensureTransactionalEmailDraft("trans_123");
+const resp = await loops.ensureTransactionalEmailDraft("clfn0k1yg001imo0fdeqg30i8");
 ```
 
 ---
@@ -994,14 +1016,14 @@ Publish a transactional email's current draft.
 
 #### Parameters
 
-| Name              | Type   | Required | Notes                              |
-| ----------------- | ------ | -------- | ---------------------------------- |
+| Name | Type   | Required | Notes                              |
+| ---- | ------ | -------- | ---------------------------------- |
 | `transactionalId` | string | Yes      | The ID of the transactional email. |
 
 #### Example
 
 ```javascript
-const resp = await loops.publishTransactionalEmail("trans_123");
+const resp = await loops.publishTransactionalEmail("clfn0k1yg001imo0fdeqg30i8");
 ```
 
 ---
@@ -1037,8 +1059,7 @@ Error handling is done through the `APIError` class, which provides `statusCode`
 
 ### listThemes()
 
-Retrieve a paginated list of email themes, most recently created first. Requires the content API to be enabled for your team.
-
+Retrieve a paginated list of email themes, most recently created first.
 [API Reference](https://loops.so/docs/api-reference/list-themes)
 
 #### Parameters
@@ -1060,7 +1081,6 @@ const resp = await loops.listThemes({ perPage: 15, cursor: "clyo0q4wo01p59fsecyx
 
 ```json
 {
-  "success": true,
   "pagination": {
     "totalResults": 1,
     "returnedResults": 1,
@@ -1071,7 +1091,7 @@ const resp = await loops.listThemes({ perPage: 15, cursor: "clyo0q4wo01p59fsecyx
   },
   "data": [
     {
-      "themeId": "theme_123",
+      "id": "clo1z5q7s004yl70y3z4a5b6c",
       "name": "Default",
       "styles": {
         "backgroundColor": "#ffffff"
@@ -1090,28 +1110,26 @@ Error handling is done through the `APIError` class, which provides `statusCode`
 
 ### getTheme()
 
-Retrieve a single theme by ID. Requires the content API to be enabled for your team.
-
+Retrieve a single theme by ID.
 [API Reference](https://loops.so/docs/api-reference/get-theme)
 
 #### Parameters
 
-| Name      | Type   | Required | Notes                |
-| --------- | ------ | -------- | -------------------- |
+| Name | Type   | Required | Notes                |
+| ---- | ------ | -------- | -------------------- |
 | `themeId` | string | Yes      | The ID of the theme. |
 
 #### Example
 
 ```javascript
-const resp = await loops.getTheme("theme_123");
+const resp = await loops.getTheme("clo1z5q7s004yl70y3z4a5b6c");
 ```
 
 #### Response
 
 ```json
 {
-  "success": true,
-  "themeId": "theme_123",
+  "id": "clo1z5q7s004yl70y3z4a5b6c",
   "name": "Default",
   "styles": {
     "backgroundColor": "#ffffff"
@@ -1128,8 +1146,7 @@ Error handling is done through the `APIError` class, which provides `statusCode`
 
 ### listComponents()
 
-Retrieve a paginated list of email components. Requires the content API to be enabled for your team.
-
+Retrieve a paginated list of email components.
 [API Reference](https://loops.so/docs/api-reference/list-components)
 
 #### Parameters
@@ -1151,7 +1168,6 @@ const resp = await loops.listComponents({ perPage: 15 });
 
 ```json
 {
-  "success": true,
   "pagination": {
     "totalResults": 1,
     "returnedResults": 1,
@@ -1162,7 +1178,7 @@ const resp = await loops.listComponents({ perPage: 15 });
   },
   "data": [
     {
-      "componentId": "comp_123",
+      "id": "clp2a6r8t005yl70d7e8f9g0h",
       "name": "Header",
       "lmx": "<Section>...</Section>"
     }
@@ -1176,28 +1192,26 @@ Error handling is done through the `APIError` class, which provides `statusCode`
 
 ### getComponent()
 
-Retrieve a single component by ID. Requires the content API to be enabled for your team.
-
+Retrieve a single component by ID.
 [API Reference](https://loops.so/docs/api-reference/get-component)
 
 #### Parameters
 
-| Name          | Type   | Required | Notes                     |
-| ------------- | ------ | -------- | ------------------------- |
+| Name | Type   | Required | Notes                     |
+| ---- | ------ | -------- | ------------------------- |
 | `componentId` | string | Yes      | The ID of the component. |
 
 #### Example
 
 ```javascript
-const resp = await loops.getComponent("comp_123");
+const resp = await loops.getComponent("clp2a6r8t005yl70d7e8f9g0h");
 ```
 
 #### Response
 
 ```json
 {
-  "success": true,
-  "componentId": "comp_123",
+  "id": "clp2a6r8t005yl70d7e8f9g0h",
   "name": "Header",
   "lmx": "<Section>...</Section>"
 }
@@ -1209,8 +1223,7 @@ Error handling is done through the `APIError` class, which provides `statusCode`
 
 ### listCampaigns()
 
-Retrieve a paginated list of campaigns. Requires the content API to be enabled for your team.
-
+Retrieve a paginated list of campaigns.
 [API Reference](https://loops.so/docs/api-reference/list-campaigns)
 
 #### Parameters
@@ -1232,7 +1245,6 @@ const resp = await loops.listCampaigns({ perPage: 15 });
 
 ```json
 {
-  "success": true,
   "pagination": {
     "totalResults": 1,
     "returnedResults": 1,
@@ -1243,13 +1255,20 @@ const resp = await loops.listCampaigns({ perPage: 15 });
   },
   "data": [
     {
-      "campaignId": "camp_123",
-      "emailMessageId": "msg_123",
+      "id": "cln0y4p6r003yl70i1j2k3l4m",
+      "emailMessageId": "clm9x3o5q002yl70a8b3c4d5e",
       "name": "Spring announcement",
-      "subject": "",
       "status": "Draft",
       "createdAt": "2025-01-01T00:00:00.000Z",
-      "updatedAt": "2025-01-01T00:00:00.000Z"
+      "updatedAt": "2025-01-01T00:00:00.000Z",
+      "campaignGroupId": null,
+      "mailingListId": null,
+      "audienceSegmentId": null,
+      "audienceFilter": null,
+      "scheduling": {
+        "method": "now",
+        "timestamp": null
+      }
     }
   ]
 }
@@ -1261,34 +1280,51 @@ Error handling is done through the `APIError` class, which provides `statusCode`
 
 ### createCampaign()
 
-Create a new draft campaign. An empty email message is created automatically and its `emailMessageId` is returned. Use [`updateEmailMessage()`](#updateemailmessage) to set subject, sender, preview text, and LMX content. Requires the content API to be enabled for your team.
-
+Create a new draft campaign. An empty email message is created automatically and its `emailMessageId` is returned. Use [`updateEmailMessage()`](#updateemailmessage) to set subject, sender, preview text, and LMX content. The audience (mailing list, segment, or filter), group, and scheduling can be set on create or later via update.
 [API Reference](https://loops.so/docs/api-reference/create-campaign)
 
 #### Parameters
 
-| Name   | Type   | Required | Notes              |
-| ------ | ------ | -------- | ------------------ |
-| `name` | string | Yes      | The campaign name. |
+| Name                | Type    | Required | Notes                                                                                    |
+| ------------------- | ------- | -------- | ---------------------------------------------------------------------------------------- |
+| `name`              | string  | Yes      | The campaign name.                                                                       |
+| `campaignGroupId`   | string  | No       | The ID of the group to add this campaign to.                                             |
+| `mailingListId`     | string  | No       | The ID of the mailing list to send to.                                                   |
+| `audienceSegmentId` | string  | No       | The ID of an audience segment. Setting this clears any `audienceFilter`.                 |
+| `audienceFilter`    | object  | No       | An audience filter object. See the [API reference](https://loops.so/docs/api-reference/create-campaign). |
+| `scheduling`        | object  | No       | When the campaign should send (`method`: `now` or `schedule`, with optional `timestamp`). |
 
 #### Example
 
 ```javascript
 const resp = await loops.createCampaign({ name: "Spring announcement" });
+
+const resp = await loops.createCampaign({
+  name: "Spring announcement",
+  mailingListId: "cm06f5v0e45nf0ml5754o9cix",
+  scheduling: { method: "schedule", timestamp: "2026-06-15T10:00:00.000Z" },
+});
 ```
 
 #### Response
 
 ```json
 {
-  "success": true,
-  "campaignId": "camp_123",
+  "id": "cln0y4p6r003yl70i1j2k3l4m",
   "name": "Spring announcement",
   "status": "Draft",
   "createdAt": "2025-01-01T00:00:00.000Z",
   "updatedAt": "2025-01-01T00:00:00.000Z",
-  "emailMessageId": "msg_123",
-  "emailMessageContentRevisionId": "rev_123"
+  "emailMessageId": "clm9x3o5q002yl70a8b3c4d5e",
+  "emailMessageContentRevisionId": "clv8g2x4z012yl70n5o6p7q8r",
+  "campaignGroupId": null,
+  "mailingListId": null,
+  "audienceSegmentId": null,
+  "audienceFilter": null,
+  "scheduling": {
+    "method": "now",
+    "timestamp": null
+  }
 }
 ```
 
@@ -1298,33 +1334,39 @@ Error handling is done through the `APIError` class, which provides `statusCode`
 
 ### getCampaign()
 
-Retrieve a single campaign by ID. Requires the content API to be enabled for your team.
-
+Retrieve a single campaign by ID.
 [API Reference](https://loops.so/docs/api-reference/get-campaign)
 
 #### Parameters
 
-| Name         | Type   | Required | Notes                   |
-| ------------ | ------ | -------- | ----------------------- |
+| Name | Type   | Required | Notes                   |
+| ---- | ------ | -------- | ----------------------- |
 | `campaignId` | string | Yes      | The ID of the campaign. |
 
 #### Example
 
 ```javascript
-const resp = await loops.getCampaign("camp_123");
+const resp = await loops.getCampaign("cln0y4p6r003yl70i1j2k3l4m");
 ```
 
 #### Response
 
 ```json
 {
-  "success": true,
-  "campaignId": "camp_123",
+  "id": "cln0y4p6r003yl70i1j2k3l4m",
   "name": "Spring announcement",
   "status": "Draft",
   "createdAt": "2025-01-01T00:00:00.000Z",
   "updatedAt": "2025-01-01T00:00:00.000Z",
-  "emailMessageId": "msg_123"
+  "emailMessageId": "clm9x3o5q002yl70a8b3c4d5e",
+  "campaignGroupId": null,
+  "mailingListId": null,
+  "audienceSegmentId": null,
+  "audienceFilter": null,
+  "scheduling": {
+    "method": "now",
+    "timestamp": null
+  }
 }
 ```
 
@@ -1334,34 +1376,45 @@ Error handling is done through the `APIError` class, which provides `statusCode`
 
 ### updateCampaign()
 
-Update a draft campaign's name. Campaigns can only be updated while in draft status. Requires the content API to be enabled for your team.
-
+Update a draft campaign's name, group, audience, or scheduling. At least one field must be provided. Campaigns can only be updated while in draft status.
 [API Reference](https://loops.so/docs/api-reference/update-campaign)
 
 #### Parameters
 
-| Name         | Type   | Required | Notes                   |
-| ------------ | ------ | -------- | ----------------------- |
-| `campaignId` | string | Yes      | The ID of the campaign. |
-| `name`       | string | Yes      | The campaign name.      |
+| Name                | Type   | Required | Notes                                                                                    |
+| ------------------- | ------ | -------- | ---------------------------------------------------------------------------------------- |
+| `campaignId`                | string | Yes      | The ID of the campaign.                                                                  |
+| `name`              | string | No       | The campaign name.                                                                       |
+| `campaignGroupId`   | string | No       | The ID of the group to move this campaign to.                                            |
+| `mailingListId`     | string | No       | The ID of the mailing list to send to.                                                   |
+| `audienceSegmentId` | string | No       | The ID of an audience segment. Setting this clears any `audienceFilter`.                 |
+| `audienceFilter`    | object | No       | An audience filter object.                                                               |
+| `scheduling`        | object | No       | When the campaign should send. At least one field is required.                         |
 
 #### Example
 
 ```javascript
-const resp = await loops.updateCampaign("camp_123", { name: "Updated name" });
+const resp = await loops.updateCampaign("cln0y4p6r003yl70i1j2k3l4m", { name: "Updated name" });
 ```
 
 #### Response
 
 ```json
 {
-  "success": true,
-  "campaignId": "camp_123",
+  "id": "cln0y4p6r003yl70i1j2k3l4m",
   "name": "Updated name",
   "status": "Draft",
   "createdAt": "2025-01-01T00:00:00.000Z",
   "updatedAt": "2025-01-02T00:00:00.000Z",
-  "emailMessageId": "msg_123"
+  "emailMessageId": "clm9x3o5q002yl70a8b3c4d5e",
+  "campaignGroupId": null,
+  "mailingListId": null,
+  "audienceSegmentId": null,
+  "audienceFilter": null,
+  "scheduling": {
+    "method": "now",
+    "timestamp": null
+  }
 }
 ```
 
@@ -1379,36 +1432,35 @@ HTTP 409 Conflict
 
 ### getEmailMessage()
 
-Retrieve an email message, including its compiled LMX content. Requires the content API to be enabled for your team.
-
+Retrieve an email message, including its compiled LMX content.
 [API Reference](https://loops.so/docs/api-reference/get-email-message)
 
 #### Parameters
 
-| Name              | Type   | Required | Notes                        |
-| ----------------- | ------ | -------- | ---------------------------- |
-| `emailMessageId`  | string | Yes      | The ID of the email message. |
+| Name | Type   | Required | Notes                        |
+| ---- | ------ | -------- | ---------------------------- |
+| `emailMessageId` | string | Yes      | The ID of the email message. |
 
 #### Example
 
 ```javascript
-const resp = await loops.getEmailMessage("msg_123");
+const resp = await loops.getEmailMessage("clm9x3o5q002yl70a8b3c4d5e");
 ```
 
 #### Response
 
 ```json
 {
-  "success": true,
-  "emailMessageId": "msg_123",
-  "campaignId": "camp_123",
+  "id": "clm9x3o5q002yl70a8b3c4d5e",
+  "campaignId": "cln0y4p6r003yl70i1j2k3l4m",
   "subject": "Hello",
   "previewText": "Preview text",
   "fromName": "Loops",
   "fromEmail": "hello",
   "replyToEmail": "",
+  "emailFormat": "styled",
   "lmx": "<Email>...</Email>",
-  "contentRevisionId": "rev_123",
+  "contentRevisionId": "clv8g2x4z012yl70n5o6p7q8r",
   "updatedAt": "2025-01-01T00:00:00.000Z"
 }
 ```
@@ -1419,28 +1471,34 @@ Error handling is done through the `APIError` class, which provides `statusCode`
 
 ### updateEmailMessage()
 
-Update fields on an email message (subject, preview text, sender, LMX content). The campaign must be in draft status. Supply `expectedRevisionId` matching the current `contentRevisionId` — the server rejects mismatched revisions with 409. Requires the content API to be enabled for your team.
-
+Update fields on an email message (subject, preview text, sender, LMX content). The campaign must be in draft status. Supply `expectedRevisionId` matching the current `contentRevisionId` — the server rejects mismatched revisions with 409.
 [API Reference](https://loops.so/docs/api-reference/update-email-message)
 
 #### Parameters
 
-| Name                   | Type   | Required | Notes                                                                                                                                          |
-| ---------------------- | ------ | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| `emailMessageId`       | string | Yes      | The ID of the email message.                                                                                                                   |
-| `expectedRevisionId`   | string | No       | The `contentRevisionId` you last fetched. Used for optimistic concurrency.                                                                     |
-| `subject`              | string | No       | The email subject.                                                                                                                             |
-| `previewText`          | string | No       | The email preview text.                                                                                                                        |
-| `fromName`             | string | No       | The sender name.                                                                                                                               |
-| `fromEmail`            | string | No       | The sender username (without `@` or domain). The team's sending domain is appended automatically.                                              |
-| `replyToEmail`         | string | No       | Reply-to email. Must be empty or a valid email address.                                                                                        |
-| `lmx`                  | string | No       | The email body serialized as LMX. Styles must be embedded in the LMX `<Style />` tag.                                                          |
+| Name                           | Type   | Required | Notes                                                                                                                                          |
+| ------------------------------ | ------ | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `emailMessageId`                           | string | Yes      | The ID of the email message.                                                                                                                   |
+| `expectedRevisionId`           | string | No       | The `contentRevisionId` you last fetched. Used for optimistic concurrency.                                                                     |
+| `subject`                      | string | No       | The email subject.                                                                                                                             |
+| `previewText`                  | string | No       | The email preview text.                                                                                                                        |
+| `fromName`                     | string | No       | The sender name.                                                                                                                               |
+| `fromEmail`                    | string | No       | The sender username (without `@` or domain). The team's sending domain is appended automatically.                                              |
+| `replyToEmail`                 | string | No       | Reply-to email. Must be empty or a valid email address.                                                                                        |
+| `ccEmail`                      | string | No       | CC email address. Requires CC/BCC to be enabled for your team.                                                                                |
+| `bccEmail`                     | string | No       | BCC email address. Requires CC/BCC to be enabled for your team.                                                                               |
+| `languageCode`                 | string | No       | Language code for the email. Requires translation to be enabled for your team.                                                                 |
+| `emailFormat`                  | string | No       | The rendering format: `styled` or `plain`.                                                                                                   |
+| `lmx`                          | string | No       | The email body serialized as LMX. Styles must be embedded in the LMX `<Style />` tag.                                                          |
+| `contactPropertiesFallbacks`   | object | No       | Fallback values for contact properties, keyed by property name.                                                                                |
+| `eventPropertiesFallbacks`     | object | No       | Fallback values for event properties, keyed by property name.                                                                                  |
+| `dataVariablesFallbacks`       | object | No       | Fallback values for data variables, keyed by variable name.                                                                                    |
 
 #### Example
 
 ```javascript
-const resp = await loops.updateEmailMessage("msg_123", {
-  expectedRevisionId: "rev_123",
+const resp = await loops.updateEmailMessage("clm9x3o5q002yl70a8b3c4d5e", {
+  expectedRevisionId: "clv8g2x4z012yl70n5o6p7q8r",
   subject: "Hello",
   previewText: "Preview text",
   fromName: "Loops",
@@ -1453,16 +1511,16 @@ const resp = await loops.updateEmailMessage("msg_123", {
 
 ```json
 {
-  "success": true,
-  "emailMessageId": "msg_123",
-  "campaignId": "camp_123",
+  "id": "clm9x3o5q002yl70a8b3c4d5e",
+  "campaignId": "cln0y4p6r003yl70i1j2k3l4m",
   "subject": "Hello",
   "previewText": "Preview text",
   "fromName": "Loops",
   "fromEmail": "hello",
   "replyToEmail": "",
+  "emailFormat": "styled",
   "lmx": "<Email>...</Email>",
-  "contentRevisionId": "rev_456",
+  "contentRevisionId": "clv8g2x4z013yl70s9t0u1v2w",
   "updatedAt": "2025-01-02T00:00:00.000Z",
   "warnings": [
     {
@@ -1482,6 +1540,301 @@ HTTP 409 Conflict
   "success": false,
   "message": "Content revision ID is stale."
 }
+```
+
+---
+
+### listTransactionalGroups()
+
+Retrieve a paginated list of transactional groups.
+[API Reference](https://loops.so/docs/api-reference/list-transactional-groups)
+
+#### Parameters
+
+| Name      | Type    | Required | Notes                                                                                                                         |
+| --------- | ------- | -------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `perPage` | integer | No       | How many results to return per page. Must be between 10 and 50. Defaults to 20 if omitted.                                    |
+| `cursor`  | string  | No       | A cursor, to return a specific page of results. Cursors can be found from the `pagination.nextCursor` value in each response. |
+
+#### Example
+
+```javascript
+const resp = await loops.listTransactionalGroups();
+```
+
+---
+
+### createTransactionalGroup()
+
+Create a new transactional group.
+[API Reference](https://loops.so/docs/api-reference/create-transactional-group)
+
+#### Parameters
+
+| Name          | Type   | Required | Notes                                  |
+| ------------- | ------ | -------- | -------------------------------------- |
+| `name`        | string | Yes      | The group name. Cannot be `"Unsorted"`. |
+| `description` | string | No       | An optional description for the group. |
+
+#### Example
+
+```javascript
+const resp = await loops.createTransactionalGroup({
+  name: "Onboarding",
+  description: "Transactional emails for new users",
+});
+```
+
+---
+
+### getTransactionalGroup()
+
+Retrieve a single transactional group by ID.
+[API Reference](https://loops.so/docs/api-reference/get-transactional-group)
+
+#### Parameters
+
+| Name | Type   | Required | Notes                              |
+| ---- | ------ | -------- | ---------------------------------- |
+| `transactionalGroupId` | string | Yes      | The ID of the transactional group. |
+
+#### Example
+
+```javascript
+const resp = await loops.getTransactionalGroup("clq3b7s9u006yl70p5q6r7s8t");
+```
+
+---
+
+### updateTransactionalGroup()
+
+Update a transactional group's name or description. At least one field must be provided. The reserved `"Unsorted"` group cannot be edited.
+[API Reference](https://loops.so/docs/api-reference/update-transactional-group)
+
+#### Parameters
+
+| Name          | Type   | Required | Notes                              |
+| ------------- | ------ | -------- | ---------------------------------- |
+| `transactionalGroupId`          | string | Yes      | The ID of the transactional group. |
+| `name`        | string | No       | The group name.                    |
+| `description` | string | No       | A description for the group.       |
+
+#### Example
+
+```javascript
+const resp = await loops.updateTransactionalGroup("clq3b7s9u006yl70p5q6r7s8t", {
+  name: "Updated name",
+});
+```
+
+---
+
+### listAudienceSegments()
+
+Retrieve a paginated list of audience segments.
+[API Reference](https://loops.so/docs/api-reference/list-audience-segments)
+
+#### Parameters
+
+| Name      | Type    | Required | Notes                                                                                                                         |
+| --------- | ------- | -------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `perPage` | integer | No       | How many results to return per page. Must be between 10 and 50. Defaults to 20 if omitted.                                    |
+| `cursor`  | string  | No       | A cursor, to return a specific page of results. Cursors can be found from the `pagination.nextCursor` value in each response. |
+
+#### Example
+
+```javascript
+const resp = await loops.listAudienceSegments();
+```
+
+---
+
+### getAudienceSegment()
+
+Retrieve a single audience segment by ID.
+[API Reference](https://loops.so/docs/api-reference/get-audience-segment)
+
+#### Parameters
+
+| Name | Type   | Required | Notes                            |
+| ---- | ------ | -------- | -------------------------------- |
+| `audienceSegmentId` | string | Yes      | The ID of the audience segment. |
+
+#### Example
+
+```javascript
+const resp = await loops.getAudienceSegment("clr4c8t0v008yl70x3y4z5a6b");
+```
+
+---
+
+### listCampaignGroups()
+
+Retrieve a paginated list of campaign groups.
+[API Reference](https://loops.so/docs/api-reference/list-campaign-groups)
+
+#### Parameters
+
+| Name      | Type    | Required | Notes                                                                                                                         |
+| --------- | ------- | -------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `perPage` | integer | No       | How many results to return per page. Must be between 10 and 50. Defaults to 20 if omitted.                                    |
+| `cursor`  | string  | No       | A cursor, to return a specific page of results. Cursors can be found from the `pagination.nextCursor` value in each response. |
+
+#### Example
+
+```javascript
+const resp = await loops.listCampaignGroups();
+```
+
+---
+
+### createCampaignGroup()
+
+Create a new campaign group.
+[API Reference](https://loops.so/docs/api-reference/create-campaign-group)
+
+#### Parameters
+
+| Name          | Type   | Required | Notes                                  |
+| ------------- | ------ | -------- | -------------------------------------- |
+| `name`        | string | Yes      | The group name. Cannot be `"Unsorted"`. |
+| `description` | string | No       | An optional description for the group. |
+
+#### Example
+
+```javascript
+const resp = await loops.createCampaignGroup({
+  name: "Newsletters",
+});
+```
+
+---
+
+### getCampaignGroup()
+
+Retrieve a single campaign group by ID.
+[API Reference](https://loops.so/docs/api-reference/get-campaign-group)
+
+#### Parameters
+
+| Name | Type   | Required | Notes                         |
+| ---- | ------ | -------- | ----------------------------- |
+| `campaignGroupId` | string | Yes      | The ID of the campaign group. |
+
+#### Example
+
+```javascript
+const resp = await loops.getCampaignGroup("clq3b7s9u007yl70u9v0w1x2y");
+```
+
+---
+
+### updateCampaignGroup()
+
+Update a campaign group's name or description. At least one field must be provided. The reserved `"Unsorted"` group cannot be edited.
+[API Reference](https://loops.so/docs/api-reference/update-campaign-group)
+
+#### Parameters
+
+| Name          | Type   | Required | Notes                         |
+| ------------- | ------ | -------- | ----------------------------- |
+| `campaignGroupId`          | string | Yes      | The ID of the campaign group. |
+| `name`        | string | No       | The group name.               |
+| `description` | string | No       | A description for the group.  |
+
+#### Example
+
+```javascript
+const resp = await loops.updateCampaignGroup("clq3b7s9u007yl70u9v0w1x2y", {
+  description: "Monthly product updates",
+});
+```
+
+---
+
+### sendEmailMessagePreview()
+
+Send a test preview of an email message to one or more addresses.
+[API Reference](https://loops.so/docs/api-reference/send-email-message-preview)
+
+#### Parameters
+
+| Name                | Type     | Required | Notes                                                                                       |
+| ------------------- | -------- | -------- | ------------------------------------------------------------------------------------------- |
+| `emailMessageId`                | string   | Yes      | The ID of the email message.                                                                |
+| `emails`            | string[] | Yes      | One or more addresses to send the preview to.                                               |
+| `contactProperties` | object   | No       | Contact property values to render. Accepted for campaign and workflow previews.             |
+| `eventProperties`   | object   | No       | Event property values to render. Accepted for workflow previews only.                       |
+| `dataVariables`     | object   | No       | Transactional data variables to render. Accepted for transactional previews only.           |
+
+#### Example
+
+```javascript
+const resp = await loops.sendEmailMessagePreview("clm9x3o5q002yl70a8b3c4d5e", {
+  emails: ["test@example.com"],
+  contactProperties: {
+    firstName: "Alex",
+  },
+});
+```
+
+---
+
+### listWorkflows()
+
+Retrieve a paginated list of workflows.
+[API Reference](https://loops.so/docs/api-reference/list-workflows)
+
+#### Parameters
+
+| Name      | Type    | Required | Notes                                                                                                                         |
+| --------- | ------- | -------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `perPage` | integer | No       | How many results to return per page. Must be between 10 and 50. Defaults to 20 if omitted.                                    |
+| `cursor`  | string  | No       | A cursor, to return a specific page of results. Cursors can be found from the `pagination.nextCursor` value in each response. |
+
+#### Example
+
+```javascript
+const resp = await loops.listWorkflows();
+```
+
+---
+
+### getWorkflow()
+
+Retrieve a workflow graph with node type names, connections, and selected display fields.
+[API Reference](https://loops.so/docs/api-reference/get-workflow)
+
+#### Parameters
+
+| Name | Type   | Required | Notes                    |
+| ---- | ------ | -------- | ------------------------ |
+| `workflowId` | string | Yes      | The ID of the workflow. |
+
+#### Example
+
+```javascript
+const resp = await loops.getWorkflow("cls5d9u1w009yl70c7d8e9f0g");
+```
+
+---
+
+### getWorkflowNode()
+
+Retrieve detailed data for a single workflow node.
+[API Reference](https://loops.so/docs/api-reference/get-workflow-node)
+
+#### Parameters
+
+| Name         | Type   | Required | Notes                        |
+| ------------ | ------ | -------- | ---------------------------- |
+| `workflowId` | string | Yes      | The ID of the workflow.      |
+| `nodeId`         | string | Yes      | The ID of the workflow node. |
+
+#### Example
+
+```javascript
+const resp = await loops.getWorkflowNode("cls5d9u1w009yl70c7d8e9f0g", "clt6e0v2x010yl70h1i2j3k4l");
 ```
 
 ---
@@ -1525,18 +1878,27 @@ Finalize an asset after the file has been uploaded to the pre-signed URL.
 #### Example
 
 ```javascript
-const resp = await loops.completeUpload("asset_123");
+const resp = await loops.completeUpload("clu7f1w3y011yl70m5n6o7p8q");
 ```
 
 ---
 
 ## Version history
 
-- `v7.0.0` (Jun 8, 2026)
-  - Added transactional email management ([`getTransactionalEmail()`](#gettransactionalemail), [`createTransactionalEmail()`](#createtransactionalemail), [`updateTransactionalEmail()`](#updatetransactionalemail), [`ensureTransactionalEmailDraft()`](#ensuretransactionalemaildraft), [`publishTransactionalEmail()`](#publishtransactionalemail))
+- `v7.0.0` (Jun 24, 2026)
+  - Added transactional email management ([`getTransactionalEmail()`](#gettransactionalemail), [`createTransactionalEmail()`](#createtransactionalemail), [`updateTransactionalEmail()`](#updatetransactionalemail), [`ensureTransactionalEmailDraft()`](#ensuretransactionalemaildraft), [`publishTransactionalEmail()`](#publishtransactionalemail)).
+  - Added workflows ([`listWorkflows()`](#listworkflows), [`getWorkflow()`](#getworkflow), [`getWorkflowNode()`](#getworkflownode)).
   - Added image uploads ([`createUpload()`](#createupload), [`completeUpload()`](#completeupload)).
+  - Added audience segments ([`listAudienceSegments()`](#listaudiencesegments), [`getAudienceSegment()`](#getaudiencesegment)).
+  - Added campaign groups ([`listCampaignGroups()`](#listcampaigngroups), [`createCampaignGroup()`](#createcampaigngroup), [`getCampaignGroup()`](#getcampaigngroup), [`updateCampaignGroup()`](#updatecampaigngroup)).
+  - Added transactional groups ([`listTransactionalGroups()`](#listtransactionalgroups), [`createTransactionalGroup()`](#createtransactionalgroup), [`getTransactionalGroup()`](#gettransactionalgroup), [`updateTransactionalGroup()`](#updatetransactionalgroup)).
+  - Added [`sendEmailMessagePreview()`](#sendemailmessagepreview).
+  - Expanded [`createCampaign()`](#createcampaign) and [`updateCampaign()`](#updatecampaign) with group, audience, and scheduling options.
+  - Expanded [`createTransactionalEmail()`](#createtransactionalemail) and [`updateTransactionalEmail()`](#updatetransactionalemail) with `transactionalGroupId`.
+  - Expanded [`updateEmailMessage()`](#updateemailmessage) with `ccEmail`, `bccEmail`, `languageCode`, `emailFormat`, and property fallback maps.
   - Renamed list methods to use a consistent `list` naming pattern (breaking change): [`listContactProperties()`](#listcontactproperties), [`listMailingLists()`](#listmailinglists), [`listTransactionalEmails()`](#listtransactionalemails), [`listDedicatedSendingIps()`](#listdedicatedsendingips), [`listThemes()`](#listthemes), [`listComponents()`](#listcomponents), and [`listCampaigns()`](#listcampaigns). Note `getCustomProperties` is now `listContactProperties`.
-  - Note: [`listTransactionalEmails()`](#listtransactionalemails) uses a new underlying API endpoint returns an updated response shape.
+  - [`listTransactionalEmails()`](#listtransactionalemails) uses a new underlying API endpoint and returns an updated response shape (including `transactionalGroupId`).
+  - Breaking change: API response objects now use `id` instead of `campaignId`, `themeId`, `componentId`, and `emailMessageId`. List and detail responses no longer include a top-level `success` field.
 - `v6.4.0` (May 18, 2026) - Added `getDedicatedSendingIps()`, and endpoints for creating and editing campaings (`getThemes()`, [`getTheme()`](#gettheme), `getComponents()`, [`getComponent()`](#getcomponent), `getCampaigns()`, [`createCampaign()`](#createcampaign), [`getCampaign()`](#getcampaign), [`updateCampaign()`](#updatecampaign), [`getEmailMessage()`](#getemailmessage), and [`updateEmailMessage()`](#updateemailmessage)).
 - `v6.3.0` (Apr 8, 2026) - Added [`checkContactSuppression()`](#checkcontactsuppression) and [`removeContactSuppression()`](#removecontactsuppression) methods.
 - `v6.2.0` (Feb 9, 2026) - Support for the new arrays feature in sendTransactionalEmail.

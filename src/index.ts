@@ -240,6 +240,8 @@ interface TransactionalEmailResource {
   draftEmailMessageId: string | null;
   /** The ID of the published email message, or `null` if none. */
   publishedEmailMessageId: string | null;
+  /** The ID of the group this transactional email belongs to. */
+  transactionalGroupId: string | null;
   /** The date the transactional email was created in ECMA-262 date-time format. */
   createdAt: string;
   /** The date the transactional email was last updated in ECMA-262 date-time format. */
@@ -257,6 +259,135 @@ interface TransactionalDraftResponse extends TransactionalEmailResource {
    * Pass this as `expectedRevisionId` on your first update via `updateEmailMessage()`.
    */
   draftEmailMessageContentRevisionId: string | null;
+}
+
+interface Group {
+  id: string;
+  name: string;
+  description: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface ListGroupsResponse {
+  pagination: PaginationData;
+  data: Group[];
+}
+
+interface AudienceFilterBetweenValue {
+  from: string;
+  to: string;
+}
+
+interface PropertyCondition {
+  type: "property";
+  key: string;
+  operator:
+    | "any"
+    | "contains"
+    | "notContains"
+    | "equals"
+    | "notEquals"
+    | "greaterThan"
+    | "lessThan"
+    | "isTrue"
+    | "isFalse"
+    | "empty"
+    | "notEmpty"
+    | "dateEmpty"
+    | "dateNotEmpty"
+    | "after"
+    | "before"
+    | "between";
+  value?: string | number | AudienceFilterBetweenValue;
+}
+
+interface OptInCondition {
+  type: "optIn";
+  status: "accepted" | "pending" | "rejected" | null;
+}
+
+interface ActivityCondition {
+  type: "activity";
+  action: "sent" | "opened" | "clicked";
+  negate: boolean;
+  target: "campaign" | "workflow" | "workflowEmail";
+  id: string;
+}
+
+type AudienceFilterCondition =
+  | PropertyCondition
+  | OptInCondition
+  | ActivityCondition;
+
+interface AudienceFilter {
+  match: "all" | "any";
+  conditions: AudienceFilterCondition[];
+}
+
+interface CampaignScheduling {
+  method: "now" | "schedule";
+  /** ISO 8601 send time. Null when the method is `now`. */
+  timestamp: string | null;
+}
+
+interface CampaignSchedulingRequest {
+  method: "now" | "schedule";
+  /** Required and must be in the future when `method` is `schedule`. */
+  timestamp?: string;
+}
+
+interface AudienceSegment {
+  id: string;
+  name: string;
+  description: string | null;
+  createdAt: string;
+  updatedAt: string;
+  filter: AudienceFilter | null;
+}
+
+interface ListAudienceSegmentsResponse {
+  pagination: PaginationData;
+  data: AudienceSegment[];
+}
+
+interface WorkflowSummary {
+  id: string;
+  name: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface ListWorkflowsResponse {
+  pagination: PaginationData;
+  data: WorkflowSummary[];
+}
+
+type SimplifiedWorkflowNode = {
+  typeName: string;
+  nextNodeIds: string[];
+} & Record<string, unknown>;
+
+interface SimplifiedWorkflow {
+  id: string;
+  name?: string;
+  description?: string;
+  emoji?: string;
+  mailingListId?: string | null;
+  rootNodeId: string | null;
+  nodes: Record<string, SimplifiedWorkflowNode>;
+}
+
+type WorkflowNode = {
+  id: string;
+  workflowId: string;
+  typeName: string;
+  nextNodeIds: string[];
+} & Record<string, unknown>;
+
+interface EmailMessagePreviewResponse {
+  /** The ID of the email message the preview was sent for. */
+  id: string;
 }
 
 interface ListTransactionalsResourceResponse {
@@ -326,7 +457,7 @@ interface ThemeStyles {
 }
 
 interface Theme {
-  themeId: string;
+  id: string;
   name: string;
   styles: ThemeStyles;
   isDefault: boolean;
@@ -335,76 +466,51 @@ interface Theme {
 }
 
 interface ListThemesResponse {
-  success: true;
   pagination: PaginationData;
   data: Theme[];
 }
 
-interface ThemeResponse {
-  success: true;
-  themeId: string;
-  name: string;
-  styles: ThemeStyles;
-  isDefault: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
+type ThemeResponse = Theme;
 
 interface Component {
-  componentId: string;
+  id: string;
   name: string;
   lmx: string;
 }
 
 interface ListComponentsResponse {
-  success: true;
   pagination: PaginationData;
   data: Component[];
 }
 
-interface ComponentResponse {
-  success: true;
-  componentId: string;
-  name: string;
-  lmx: string;
-}
+type ComponentResponse = Component;
 
-interface CampaignListItem {
-  campaignId: string;
-  emailMessageId: string | null;
+interface Campaign {
+  id: string;
   name: string;
-  subject: string;
   status: string;
   createdAt: string;
   updatedAt: string;
+  emailMessageId: string | null;
+  campaignGroupId: string | null;
+  mailingListId: string | null;
+  audienceSegmentId: string | null;
+  audienceFilter: AudienceFilter | null;
+  scheduling: CampaignScheduling;
 }
 
 interface ListCampaignsResponse {
-  success: true;
   pagination: PaginationData;
-  data: CampaignListItem[];
+  data: Campaign[];
 }
 
-interface CreateCampaignResponse {
-  success: true;
-  campaignId: string;
-  name: string;
-  status: string;
-  createdAt: string;
-  updatedAt: string;
-  emailMessageId: string;
+interface CreateCampaignResponse extends Campaign {
   emailMessageContentRevisionId: string | null;
 }
 
-interface CampaignResponse {
-  success: true;
-  campaignId: string;
-  name: string;
-  status: string;
-  createdAt: string;
-  updatedAt: string;
-  emailMessageId: string | null;
-}
+type CampaignResponse = Campaign;
+
+type CampaignListItem = Campaign;
 
 interface EmailMessageWarning {
   rule: string;
@@ -414,17 +520,26 @@ interface EmailMessageWarning {
 }
 
 interface EmailMessageResponse {
-  success: true;
-  emailMessageId: string;
-  campaignId: string | null;
+  id: string;
+  /** Present only when the message belongs to a campaign. */
+  campaignId?: string;
+  /** Present only when the message belongs to a transactional email. */
+  transactionalId?: string;
   subject: string;
   previewText: string;
   fromName: string;
   fromEmail: string;
   replyToEmail: string;
+  ccEmail?: string;
+  bccEmail?: string;
+  languageCode?: string;
+  emailFormat: "styled" | "plain";
   lmx: string;
   contentRevisionId: string | null;
   updatedAt: string;
+  contactPropertiesFallbacks?: Record<string, string>;
+  eventPropertiesFallbacks?: Record<string, string>;
+  dataVariablesFallbacks?: Record<string, string>;
   warnings?: EmailMessageWarning[];
 }
 
@@ -1012,6 +1127,7 @@ class LoopsClient {
    *
    * @param {Object} params
    * @param {string} params.name The name of the transactional email.
+   * @param {string} [params.transactionalGroupId] The ID of the group to add this transactional email to.
    *
    * @see https://loops.so/docs/api-reference/create-transactional-email
    *
@@ -1019,13 +1135,19 @@ class LoopsClient {
    */
   async createTransactionalEmail({
     name,
+    transactionalGroupId,
   }: {
     name: string;
+    transactionalGroupId?: string;
   }): Promise<TransactionalDraftResponse> {
+    const payload: { name: string; transactionalGroupId?: string } = { name };
+    if (transactionalGroupId !== undefined) {
+      payload.transactionalGroupId = transactionalGroupId;
+    }
     return this._makeQuery({
       path: "v1/transactional-emails",
       method: "POST",
-      payload: { name },
+      payload,
     });
   }
 
@@ -1034,7 +1156,8 @@ class LoopsClient {
    *
    * @param {string} transactionalId The ID of the transactional email.
    * @param {Object} params
-   * @param {string} params.name The name of the transactional email.
+   * @param {string} [params.name] The name of the transactional email.
+   * @param {string} [params.transactionalGroupId] The ID of the group to move this transactional email to.
    *
    * @see https://loops.so/docs/api-reference/update-transactional-email
    *
@@ -1042,12 +1165,23 @@ class LoopsClient {
    */
   async updateTransactionalEmail(
     transactionalId: string,
-    { name }: { name: string }
+    {
+      name,
+      transactionalGroupId,
+    }: {
+      name?: string;
+      transactionalGroupId?: string;
+    }
   ): Promise<TransactionalEmailResource> {
+    const payload: { name?: string; transactionalGroupId?: string } = {};
+    if (name !== undefined) payload.name = name;
+    if (transactionalGroupId !== undefined) {
+      payload.transactionalGroupId = transactionalGroupId;
+    }
     return this._makeQuery({
       path: `v1/transactional-emails/${transactionalId}`,
       method: "POST",
-      payload: { name },
+      payload,
     });
   }
 
@@ -1097,6 +1231,51 @@ class LoopsClient {
   async listDedicatedSendingIps(): Promise<string[]> {
     return this._makeQuery({
       path: "v1/dedicated-sending-ips",
+    });
+  }
+
+  /**
+   * List audience segments.
+   *
+   * @param {Object} params
+   * @param {number} [params.perPage] How many results to return in each request. Must be between 10 and 50. Defaults to 20.
+   * @param {string} [params.cursor] A cursor, to return a specific page of results. Cursors can be found from the `pagination.nextCursor` value in each response.
+   *
+   * @see https://loops.so/docs/api-reference/list-audience-segments
+   *
+   * @returns {Object} List of audience segments (JSON)
+   */
+  async listAudienceSegments({
+    perPage,
+    cursor,
+  }: {
+    perPage?: number;
+    cursor?: string;
+  } = {}): Promise<ListAudienceSegmentsResponse> {
+    const params: { perPage: string; cursor?: string } = {
+      perPage: (perPage || 20).toString(),
+    };
+    if (cursor) params["cursor"] = cursor;
+    return this._makeQuery({
+      path: "v1/audience-segments",
+      params,
+    });
+  }
+
+  /**
+   * Get an audience segment by ID.
+   *
+   * @param {string} audienceSegmentId The ID of the audience segment.
+   *
+   * @see https://loops.so/docs/api-reference/get-audience-segment
+   *
+   * @returns {Object} Audience segment (JSON)
+   */
+  async getAudienceSegment(
+    audienceSegmentId: string
+  ): Promise<AudienceSegment> {
+    return this._makeQuery({
+      path: `v1/audience-segments/${audienceSegmentId}`,
     });
   }
 
@@ -1219,16 +1398,50 @@ class LoopsClient {
    *
    * @param {Object} params
    * @param {string} params.name The campaign name.
+   * @param {string} [params.campaignGroupId] The ID of the group to add this campaign to.
+   * @param {string | null} [params.mailingListId] The ID of the mailing list to send to.
+   * @param {string | null} [params.audienceSegmentId] The ID of an audience segment.
+   * @param {AudienceFilter | null} [params.audienceFilter] An audience filter.
+   * @param {CampaignSchedulingRequest} [params.scheduling] When the campaign should send.
    *
    * @see https://loops.so/docs/api-reference/create-campaign
    *
    * @returns {Object} Created campaign (JSON)
    */
-  async createCampaign({ name }: { name: string }): Promise<CreateCampaignResponse> {
+  async createCampaign({
+    name,
+    campaignGroupId,
+    mailingListId,
+    audienceSegmentId,
+    audienceFilter,
+    scheduling,
+  }: {
+    name: string;
+    campaignGroupId?: string;
+    mailingListId?: string | null;
+    audienceSegmentId?: string | null;
+    audienceFilter?: AudienceFilter | null;
+    scheduling?: CampaignSchedulingRequest;
+  }): Promise<CreateCampaignResponse> {
+    const payload: {
+      name: string;
+      campaignGroupId?: string;
+      mailingListId?: string | null;
+      audienceSegmentId?: string | null;
+      audienceFilter?: AudienceFilter | null;
+      scheduling?: CampaignSchedulingRequest;
+    } = { name };
+    if (campaignGroupId !== undefined) payload.campaignGroupId = campaignGroupId;
+    if (mailingListId !== undefined) payload.mailingListId = mailingListId;
+    if (audienceSegmentId !== undefined) {
+      payload.audienceSegmentId = audienceSegmentId;
+    }
+    if (audienceFilter !== undefined) payload.audienceFilter = audienceFilter;
+    if (scheduling !== undefined) payload.scheduling = scheduling;
     return this._makeQuery({
       path: "v1/campaigns",
       method: "POST",
-      payload: { name },
+      payload,
     });
   }
 
@@ -1248,11 +1461,16 @@ class LoopsClient {
   }
 
   /**
-   * Update a draft campaign's name.
+   * Update a draft campaign.
    *
    * @param {string} campaignId The ID of the campaign.
    * @param {Object} params
-   * @param {string} params.name The campaign name.
+   * @param {string} [params.name] The campaign name.
+   * @param {string} [params.campaignGroupId] The ID of the group to move this campaign to.
+   * @param {string | null} [params.mailingListId] The ID of the mailing list to send to.
+   * @param {string | null} [params.audienceSegmentId] The ID of an audience segment.
+   * @param {AudienceFilter | null} [params.audienceFilter] An audience filter.
+   * @param {CampaignSchedulingRequest} [params.scheduling] When the campaign should send.
    *
    * @see https://loops.so/docs/api-reference/update-campaign
    *
@@ -1260,12 +1478,42 @@ class LoopsClient {
    */
   async updateCampaign(
     campaignId: string,
-    { name }: { name: string }
+    {
+      name,
+      campaignGroupId,
+      mailingListId,
+      audienceSegmentId,
+      audienceFilter,
+      scheduling,
+    }: {
+      name?: string;
+      campaignGroupId?: string;
+      mailingListId?: string | null;
+      audienceSegmentId?: string | null;
+      audienceFilter?: AudienceFilter | null;
+      scheduling?: CampaignSchedulingRequest;
+    }
   ): Promise<CampaignResponse> {
+    const payload: {
+      name?: string;
+      campaignGroupId?: string;
+      mailingListId?: string | null;
+      audienceSegmentId?: string | null;
+      audienceFilter?: AudienceFilter | null;
+      scheduling?: CampaignSchedulingRequest;
+    } = {};
+    if (name !== undefined) payload.name = name;
+    if (campaignGroupId !== undefined) payload.campaignGroupId = campaignGroupId;
+    if (mailingListId !== undefined) payload.mailingListId = mailingListId;
+    if (audienceSegmentId !== undefined) {
+      payload.audienceSegmentId = audienceSegmentId;
+    }
+    if (audienceFilter !== undefined) payload.audienceFilter = audienceFilter;
+    if (scheduling !== undefined) payload.scheduling = scheduling;
     return this._makeQuery({
       path: `v1/campaigns/${campaignId}`,
       method: "POST",
-      payload: { name },
+      payload,
     });
   }
 
@@ -1295,7 +1543,14 @@ class LoopsClient {
    * @param {string} [params.fromName] The sender name.
    * @param {string} [params.fromEmail] The sender username (without `@` or domain).
    * @param {string} [params.replyToEmail] Reply-to email. Must be empty or a valid email address.
+   * @param {string} [params.ccEmail] CC email address.
+   * @param {string} [params.bccEmail] BCC email address.
+   * @param {string} [params.languageCode] Language code for the email.
+   * @param {"styled" | "plain"} [params.emailFormat] The rendering format of the email.
    * @param {string} [params.lmx] The email body serialized as LMX.
+   * @param {Record<string, string | null>} [params.contactPropertiesFallbacks] Fallback values for contact properties.
+   * @param {Record<string, string | null>} [params.eventPropertiesFallbacks] Fallback values for event properties.
+   * @param {Record<string, string | null>} [params.dataVariablesFallbacks] Fallback values for data variables.
    *
    * @see https://loops.so/docs/api-reference/update-email-message
    *
@@ -1310,7 +1565,14 @@ class LoopsClient {
       fromName,
       fromEmail,
       replyToEmail,
+      ccEmail,
+      bccEmail,
+      languageCode,
+      emailFormat,
       lmx,
+      contactPropertiesFallbacks,
+      eventPropertiesFallbacks,
+      dataVariablesFallbacks,
     }: {
       expectedRevisionId?: string;
       subject?: string;
@@ -1318,7 +1580,14 @@ class LoopsClient {
       fromName?: string;
       fromEmail?: string;
       replyToEmail?: string;
+      ccEmail?: string;
+      bccEmail?: string;
+      languageCode?: string;
+      emailFormat?: "styled" | "plain";
       lmx?: string;
+      contactPropertiesFallbacks?: Record<string, string | null>;
+      eventPropertiesFallbacks?: Record<string, string | null>;
+      dataVariablesFallbacks?: Record<string, string | null>;
     }
   ): Promise<EmailMessageResponse> {
     const payload: {
@@ -1328,7 +1597,14 @@ class LoopsClient {
       fromName?: string;
       fromEmail?: string;
       replyToEmail?: string;
+      ccEmail?: string;
+      bccEmail?: string;
+      languageCode?: string;
+      emailFormat?: "styled" | "plain";
       lmx?: string;
+      contactPropertiesFallbacks?: Record<string, string | null>;
+      eventPropertiesFallbacks?: Record<string, string | null>;
+      dataVariablesFallbacks?: Record<string, string | null>;
     } = {};
     if (expectedRevisionId !== undefined)
       payload.expectedRevisionId = expectedRevisionId;
@@ -1337,9 +1613,335 @@ class LoopsClient {
     if (fromName !== undefined) payload.fromName = fromName;
     if (fromEmail !== undefined) payload.fromEmail = fromEmail;
     if (replyToEmail !== undefined) payload.replyToEmail = replyToEmail;
+    if (ccEmail !== undefined) payload.ccEmail = ccEmail;
+    if (bccEmail !== undefined) payload.bccEmail = bccEmail;
+    if (languageCode !== undefined) payload.languageCode = languageCode;
+    if (emailFormat !== undefined) payload.emailFormat = emailFormat;
     if (lmx !== undefined) payload.lmx = lmx;
+    if (contactPropertiesFallbacks !== undefined) {
+      payload.contactPropertiesFallbacks = contactPropertiesFallbacks;
+    }
+    if (eventPropertiesFallbacks !== undefined) {
+      payload.eventPropertiesFallbacks = eventPropertiesFallbacks;
+    }
+    if (dataVariablesFallbacks !== undefined) {
+      payload.dataVariablesFallbacks = dataVariablesFallbacks;
+    }
     return this._makeQuery({
       path: `v1/email-messages/${emailMessageId}`,
+      method: "POST",
+      payload,
+    });
+  }
+
+  /**
+   * Send a preview of an email message.
+   *
+   * @param {string} emailMessageId The ID of the email message.
+   * @param {Object} params
+   * @param {string[]} params.emails One or more addresses to send the preview to.
+   * @param {Record<string, string>} [params.contactProperties] Contact property values to render.
+   * @param {Record<string, string>} [params.eventProperties] Event property values to render.
+   * @param {Record<string, unknown>} [params.dataVariables] Transactional data variables to render.
+   *
+   * @see https://loops.so/docs/api-reference/send-email-message-preview
+   *
+   * @returns {Object} Preview confirmation (JSON)
+   */
+  async sendEmailMessagePreview(
+    emailMessageId: string,
+    {
+      emails,
+      contactProperties,
+      eventProperties,
+      dataVariables,
+    }: {
+      emails: string[];
+      contactProperties?: Record<string, string>;
+      eventProperties?: Record<string, string>;
+      dataVariables?: Record<string, unknown>;
+    }
+  ): Promise<EmailMessagePreviewResponse> {
+    const payload: {
+      emails: string[];
+      contactProperties?: Record<string, string>;
+      eventProperties?: Record<string, string>;
+      dataVariables?: Record<string, unknown>;
+    } = { emails };
+    if (contactProperties !== undefined) {
+      payload.contactProperties = contactProperties;
+    }
+    if (eventProperties !== undefined) {
+      payload.eventProperties = eventProperties;
+    }
+    if (dataVariables !== undefined) payload.dataVariables = dataVariables;
+    return this._makeQuery({
+      path: `v1/email-messages/${emailMessageId}/preview`,
+      method: "POST",
+      payload,
+    });
+  }
+
+  /**
+   * List workflows.
+   *
+   * @param {Object} params
+   * @param {number} [params.perPage] How many results to return in each request. Must be between 10 and 50. Defaults to 20.
+   * @param {string} [params.cursor] A cursor, to return a specific page of results.
+   *
+   * @see https://loops.so/docs/api-reference/list-workflows
+   *
+   * @returns {Object} List of workflows (JSON)
+   */
+  async listWorkflows({
+    perPage,
+    cursor,
+  }: {
+    perPage?: number;
+    cursor?: string;
+  } = {}): Promise<ListWorkflowsResponse> {
+    const params: { perPage: string; cursor?: string } = {
+      perPage: (perPage || 20).toString(),
+    };
+    if (cursor) params["cursor"] = cursor;
+    return this._makeQuery({
+      path: "v1/workflows",
+      params,
+    });
+  }
+
+  /**
+   * Get a workflow by ID.
+   *
+   * @param {string} workflowId The ID of the workflow.
+   *
+   * @see https://loops.so/docs/api-reference/get-workflow
+   *
+   * @returns {Object} Workflow graph (JSON)
+   */
+  async getWorkflow(workflowId: string): Promise<SimplifiedWorkflow> {
+    return this._makeQuery({
+      path: `v1/workflows/${workflowId}`,
+    });
+  }
+
+  /**
+   * Get a workflow node by ID.
+   *
+   * @param {string} workflowId The ID of the workflow.
+   * @param {string} nodeId The ID of the workflow node.
+   *
+   * @see https://loops.so/docs/api-reference/get-workflow-node
+   *
+   * @returns {Object} Workflow node (JSON)
+   */
+  async getWorkflowNode(workflowId: string, nodeId: string): Promise<WorkflowNode> {
+    return this._makeQuery({
+      path: `v1/workflows/${workflowId}/nodes/${nodeId}`,
+    });
+  }
+
+  /**
+   * List campaign groups.
+   *
+   * @param {Object} params
+   * @param {number} [params.perPage] How many results to return in each request. Must be between 10 and 50. Defaults to 20.
+   * @param {string} [params.cursor] A cursor, to return a specific page of results.
+   *
+   * @see https://loops.so/docs/api-reference/list-campaign-groups
+   *
+   * @returns {Object} List of campaign groups (JSON)
+   */
+  async listCampaignGroups({
+    perPage,
+    cursor,
+  }: {
+    perPage?: number;
+    cursor?: string;
+  } = {}): Promise<ListGroupsResponse> {
+    const params: { perPage: string; cursor?: string } = {
+      perPage: (perPage || 20).toString(),
+    };
+    if (cursor) params["cursor"] = cursor;
+    return this._makeQuery({
+      path: "v1/campaign-groups",
+      params,
+    });
+  }
+
+  /**
+   * Create a campaign group.
+   *
+   * @param {Object} params
+   * @param {string} params.name The group name.
+   * @param {string} [params.description] An optional description for the group.
+   *
+   * @see https://loops.so/docs/api-reference/create-campaign-group
+   *
+   * @returns {Object} Created campaign group (JSON)
+   */
+  async createCampaignGroup({
+    name,
+    description,
+  }: {
+    name: string;
+    description?: string;
+  }): Promise<Group> {
+    const payload: { name: string; description?: string } = { name };
+    if (description !== undefined) payload.description = description;
+    return this._makeQuery({
+      path: "v1/campaign-groups",
+      method: "POST",
+      payload,
+    });
+  }
+
+  /**
+   * Get a campaign group by ID.
+   *
+   * @param {string} campaignGroupId The ID of the campaign group.
+   *
+   * @see https://loops.so/docs/api-reference/get-campaign-group
+   *
+   * @returns {Object} Campaign group (JSON)
+   */
+  async getCampaignGroup(campaignGroupId: string): Promise<Group> {
+    return this._makeQuery({
+      path: `v1/campaign-groups/${campaignGroupId}`,
+    });
+  }
+
+  /**
+   * Update a campaign group.
+   *
+   * @param {string} campaignGroupId The ID of the campaign group.
+   * @param {Object} params
+   * @param {string} [params.name] The group name.
+   * @param {string} [params.description] A description for the group.
+   *
+   * @see https://loops.so/docs/api-reference/update-campaign-group
+   *
+   * @returns {Object} Updated campaign group (JSON)
+   */
+  async updateCampaignGroup(
+    campaignGroupId: string,
+    {
+      name,
+      description,
+    }: {
+      name?: string;
+      description?: string;
+    }
+  ): Promise<Group> {
+    const payload: { name?: string; description?: string } = {};
+    if (name !== undefined) payload.name = name;
+    if (description !== undefined) payload.description = description;
+    return this._makeQuery({
+      path: `v1/campaign-groups/${campaignGroupId}`,
+      method: "POST",
+      payload,
+    });
+  }
+
+  /**
+   * List transactional groups.
+   *
+   * @param {Object} params
+   * @param {number} [params.perPage] How many results to return in each request. Must be between 10 and 50. Defaults to 20.
+   * @param {string} [params.cursor] A cursor, to return a specific page of results.
+   *
+   * @see https://loops.so/docs/api-reference/list-transactional-groups
+   *
+   * @returns {Object} List of transactional groups (JSON)
+   */
+  async listTransactionalGroups({
+    perPage,
+    cursor,
+  }: {
+    perPage?: number;
+    cursor?: string;
+  } = {}): Promise<ListGroupsResponse> {
+    const params: { perPage: string; cursor?: string } = {
+      perPage: (perPage || 20).toString(),
+    };
+    if (cursor) params["cursor"] = cursor;
+    return this._makeQuery({
+      path: "v1/transactional-groups",
+      params,
+    });
+  }
+
+  /**
+   * Create a transactional group.
+   *
+   * @param {Object} params
+   * @param {string} params.name The group name.
+   * @param {string} [params.description] An optional description for the group.
+   *
+   * @see https://loops.so/docs/api-reference/create-transactional-group
+   *
+   * @returns {Object} Created transactional group (JSON)
+   */
+  async createTransactionalGroup({
+    name,
+    description,
+  }: {
+    name: string;
+    description?: string;
+  }): Promise<Group> {
+    const payload: { name: string; description?: string } = { name };
+    if (description !== undefined) payload.description = description;
+    return this._makeQuery({
+      path: "v1/transactional-groups",
+      method: "POST",
+      payload,
+    });
+  }
+
+  /**
+   * Get a transactional group by ID.
+   *
+   * @param {string} transactionalGroupId The ID of the transactional group.
+   *
+   * @see https://loops.so/docs/api-reference/get-transactional-group
+   *
+   * @returns {Object} Transactional group (JSON)
+   */
+  async getTransactionalGroup(
+    transactionalGroupId: string
+  ): Promise<Group> {
+    return this._makeQuery({
+      path: `v1/transactional-groups/${transactionalGroupId}`,
+    });
+  }
+
+  /**
+   * Update a transactional group.
+   *
+   * @param {string} transactionalGroupId The ID of the transactional group.
+   * @param {Object} params
+   * @param {string} [params.name] The group name.
+   * @param {string} [params.description] A description for the group.
+   *
+   * @see https://loops.so/docs/api-reference/update-transactional-group
+   *
+   * @returns {Object} Updated transactional group (JSON)
+   */
+  async updateTransactionalGroup(
+    transactionalGroupId: string,
+    {
+      name,
+      description,
+    }: {
+      name?: string;
+      description?: string;
+    }
+  ): Promise<Group> {
+    const payload: { name?: string; description?: string } = {};
+    if (name !== undefined) payload.name = name;
+    if (description !== undefined) payload.description = description;
+    return this._makeQuery({
+      path: `v1/transactional-groups/${transactionalGroupId}`,
       method: "POST",
       payload,
     });
@@ -1427,6 +2029,25 @@ export {
   Component,
   ListComponentsResponse,
   ComponentResponse,
+  Group,
+  ListGroupsResponse,
+  AudienceFilterBetweenValue,
+  PropertyCondition,
+  OptInCondition,
+  ActivityCondition,
+  AudienceFilterCondition,
+  AudienceFilter,
+  CampaignScheduling,
+  CampaignSchedulingRequest,
+  AudienceSegment,
+  ListAudienceSegmentsResponse,
+  WorkflowSummary,
+  ListWorkflowsResponse,
+  SimplifiedWorkflowNode,
+  SimplifiedWorkflow,
+  WorkflowNode,
+  EmailMessagePreviewResponse,
+  Campaign,
   CampaignListItem,
   ListCampaignsResponse,
   CreateCampaignResponse,
