@@ -351,6 +351,39 @@ interface ListAudienceSegmentsResponse {
   data: AudienceSegment[];
 }
 
+type IncomingWebhookPlatform = "clerk" | "polar" | "stripe" | "supabase";
+
+interface EventPatternSummary {
+  /** The ID of the event pattern. */
+  id: string;
+  /**
+   * The name of the event pattern. Use this when sending events with the API.
+   */
+  eventName: string;
+  /**
+   * The platform that sent this event pattern, if the event pattern is from an
+   * incoming webhook. `null` for custom events.
+   */
+  incomingWebhookPlatform: IncomingWebhookPlatform | null;
+}
+
+interface WorkflowEventProperty {
+  name: string;
+  type: "string" | "number" | "boolean" | "date";
+}
+
+interface EventPattern extends EventPatternSummary {
+  /**
+   * The properties of the event pattern, which can be used in emails.
+   */
+  eventProperties: WorkflowEventProperty[];
+}
+
+interface ListEventPatternsResponse {
+  pagination: PaginationData;
+  data: EventPatternSummary[];
+}
+
 interface WorkflowSummary {
   id: string;
   name: string;
@@ -363,6 +396,8 @@ interface ListWorkflowsResponse {
   data: WorkflowSummary[];
 }
 
+type WorkflowStatus = "Draft" | "Sending" | "Paused" | "PausedAndQueueing";
+
 type SimplifiedWorkflowNode = {
   typeName: string;
   nextNodeIds: string[];
@@ -370,12 +405,20 @@ type SimplifiedWorkflowNode = {
 
 interface SimplifiedWorkflow {
   id: string;
+  status: WorkflowStatus;
   name?: string;
   description?: string;
-  emoji?: string;
-  mailingListId?: string | null;
-  rootNodeId: string | null;
+  mailingListId: string | null;
+  rootNodeId: string;
   nodes: Record<string, SimplifiedWorkflowNode>;
+}
+
+interface SimplifiedWorkflowWithRevision extends SimplifiedWorkflow {
+  /**
+   * The current workflow revision token. Pass the latest value as
+   * `expectedRevisionId` on the next workflow mutation.
+   */
+  workflowRevisionId: string;
 }
 
 type WorkflowNode = {
@@ -385,9 +428,206 @@ type WorkflowNode = {
   nextNodeIds: string[];
 } & Record<string, unknown>;
 
+type WorkflowNodeWithRevision = WorkflowNode & {
+  workflowRevisionId: string;
+};
+
+type WorkflowQueuedContactPolicy = "fail" | "discard";
+
+type CreateWorkflowNodeTypeName =
+  | "AudienceFilter"
+  | "BranchNode"
+  | "ExperimentBranchNode"
+  | "TimerAction"
+  | "SendEmailAction"
+  | "VariantNode";
+
+type CreateWorkflowNodeParams =
+  | {
+      expectedRevisionId: string;
+      insertMode: "between";
+      nodeTypeName: CreateWorkflowNodeTypeName;
+      fromNodeId: string;
+      toNodeId: string;
+    }
+  | {
+      expectedRevisionId: string;
+      insertMode: "before";
+      nodeTypeName: CreateWorkflowNodeTypeName;
+      beforeNodeId: string;
+    };
+
+type CreatedWorkflowNode = WorkflowNodeWithRevision & {
+  /**
+   * Default child nodes created along with the requested node.
+   * BranchNode creation returns two AudienceFilter children.
+   * ExperimentBranchNode creation returns two regular VariantNode children
+   * and one control VariantNode.
+   */
+  createdChildNodes?: WorkflowNode[];
+};
+
+interface CreateWorkflowNodeResponse {
+  node: CreatedWorkflowNode;
+  workflow: SimplifiedWorkflowWithRevision;
+}
+
+interface AddWorkflowBranchResponse {
+  node: WorkflowNodeWithRevision;
+  workflow: SimplifiedWorkflowWithRevision;
+}
+
+interface WorkflowMailingListPreview {
+  status: "dryRun" | "queuedContactsFound";
+  mailingListId: string | null;
+  queuedContactCount: number;
+  queuedContactLimitReached: boolean;
+}
+
+interface WorkflowMailingListUpdatedResponse {
+  status: "updated";
+  mailingListId: string | null;
+  workflowRevisionId: string;
+  queuedContactCount: number;
+  queuedContactLimitReached: boolean;
+}
+
+type ChangeWorkflowMailingListResponse =
+  | WorkflowMailingListPreview
+  | WorkflowMailingListUpdatedResponse;
+
+interface WorkflowQueuedContactDeletePreview {
+  status: "dryRun" | "queuedContactsFound";
+  nodeIds: string[];
+  queuedContactCount: number;
+  queuedContactLimitReached: boolean;
+}
+
+interface WorkflowDeletedResponse {
+  status: "deleted";
+  nodeIds: string[];
+  workflowRevisionId: string;
+  queuedContactCount: number;
+  queuedContactLimitReached: boolean;
+}
+
+type DeleteWorkflowNodeResponse =
+  | WorkflowQueuedContactDeletePreview
+  | WorkflowDeletedResponse;
+
+type WorkflowContactPropertyComparisonOperator =
+  | "any"
+  | "contains"
+  | "not_contains"
+  | "empty"
+  | "not_empty"
+  | "equal"
+  | "not_equal"
+  | "greater_than"
+  | "less_than"
+  | "true"
+  | "false"
+  | "numeric_equal"
+  | "numeric_not_equal"
+  | "after"
+  | "before"
+  | "between";
+
+interface WorkflowContactPropertyComparison {
+  value: string | number | boolean;
+  operator: WorkflowContactPropertyComparisonOperator;
+}
+
+interface WorkflowContactPropertyQuery {
+  key: string;
+  is: WorkflowContactPropertyComparison;
+  was: WorkflowContactPropertyComparison;
+}
+
+type UpdateWorkflowNodePayload =
+  | { typeName: "SignupTrigger" }
+  | {
+      typeName?: "EventTrigger";
+      eventPatternId?: string | null;
+      eventName?: string | null;
+      reEligible?: boolean;
+    }
+  | {
+      typeName?: "ContactPropertyTrigger";
+      contactPropertyQuery?: WorkflowContactPropertyQuery;
+      reEligible?: boolean;
+    }
+  | {
+      typeName?: "AddToListTrigger";
+      reEligible?: boolean;
+    }
+  | {
+      audienceSegmentId?: string | null;
+      audienceFilter?: AudienceFilter;
+      appliesDownstream?: boolean;
+    }
+  | {
+      amount?: number;
+      unit?: "m" | "h" | "d";
+    }
+  | {
+      samplingRate?: number;
+    }
+  | {
+      isControl?: boolean;
+    };
+
 interface EmailMessagePreviewResponse {
   /** The ID of the email message the preview was sent for. */
   id: string;
+}
+
+type GuardianRuleName =
+  | "unsupportedContactProperties"
+  | "missingFallbackContactProperties"
+  | "unsupportedEventProperties"
+  | "missingFallbackEventProperties"
+  | "unsupportedDataVariables"
+  | "invalidCustomDataVariables"
+  | "missingRequiredDataVariables"
+  | "missingButtonHrefs"
+  | "invalidButtonHrefs"
+  | "shortenedYouTubeButtonHrefs"
+  | "missingLinkHrefs"
+  | "invalidLinkHrefs"
+  | "shortenedYouTubeLinkHrefs"
+  | "shortenedYouTubeImageHrefs"
+  | "emailWithoutMailtoButtonHrefs"
+  | "emailWithoutMailtoLinkHrefs"
+  | "emailWithoutMailtoImageHrefs"
+  | "bareArrayNodes"
+  | "missingSocialIconHrefs";
+
+interface GuardianRuleItem {
+  /** A human-readable label for the item (for example, link text or a property name). */
+  label: string;
+  /**
+   * Machine-readable identifier when the rule refers to a property or variable.
+   */
+  codeName?: string;
+}
+
+interface GuardianRule {
+  /** The identifier of the Guardian rule that fired. */
+  rule: GuardianRuleName;
+  /** A short summary of the rule. */
+  title: string;
+  /** A longer explanation of why the issue matters. */
+  description: string;
+  /** The specific elements that triggered the rule. */
+  items: GuardianRuleItem[];
+}
+
+interface EmailMessageGuardianResponse {
+  /** Validation errors. These must be resolved before the email can be published. */
+  errors: GuardianRule[];
+  /** Validation warnings. These are advisory and do not block publishing. */
+  warnings: GuardianRule[];
 }
 
 interface ListTransactionalsResourceResponse {
@@ -472,6 +712,14 @@ interface ListThemesResponse {
 
 type ThemeResponse = Theme;
 
+interface UpdateThemeResponse extends ThemeResponse {
+  /**
+   * The number of emails using this theme that are affected by the style change.
+   * `0` when only the name changed.
+   */
+  affectedEmailCount: number;
+}
+
 interface Component {
   id: string;
   name: string;
@@ -484,6 +732,14 @@ interface ListComponentsResponse {
 }
 
 type ComponentResponse = Component;
+
+interface UpdateComponentResponse extends ComponentResponse {
+  /**
+   * The number of emails using this component that were updated by the body change.
+   * `0` when only the name changed.
+   */
+  affectedEmailCount: number;
+}
 
 interface Campaign {
   id: string;
@@ -1323,6 +1579,68 @@ class LoopsClient {
   }
 
   /**
+   * Create a theme.
+   *
+   * @param {Object} params
+   * @param {string} params.name The theme name.
+   * @param {ThemeStyles} [params.styles] Style attributes for the theme.
+   *
+   * @see https://loops.so/docs/api-reference/create-theme
+   *
+   * @returns {Object} Created theme (JSON)
+   */
+  async createTheme({
+    name,
+    styles,
+  }: {
+    name: string;
+    styles?: ThemeStyles;
+  }): Promise<ThemeResponse> {
+    const payload: { name: string; styles?: ThemeStyles } = { name };
+    if (styles !== undefined) payload.styles = styles;
+    return this._makeQuery({
+      path: "v1/themes",
+      method: "POST",
+      payload,
+    });
+  }
+
+  /**
+   * Update a theme's name and/or styles.
+   *
+   * When `styles` change, the update cascades to every email using this theme.
+   * `affectedEmailCount` in the response reports how many emails were affected.
+   *
+   * @param {string} themeId The ID of the theme.
+   * @param {Object} params
+   * @param {string} [params.name] The theme name.
+   * @param {ThemeStyles} [params.styles] Style attributes for the theme.
+   *
+   * @see https://loops.so/docs/api-reference/update-theme
+   *
+   * @returns {Object} Updated theme (JSON)
+   */
+  async updateTheme(
+    themeId: string,
+    {
+      name,
+      styles,
+    }: {
+      name?: string;
+      styles?: ThemeStyles;
+    }
+  ): Promise<UpdateThemeResponse> {
+    const payload: { name?: string; styles?: ThemeStyles } = {};
+    if (name !== undefined) payload.name = name;
+    if (styles !== undefined) payload.styles = styles;
+    return this._makeQuery({
+      path: `v1/themes/${themeId}`,
+      method: "POST",
+      payload,
+    });
+  }
+
+  /**
    * List email components.
    *
    * @param {Object} params
@@ -1362,6 +1680,66 @@ class LoopsClient {
   async getComponent(componentId: string): Promise<ComponentResponse> {
     return this._makeQuery({
       path: `v1/components/${componentId}`,
+    });
+  }
+
+  /**
+   * Create a component.
+   *
+   * @param {Object} params
+   * @param {string} params.name The component name.
+   * @param {string} params.lmx The component body as an LMX string.
+   *
+   * @see https://loops.so/docs/api-reference/create-component
+   *
+   * @returns {Object} Created component (JSON)
+   */
+  async createComponent({
+    name,
+    lmx,
+  }: {
+    name: string;
+    lmx: string;
+  }): Promise<ComponentResponse> {
+    return this._makeQuery({
+      path: "v1/components",
+      method: "POST",
+      payload: { name, lmx },
+    });
+  }
+
+  /**
+   * Update a component's name and/or LMX body.
+   *
+   * When `lmx` changes, the update cascades to every email using this component.
+   * `affectedEmailCount` in the response reports how many were affected.
+   *
+   * @param {string} componentId The ID of the component.
+   * @param {Object} params
+   * @param {string} [params.name] The component name.
+   * @param {string} [params.lmx] The component body as an LMX string.
+   *
+   * @see https://loops.so/docs/api-reference/update-component
+   *
+   * @returns {Object} Updated component (JSON)
+   */
+  async updateComponent(
+    componentId: string,
+    {
+      name,
+      lmx,
+    }: {
+      name?: string;
+      lmx?: string;
+    }
+  ): Promise<UpdateComponentResponse> {
+    const payload: { name?: string; lmx?: string } = {};
+    if (name !== undefined) payload.name = name;
+    if (lmx !== undefined) payload.lmx = lmx;
+    return this._makeQuery({
+      path: `v1/components/${componentId}`,
+      method: "POST",
+      payload,
     });
   }
 
@@ -1683,6 +2061,84 @@ class LoopsClient {
   }
 
   /**
+   * Run Guardian checks on an email message.
+   *
+   * Validates content against Guardian rules and returns errors and warnings.
+   * Errors must be resolved before the email can be published; warnings are advisory.
+   *
+   * @param {string} emailMessageId The ID of the email message.
+   *
+   * @see https://loops.so/docs/api-reference/run-guardian-checks
+   *
+   * @returns {Object} Guardian errors and warnings (JSON)
+   */
+  async runEmailMessageGuardian(
+    emailMessageId: string
+  ): Promise<EmailMessageGuardianResponse> {
+    return this._makeQuery({
+      path: `v1/email-messages/${emailMessageId}/guardian`,
+    });
+  }
+
+  /**
+   * List event patterns available to workflow event trigger nodes.
+   *
+   * @param {Object} params
+   * @param {number} [params.perPage] How many results to return in each request. Must be between 10 and 50. Defaults to 20.
+   * @param {string} [params.cursor] A cursor, to return a specific page of results.
+   *
+   * @see https://loops.so/docs/api-reference/list-event-patterns
+   *
+   * @returns {Object} List of event patterns (JSON)
+   */
+  async listEventPatterns({
+    perPage,
+    cursor,
+  }: {
+    perPage?: number;
+    cursor?: string;
+  } = {}): Promise<ListEventPatternsResponse> {
+    const params: { perPage: string; cursor?: string } = {
+      perPage: (perPage || 20).toString(),
+    };
+    if (cursor) params["cursor"] = cursor;
+    return this._makeQuery({
+      path: "v1/event-patterns",
+      params,
+    });
+  }
+
+  /**
+   * Get an event pattern by ID.
+   *
+   * @param {string} eventPatternId The ID of the event pattern.
+   *
+   * @see https://loops.so/docs/api-reference/get-event-pattern
+   *
+   * @returns {Object} Event pattern (JSON)
+   */
+  async getEventPattern(eventPatternId: string): Promise<EventPattern> {
+    return this._makeQuery({
+      path: `v1/event-patterns/${eventPatternId}`,
+    });
+  }
+
+  /**
+   * Get an event pattern by event name.
+   *
+   * @param {string} eventName The name of the event pattern.
+   *
+   * @see https://loops.so/docs/api-reference/get-event-pattern-by-name
+   *
+   * @returns {Object} Event pattern (JSON)
+   */
+  async getEventPatternByName(eventName: string): Promise<EventPattern> {
+    return this._makeQuery({
+      path: `v1/event-patterns/by-name/${encodeURIComponent(eventName)}`,
+    });
+  }
+
+  /**
    * List workflows.
    *
    * @param {Object} params
@@ -1711,6 +2167,41 @@ class LoopsClient {
   }
 
   /**
+   * Create a draft workflow with a blank trigger and exit node.
+   *
+   * @param {Object} params
+   * @param {string} params.name The name of the workflow.
+   * @param {string} [params.description] The description of the workflow.
+   * @param {string | null} [params.mailingListId] The ID of a mailing list the workflow sends to.
+   *
+   * @see https://loops.so/docs/api-reference/create-workflow
+   *
+   * @returns {Object} Created workflow (JSON)
+   */
+  async createWorkflow({
+    name,
+    description,
+    mailingListId,
+  }: {
+    name: string;
+    description?: string;
+    mailingListId?: string | null;
+  }): Promise<SimplifiedWorkflowWithRevision> {
+    const payload: {
+      name: string;
+      description?: string;
+      mailingListId?: string | null;
+    } = { name };
+    if (description !== undefined) payload.description = description;
+    if (mailingListId !== undefined) payload.mailingListId = mailingListId;
+    return this._makeQuery({
+      path: "v1/workflows",
+      method: "POST",
+      payload,
+    });
+  }
+
+  /**
    * Get a workflow by ID.
    *
    * @param {string} workflowId The ID of the workflow.
@@ -1719,9 +2210,127 @@ class LoopsClient {
    *
    * @returns {Object} Workflow graph (JSON)
    */
-  async getWorkflow(workflowId: string): Promise<SimplifiedWorkflow> {
+  async getWorkflow(
+    workflowId: string
+  ): Promise<SimplifiedWorkflowWithRevision> {
     return this._makeQuery({
       path: `v1/workflows/${workflowId}`,
+    });
+  }
+
+  /**
+   * Update a workflow's display properties.
+   *
+   * At least one of `name` or `description` must be provided. To change the
+   * mailing list, use `changeWorkflowMailingList()`.
+   *
+   * @param {string} workflowId The ID of the workflow.
+   * @param {Object} params
+   * @param {string} params.expectedRevisionId The workflow revision token from the latest read or mutation.
+   * @param {string} [params.name] The updated workflow name.
+   * @param {string} [params.description] The updated workflow description.
+   *
+   * @see https://loops.so/docs/api-reference/update-workflow
+   *
+   * @returns {Object} Updated workflow (JSON)
+   */
+  async updateWorkflow(
+    workflowId: string,
+    {
+      expectedRevisionId,
+      name,
+      description,
+    }: {
+      expectedRevisionId: string;
+      name?: string;
+      description?: string;
+    }
+  ): Promise<SimplifiedWorkflowWithRevision> {
+    const payload: {
+      expectedRevisionId: string;
+      name?: string;
+      description?: string;
+    } = { expectedRevisionId };
+    if (name !== undefined) payload.name = name;
+    if (description !== undefined) payload.description = description;
+    return this._makeQuery({
+      path: `v1/workflows/${workflowId}`,
+      method: "POST",
+      payload,
+    });
+  }
+
+  /**
+   * Dry run or apply a workflow mailing list change.
+   *
+   * If queued contacts would be removed, Loops returns
+   * `"status": "queuedContactsFound"` instead of updating. Retry with
+   * `queuedContactPolicy: "discard"` to apply the change.
+   *
+   * @param {string} workflowId The ID of the workflow.
+   * @param {Object} params
+   * @param {string} params.expectedRevisionId The workflow revision token from the latest read or mutation.
+   * @param {string | null} params.mailingListId The mailing list to use, or `null` to clear it.
+   * @param {boolean} [params.dryRun] If `true`, validate without modifying the workflow.
+   * @param {"fail" | "discard"} [params.queuedContactPolicy] How to handle queued contacts that would be removed.
+   *
+   * @see https://loops.so/docs/api-reference/change-workflow-mailing-list
+   *
+   * @returns {Object} Preview or updated mailing list result (JSON)
+   */
+  async changeWorkflowMailingList(
+    workflowId: string,
+    {
+      expectedRevisionId,
+      mailingListId,
+      dryRun,
+      queuedContactPolicy,
+    }: {
+      expectedRevisionId: string;
+      mailingListId: string | null;
+      dryRun?: boolean;
+      queuedContactPolicy?: WorkflowQueuedContactPolicy;
+    }
+  ): Promise<ChangeWorkflowMailingListResponse> {
+    const payload: {
+      expectedRevisionId: string;
+      mailingListId: string | null;
+      dryRun?: boolean;
+      queuedContactPolicy?: WorkflowQueuedContactPolicy;
+    } = { expectedRevisionId, mailingListId };
+    if (dryRun !== undefined) payload.dryRun = dryRun;
+    if (queuedContactPolicy !== undefined) {
+      payload.queuedContactPolicy = queuedContactPolicy;
+    }
+    return this._makeQuery({
+      path: `v1/workflows/${workflowId}/mailing-list`,
+      method: "POST",
+      payload,
+    });
+  }
+
+  /**
+   * Create a new default workflow node and return it with the latest workflow.
+   *
+   * Use `insertMode: "between"` to place the node between an existing connection,
+   * or `insertMode: "before"` to insert before a node. Configure the node after
+   * creation with `updateWorkflowNode()`.
+   *
+   * @param {string} workflowId The ID of the workflow.
+   * @param {Object} params Create parameters including `insertMode` and revision.
+   *
+   * @see https://loops.so/docs/api-reference/create-workflow-node
+   *
+   * @returns {Object} Created node and workflow (JSON)
+   */
+  async createWorkflowNode(
+    workflowId: string,
+    params: CreateWorkflowNodeParams
+  ): Promise<CreateWorkflowNodeResponse> {
+    return this._makeQuery({
+      path: `v1/workflows/${workflowId}/nodes`,
+      method: "POST",
+      payload: params,
     });
   }
 
@@ -1735,9 +2344,168 @@ class LoopsClient {
    *
    * @returns {Object} Workflow node (JSON)
    */
-  async getWorkflowNode(workflowId: string, nodeId: string): Promise<WorkflowNode> {
+  async getWorkflowNode(
+    workflowId: string,
+    nodeId: string
+  ): Promise<WorkflowNodeWithRevision> {
     return this._makeQuery({
       path: `v1/workflows/${workflowId}/nodes/${nodeId}`,
+    });
+  }
+
+  /**
+   * Update workflow-node-owned fields for a single node.
+   *
+   * Shared resources such as email messages and audience segments should be
+   * updated through their own APIs.
+   *
+   * @param {string} workflowId The ID of the workflow.
+   * @param {string} nodeId The ID of the workflow node.
+   * @param {Object} params
+   * @param {string} params.expectedRevisionId The workflow revision token from the latest read or mutation.
+   * @param {UpdateWorkflowNodePayload} params.payload Node-type-specific fields to update.
+   *
+   * @see https://loops.so/docs/api-reference/update-workflow-node
+   *
+   * @returns {Object} Updated workflow node (JSON)
+   */
+  async updateWorkflowNode(
+    workflowId: string,
+    nodeId: string,
+    {
+      expectedRevisionId,
+      payload,
+    }: {
+      expectedRevisionId: string;
+      payload: UpdateWorkflowNodePayload;
+    }
+  ): Promise<WorkflowNodeWithRevision> {
+    return this._makeQuery({
+      path: `v1/workflows/${workflowId}/nodes/${nodeId}`,
+      method: "POST",
+      payload: { expectedRevisionId, payload },
+    });
+  }
+
+  /**
+   * Delete a single workflow node.
+   *
+   * If contacts are queued at the node, Loops returns
+   * `"status": "queuedContactsFound"` instead of deleting. Retry with
+   * `queuedContactPolicy: "discard"` to delete the node.
+   *
+   * @param {string} workflowId The ID of the workflow.
+   * @param {string} nodeId The ID of the workflow node.
+   * @param {Object} params
+   * @param {string} params.expectedRevisionId The workflow revision token from the latest read or mutation.
+   * @param {boolean} [params.dryRun] If `true`, validate without modifying the workflow.
+   * @param {"fail" | "discard"} [params.queuedContactPolicy] How to handle queued contacts.
+   *
+   * @see https://loops.so/docs/api-reference/delete-workflow-node
+   *
+   * @returns {Object} Preview or delete result (JSON)
+   */
+  async deleteWorkflowNode(
+    workflowId: string,
+    nodeId: string,
+    {
+      expectedRevisionId,
+      dryRun,
+      queuedContactPolicy,
+    }: {
+      expectedRevisionId: string;
+      dryRun?: boolean;
+      queuedContactPolicy?: WorkflowQueuedContactPolicy;
+    }
+  ): Promise<DeleteWorkflowNodeResponse> {
+    const payload: {
+      expectedRevisionId: string;
+      dryRun?: boolean;
+      queuedContactPolicy?: WorkflowQueuedContactPolicy;
+    } = { expectedRevisionId };
+    if (dryRun !== undefined) payload.dryRun = dryRun;
+    if (queuedContactPolicy !== undefined) {
+      payload.queuedContactPolicy = queuedContactPolicy;
+    }
+    return this._makeQuery({
+      path: `v1/workflows/${workflowId}/nodes/${nodeId}`,
+      method: "DELETE",
+      payload,
+    });
+  }
+
+  /**
+   * Add a branch and a child node under an existing Branch or Experiment node.
+   *
+   * @param {string} workflowId The ID of the workflow.
+   * @param {string} nodeId The ID of the Branch or Experiment node.
+   * @param {Object} params
+   * @param {string} params.expectedRevisionId The workflow revision token from the latest read or mutation.
+   *
+   * @see https://loops.so/docs/api-reference/add-workflow-branch
+   *
+   * @returns {Object} Created child node and workflow (JSON)
+   */
+  async addWorkflowBranch(
+    workflowId: string,
+    nodeId: string,
+    {
+      expectedRevisionId,
+    }: {
+      expectedRevisionId: string;
+    }
+  ): Promise<AddWorkflowBranchResponse> {
+    return this._makeQuery({
+      path: `v1/workflows/${workflowId}/nodes/${nodeId}/add-branch`,
+      method: "POST",
+      payload: { expectedRevisionId },
+    });
+  }
+
+  /**
+   * Delete a node and its downstream subtree.
+   *
+   * If contacts are queued at any node that would be deleted, Loops returns
+   * `"status": "queuedContactsFound"` instead of deleting. Retry with
+   * `queuedContactPolicy: "discard"` to delete.
+   *
+   * @param {string} workflowId The ID of the workflow.
+   * @param {string} nodeId The ID of the workflow node.
+   * @param {Object} params
+   * @param {string} params.expectedRevisionId The workflow revision token from the latest read or mutation.
+   * @param {boolean} [params.dryRun] If `true`, validate without modifying the workflow.
+   * @param {"fail" | "discard"} [params.queuedContactPolicy] How to handle queued contacts.
+   *
+   * @see https://loops.so/docs/api-reference/delete-workflow-nodes
+   *
+   * @returns {Object} Preview or delete result (JSON)
+   */
+  async deleteWorkflowNodesRecursive(
+    workflowId: string,
+    nodeId: string,
+    {
+      expectedRevisionId,
+      dryRun,
+      queuedContactPolicy,
+    }: {
+      expectedRevisionId: string;
+      dryRun?: boolean;
+      queuedContactPolicy?: WorkflowQueuedContactPolicy;
+    }
+  ): Promise<DeleteWorkflowNodeResponse> {
+    const payload: {
+      expectedRevisionId: string;
+      dryRun?: boolean;
+      queuedContactPolicy?: WorkflowQueuedContactPolicy;
+    } = { expectedRevisionId };
+    if (dryRun !== undefined) payload.dryRun = dryRun;
+    if (queuedContactPolicy !== undefined) {
+      payload.queuedContactPolicy = queuedContactPolicy;
+    }
+    return this._makeQuery({
+      path: `v1/workflows/${workflowId}/nodes/${nodeId}/recursive`,
+      method: "DELETE",
+      payload,
     });
   }
 
@@ -2026,9 +2794,11 @@ export {
   Theme,
   ListThemesResponse,
   ThemeResponse,
+  UpdateThemeResponse,
   Component,
   ListComponentsResponse,
   ComponentResponse,
+  UpdateComponentResponse,
   Group,
   ListGroupsResponse,
   AudienceFilterBetweenValue,
@@ -2041,12 +2811,40 @@ export {
   CampaignSchedulingRequest,
   AudienceSegment,
   ListAudienceSegmentsResponse,
+  IncomingWebhookPlatform,
+  EventPatternSummary,
+  WorkflowEventProperty,
+  EventPattern,
+  ListEventPatternsResponse,
   WorkflowSummary,
   ListWorkflowsResponse,
+  WorkflowStatus,
   SimplifiedWorkflowNode,
   SimplifiedWorkflow,
+  SimplifiedWorkflowWithRevision,
   WorkflowNode,
+  WorkflowNodeWithRevision,
+  WorkflowQueuedContactPolicy,
+  CreateWorkflowNodeTypeName,
+  CreateWorkflowNodeParams,
+  CreatedWorkflowNode,
+  CreateWorkflowNodeResponse,
+  AddWorkflowBranchResponse,
+  WorkflowMailingListPreview,
+  WorkflowMailingListUpdatedResponse,
+  ChangeWorkflowMailingListResponse,
+  WorkflowQueuedContactDeletePreview,
+  WorkflowDeletedResponse,
+  DeleteWorkflowNodeResponse,
+  WorkflowContactPropertyComparisonOperator,
+  WorkflowContactPropertyComparison,
+  WorkflowContactPropertyQuery,
+  UpdateWorkflowNodePayload,
   EmailMessagePreviewResponse,
+  GuardianRuleName,
+  GuardianRuleItem,
+  GuardianRule,
+  EmailMessageGuardianResponse,
   Campaign,
   CampaignListItem,
   ListCampaignsResponse,

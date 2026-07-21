@@ -1449,4 +1449,564 @@ describe("LoopsClient", () => {
       ).rejects.toThrow(APIError);
     });
   });
+
+  describe("createTheme", () => {
+    it("should create a theme", async () => {
+      const mockResponse = {
+        id: "clo1z5q7s004yl70y3z4a5b6c",
+        name: "Brand",
+        styles: { backgroundColor: "#111111" },
+        isDefault: false,
+        createdAt: "2025-01-01T00:00:00.000Z",
+        updatedAt: "2025-01-01T00:00:00.000Z",
+      };
+
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        text: () => Promise.resolve(JSON.stringify(mockResponse)),
+      });
+
+      const result = await client.createTheme({
+        name: "Brand",
+        styles: { backgroundColor: "#111111" },
+      });
+
+      expect(result).toEqual(mockResponse);
+      expect(fetch).toHaveBeenCalledWith(
+        expect.stringContaining("v1/themes"),
+        expect.objectContaining({
+          method: "POST",
+          body: JSON.stringify({
+            name: "Brand",
+            styles: { backgroundColor: "#111111" },
+          }),
+        })
+      );
+    });
+  });
+
+  describe("updateTheme", () => {
+    it("should update a theme", async () => {
+      const mockResponse = {
+        id: "clo1z5q7s004yl70y3z4a5b6c",
+        name: "Brand Updated",
+        styles: {},
+        isDefault: false,
+        createdAt: "2025-01-01T00:00:00.000Z",
+        updatedAt: "2025-01-02T00:00:00.000Z",
+        affectedEmailCount: 3,
+      };
+
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        text: () => Promise.resolve(JSON.stringify(mockResponse)),
+      });
+
+      const result = await client.updateTheme("clo1z5q7s004yl70y3z4a5b6c", {
+        name: "Brand Updated",
+      });
+
+      expect(result).toEqual(mockResponse);
+      expect(fetch).toHaveBeenCalledWith(
+        expect.stringContaining("v1/themes/clo1z5q7s004yl70y3z4a5b6c"),
+        expect.objectContaining({
+          method: "POST",
+          body: JSON.stringify({ name: "Brand Updated" }),
+        })
+      );
+    });
+  });
+
+  describe("createComponent", () => {
+    it("should create a component", async () => {
+      const mockResponse = {
+        id: "clp2a6r8t005yl70d7e8f9g0h",
+        name: "Footer",
+        lmx: "<Section />",
+      };
+
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        text: () => Promise.resolve(JSON.stringify(mockResponse)),
+      });
+
+      const result = await client.createComponent({
+        name: "Footer",
+        lmx: "<Section />",
+      });
+
+      expect(result).toEqual(mockResponse);
+      expect(fetch).toHaveBeenCalledWith(
+        expect.stringContaining("v1/components"),
+        expect.objectContaining({
+          method: "POST",
+          body: JSON.stringify({ name: "Footer", lmx: "<Section />" }),
+        })
+      );
+    });
+  });
+
+  describe("updateComponent", () => {
+    it("should update a component", async () => {
+      const mockResponse = {
+        id: "clp2a6r8t005yl70d7e8f9g0h",
+        name: "Footer",
+        lmx: "<Section updated />",
+        affectedEmailCount: 2,
+      };
+
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        text: () => Promise.resolve(JSON.stringify(mockResponse)),
+      });
+
+      const result = await client.updateComponent("clp2a6r8t005yl70d7e8f9g0h", {
+        lmx: "<Section updated />",
+      });
+
+      expect(result).toEqual(mockResponse);
+      expect(fetch).toHaveBeenCalledWith(
+        expect.stringContaining("v1/components/clp2a6r8t005yl70d7e8f9g0h"),
+        expect.objectContaining({
+          method: "POST",
+          body: JSON.stringify({ lmx: "<Section updated />" }),
+        })
+      );
+    });
+  });
+
+  describe("runEmailMessageGuardian", () => {
+    it("should run guardian checks", async () => {
+      const mockResponse = {
+        errors: [
+          {
+            rule: "missingButtonHrefs",
+            title: "Missing button link",
+            description: "Buttons won't work without href value",
+            items: [{ label: "Click here" }],
+          },
+        ],
+        warnings: [],
+      };
+
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        text: () => Promise.resolve(JSON.stringify(mockResponse)),
+      });
+
+      const result = await client.runEmailMessageGuardian(
+        "clm9x3o5q002yl70a8b3c4d5e"
+      );
+
+      expect(result).toEqual(mockResponse);
+      expect(fetch).toHaveBeenCalledWith(
+        expect.stringContaining(
+          "v1/email-messages/clm9x3o5q002yl70a8b3c4d5e/guardian"
+        ),
+        expect.objectContaining({ method: "GET" })
+      );
+    });
+  });
+
+  describe("listEventPatterns", () => {
+    it("should list event patterns with pagination", async () => {
+      const mockResponse = {
+        pagination: {
+          totalResults: 1,
+          returnedResults: 1,
+          perPage: 20,
+          totalPages: 1,
+          nextCursor: null,
+          nextPage: null,
+        },
+        data: [
+          {
+            id: "cle1a2b3c004yl70d5e6f7g8h",
+            eventName: "signup",
+            incomingWebhookPlatform: null,
+          },
+        ],
+      };
+
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        text: () => Promise.resolve(JSON.stringify(mockResponse)),
+      });
+
+      const result = await client.listEventPatterns({ perPage: 10 });
+
+      expect(result).toEqual(mockResponse);
+      expect(fetch).toHaveBeenCalledWith(
+        expect.stringContaining("v1/event-patterns?perPage=10"),
+        expect.objectContaining({ method: "GET" })
+      );
+    });
+  });
+
+  describe("getEventPattern", () => {
+    it("should get an event pattern by ID", async () => {
+      const mockResponse = {
+        id: "cle1a2b3c004yl70d5e6f7g8h",
+        eventName: "signup",
+        eventProperties: [{ name: "plan", type: "string" }],
+        incomingWebhookPlatform: null,
+      };
+
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        text: () => Promise.resolve(JSON.stringify(mockResponse)),
+      });
+
+      const result = await client.getEventPattern("cle1a2b3c004yl70d5e6f7g8h");
+
+      expect(result).toEqual(mockResponse);
+      expect(fetch).toHaveBeenCalledWith(
+        expect.stringContaining("v1/event-patterns/cle1a2b3c004yl70d5e6f7g8h"),
+        expect.objectContaining({ method: "GET" })
+      );
+    });
+  });
+
+  describe("getEventPatternByName", () => {
+    it("should get an event pattern by name", async () => {
+      const mockResponse = {
+        id: "cle1a2b3c004yl70d5e6f7g8h",
+        eventName: "signup completed",
+        eventProperties: [],
+        incomingWebhookPlatform: null,
+      };
+
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        text: () => Promise.resolve(JSON.stringify(mockResponse)),
+      });
+
+      const result = await client.getEventPatternByName("signup completed");
+
+      expect(result).toEqual(mockResponse);
+      expect(fetch).toHaveBeenCalledWith(
+        expect.stringContaining(
+          "v1/event-patterns/by-name/signup%20completed"
+        ),
+        expect.objectContaining({ method: "GET" })
+      );
+    });
+  });
+
+  describe("createWorkflow", () => {
+    it("should create a workflow", async () => {
+      const mockResponse = {
+        id: "cls5d9u1w009yl70c7d8e9f0g",
+        status: "Draft",
+        name: "Onboarding",
+        mailingListId: null,
+        rootNodeId: "clt6e0v2x010yl70h1i2j3k4l",
+        nodes: {},
+        workflowRevisionId: "rev_1",
+      };
+
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        text: () => Promise.resolve(JSON.stringify(mockResponse)),
+      });
+
+      const result = await client.createWorkflow({ name: "Onboarding" });
+
+      expect(result).toEqual(mockResponse);
+      expect(fetch).toHaveBeenCalledWith(
+        expect.stringContaining("v1/workflows"),
+        expect.objectContaining({
+          method: "POST",
+          body: JSON.stringify({ name: "Onboarding" }),
+        })
+      );
+    });
+  });
+
+  describe("updateWorkflow", () => {
+    it("should update a workflow", async () => {
+      const mockResponse = {
+        id: "cls5d9u1w009yl70c7d8e9f0g",
+        status: "Draft",
+        name: "Updated",
+        mailingListId: null,
+        rootNodeId: "clt6e0v2x010yl70h1i2j3k4l",
+        nodes: {},
+        workflowRevisionId: "rev_2",
+      };
+
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        text: () => Promise.resolve(JSON.stringify(mockResponse)),
+      });
+
+      const result = await client.updateWorkflow("cls5d9u1w009yl70c7d8e9f0g", {
+        expectedRevisionId: "rev_1",
+        name: "Updated",
+      });
+
+      expect(result).toEqual(mockResponse);
+      expect(fetch).toHaveBeenCalledWith(
+        expect.stringContaining("v1/workflows/cls5d9u1w009yl70c7d8e9f0g"),
+        expect.objectContaining({
+          method: "POST",
+          body: JSON.stringify({
+            expectedRevisionId: "rev_1",
+            name: "Updated",
+          }),
+        })
+      );
+    });
+  });
+
+  describe("changeWorkflowMailingList", () => {
+    it("should change a workflow mailing list", async () => {
+      const mockResponse = {
+        status: "updated",
+        mailingListId: "clm1",
+        workflowRevisionId: "rev_2",
+        queuedContactCount: 0,
+        queuedContactLimitReached: false,
+      };
+
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        text: () => Promise.resolve(JSON.stringify(mockResponse)),
+      });
+
+      const result = await client.changeWorkflowMailingList(
+        "cls5d9u1w009yl70c7d8e9f0g",
+        {
+          expectedRevisionId: "rev_1",
+          mailingListId: "clm1",
+        }
+      );
+
+      expect(result).toEqual(mockResponse);
+      expect(fetch).toHaveBeenCalledWith(
+        expect.stringContaining(
+          "v1/workflows/cls5d9u1w009yl70c7d8e9f0g/mailing-list"
+        ),
+        expect.objectContaining({
+          method: "POST",
+          body: JSON.stringify({
+            expectedRevisionId: "rev_1",
+            mailingListId: "clm1",
+          }),
+        })
+      );
+    });
+  });
+
+  describe("createWorkflowNode", () => {
+    it("should create a workflow node between two nodes", async () => {
+      const mockResponse = {
+        node: {
+          id: "new_node",
+          workflowId: "cls5d9u1w009yl70c7d8e9f0g",
+          typeName: "TimerAction",
+          nextNodeIds: ["to"],
+          workflowRevisionId: "rev_2",
+        },
+        workflow: {
+          id: "cls5d9u1w009yl70c7d8e9f0g",
+          status: "Draft",
+          mailingListId: null,
+          rootNodeId: "from",
+          nodes: {},
+          workflowRevisionId: "rev_2",
+        },
+      };
+
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        text: () => Promise.resolve(JSON.stringify(mockResponse)),
+      });
+
+      const result = await client.createWorkflowNode(
+        "cls5d9u1w009yl70c7d8e9f0g",
+        {
+          expectedRevisionId: "rev_1",
+          insertMode: "between",
+          nodeTypeName: "TimerAction",
+          fromNodeId: "from",
+          toNodeId: "to",
+        }
+      );
+
+      expect(result).toEqual(mockResponse);
+      expect(fetch).toHaveBeenCalledWith(
+        expect.stringContaining(
+          "v1/workflows/cls5d9u1w009yl70c7d8e9f0g/nodes"
+        ),
+        expect.objectContaining({
+          method: "POST",
+          body: JSON.stringify({
+            expectedRevisionId: "rev_1",
+            insertMode: "between",
+            nodeTypeName: "TimerAction",
+            fromNodeId: "from",
+            toNodeId: "to",
+          }),
+        })
+      );
+    });
+  });
+
+  describe("updateWorkflowNode", () => {
+    it("should update a workflow node", async () => {
+      const mockResponse = {
+        id: "node1",
+        workflowId: "cls5d9u1w009yl70c7d8e9f0g",
+        typeName: "TimerAction",
+        nextNodeIds: [],
+        amount: 1,
+        unit: "h",
+        workflowRevisionId: "rev_2",
+      };
+
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        text: () => Promise.resolve(JSON.stringify(mockResponse)),
+      });
+
+      const result = await client.updateWorkflowNode(
+        "cls5d9u1w009yl70c7d8e9f0g",
+        "node1",
+        {
+          expectedRevisionId: "rev_1",
+          payload: { amount: 1, unit: "h" },
+        }
+      );
+
+      expect(result).toEqual(mockResponse);
+      expect(fetch).toHaveBeenCalledWith(
+        expect.stringContaining(
+          "v1/workflows/cls5d9u1w009yl70c7d8e9f0g/nodes/node1"
+        ),
+        expect.objectContaining({
+          method: "POST",
+          body: JSON.stringify({
+            expectedRevisionId: "rev_1",
+            payload: { amount: 1, unit: "h" },
+          }),
+        })
+      );
+    });
+  });
+
+  describe("deleteWorkflowNode", () => {
+    it("should delete a workflow node", async () => {
+      const mockResponse = {
+        status: "deleted",
+        nodeIds: ["node1"],
+        workflowRevisionId: "rev_2",
+        queuedContactCount: 0,
+        queuedContactLimitReached: false,
+      };
+
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        text: () => Promise.resolve(JSON.stringify(mockResponse)),
+      });
+
+      const result = await client.deleteWorkflowNode(
+        "cls5d9u1w009yl70c7d8e9f0g",
+        "node1",
+        { expectedRevisionId: "rev_1" }
+      );
+
+      expect(result).toEqual(mockResponse);
+      expect(fetch).toHaveBeenCalledWith(
+        expect.stringContaining(
+          "v1/workflows/cls5d9u1w009yl70c7d8e9f0g/nodes/node1"
+        ),
+        expect.objectContaining({
+          method: "DELETE",
+          body: JSON.stringify({ expectedRevisionId: "rev_1" }),
+        })
+      );
+    });
+  });
+
+  describe("addWorkflowBranch", () => {
+    it("should add a workflow branch", async () => {
+      const mockResponse = {
+        node: {
+          id: "branch_child",
+          workflowId: "cls5d9u1w009yl70c7d8e9f0g",
+          typeName: "AudienceFilter",
+          nextNodeIds: [],
+          workflowRevisionId: "rev_2",
+        },
+        workflow: {
+          id: "cls5d9u1w009yl70c7d8e9f0g",
+          status: "Draft",
+          mailingListId: null,
+          rootNodeId: "root",
+          nodes: {},
+          workflowRevisionId: "rev_2",
+        },
+      };
+
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        text: () => Promise.resolve(JSON.stringify(mockResponse)),
+      });
+
+      const result = await client.addWorkflowBranch(
+        "cls5d9u1w009yl70c7d8e9f0g",
+        "branch1",
+        { expectedRevisionId: "rev_1" }
+      );
+
+      expect(result).toEqual(mockResponse);
+      expect(fetch).toHaveBeenCalledWith(
+        expect.stringContaining(
+          "v1/workflows/cls5d9u1w009yl70c7d8e9f0g/nodes/branch1/add-branch"
+        ),
+        expect.objectContaining({
+          method: "POST",
+          body: JSON.stringify({ expectedRevisionId: "rev_1" }),
+        })
+      );
+    });
+  });
+
+  describe("deleteWorkflowNodesRecursive", () => {
+    it("should recursively delete workflow nodes", async () => {
+      const mockResponse = {
+        status: "deleted",
+        nodeIds: ["node1", "node2"],
+        workflowRevisionId: "rev_2",
+        queuedContactCount: 0,
+        queuedContactLimitReached: false,
+      };
+
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        text: () => Promise.resolve(JSON.stringify(mockResponse)),
+      });
+
+      const result = await client.deleteWorkflowNodesRecursive(
+        "cls5d9u1w009yl70c7d8e9f0g",
+        "node1",
+        { expectedRevisionId: "rev_1", queuedContactPolicy: "discard" }
+      );
+
+      expect(result).toEqual(mockResponse);
+      expect(fetch).toHaveBeenCalledWith(
+        expect.stringContaining(
+          "v1/workflows/cls5d9u1w009yl70c7d8e9f0g/nodes/node1/recursive"
+        ),
+        expect.objectContaining({
+          method: "DELETE",
+          body: JSON.stringify({
+            expectedRevisionId: "rev_1",
+            queuedContactPolicy: "discard",
+          }),
+        })
+      );
+    });
+  });
 });
