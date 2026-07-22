@@ -116,6 +116,7 @@ You can use custom contact properties in API calls. Please make sure to [add cus
 - [listDedicatedSendingIps()](#listdedicatedsendingips)
 - [listAudienceSegments()](#listaudiencesegments)
 - [getAudienceSegment()](#getaudiencesegment)
+- [createAudienceSegment()](#createaudiencesegment)
 - [listThemes()](#listthemes)
 - [getTheme()](#gettheme)
 - [createTheme()](#createtheme)
@@ -2027,6 +2028,64 @@ const resp = await loops.getAudienceSegment("clr4c8t0v008yl70x3y4z5a6b");
 
 ---
 
+### createAudienceSegment()
+
+Create a new audience segment.
+[API Reference](https://loops.so/docs/api-reference/create-audience-segment)
+
+#### Parameters
+
+| Name | Type | Required | Notes |
+| ---- | ---- | -------- | ----- |
+| `name` | string | Yes | The name of the audience segment. Must be unique within the team. |
+| `description` | string | No | An optional description of the audience segment. |
+| `filter` | object | Yes | A tree of audience conditions combined with `match` (`all` or `any`). |
+
+#### Example
+
+```javascript
+const resp = await loops.createAudienceSegment({
+  name: "Active users",
+  description: "Contacts who opened a recent campaign",
+  filter: {
+    match: "all",
+    conditions: [
+      {
+        type: "property",
+        key: "planName",
+        operator: "equals",
+        value: "pro",
+      },
+    ],
+  },
+});
+```
+
+#### Response
+
+```json
+{
+  "id": "cls6e8g0i2k4m6o8q0s2u4w6",
+  "name": "Active users",
+  "description": "Contacts who opened a recent campaign",
+  "createdAt": "2025-06-29T07:47:39.370Z",
+  "updatedAt": "2025-06-29T07:47:39.370Z",
+  "filter": {
+    "match": "all",
+    "conditions": [
+      {
+        "type": "property",
+        "key": "planName",
+        "operator": "equals",
+        "value": "pro"
+      }
+    ]
+  }
+}
+```
+
+---
+
 ### listCampaignGroups()
 
 Retrieve a paginated list of campaign groups.
@@ -2968,6 +3027,7 @@ const resp = await loops.completeUpload("clu7f1w3y011yl70m5n6o7p8q");
   - Added event patterns ([`listEventPatterns()`](#listeventpatterns), [`getEventPattern()`](#geteventpattern), [`getEventPatternByName()`](#geteventpatternbyname)).
   - Expanded workflows with create/update/mutate APIs ([`createWorkflow()`](#createworkflow), [`updateWorkflow()`](#updateworkflow), [`changeWorkflowMailingList()`](#changeworkflowmailinglist), [`createWorkflowNode()`](#createworkflownode), [`updateWorkflowNode()`](#updateworkflownode), [`deleteWorkflowNode()`](#deleteworkflownode), [`addWorkflowBranch()`](#addworkflowbranch), [`deleteWorkflowNodesRecursive()`](#deleteworkflownodesrecursive)).
   - Added theme and component write APIs ([`createTheme()`](#createtheme), [`updateTheme()`](#updatetheme), [`createComponent()`](#createcomponent), [`updateComponent()`](#updatecomponent)).
+  - Added [`createAudienceSegment()`](#createaudiencesegment).
   - Added [`runEmailMessageGuardian()`](#runemailmessageguardian).
   - Aligned workflow response types with the API (`status`, nullable `workflowRevisionId`; removed unused `emoji`).
 - `v7.0.0` (Jun 24, 2026)

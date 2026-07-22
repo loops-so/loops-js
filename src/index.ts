@@ -1541,6 +1541,40 @@ class LoopsClient {
   }
 
   /**
+   * Create an audience segment.
+   *
+   * @param {Object} params
+   * @param {string} params.name The name of the audience segment. Must be unique within the team.
+   * @param {string} [params.description] An optional description of the audience segment.
+   * @param {AudienceFilter} params.filter A tree of audience conditions combined with `match`.
+   *
+   * @see https://loops.so/docs/api-reference/create-audience-segment
+   *
+   * @returns {Object} Created audience segment (JSON)
+   */
+  async createAudienceSegment({
+    name,
+    description,
+    filter,
+  }: {
+    name: string;
+    description?: string;
+    filter: AudienceFilter;
+  }): Promise<AudienceSegment> {
+    const payload: {
+      name: string;
+      description?: string;
+      filter: AudienceFilter;
+    } = { name, filter };
+    if (description !== undefined) payload.description = description;
+    return this._makeQuery({
+      path: "v1/audience-segments",
+      method: "POST",
+      payload,
+    });
+  }
+
+  /**
    * List email themes.
    *
    * @param {Object} params

@@ -4,7 +4,8 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "strict": true,
-    "target": "ESNext"
+    "target": "ESNext",
+    "types": ["jest", "node"]
   },
   "include": ["./src/**/*.ts"]
 }

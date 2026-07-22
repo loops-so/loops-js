@@ -1116,6 +1116,130 @@ describe("LoopsClient", () => {
     });
   });
 
+  describe("createAudienceSegment", () => {
+    it("should create an audience segment", async () => {
+      const filter = {
+        match: "all" as const,
+        conditions: [
+          {
+            type: "property" as const,
+            key: "planName",
+            operator: "equals" as const,
+            value: "pro",
+          },
+        ],
+      };
+      const mockResponse = {
+        id: "cls6e8g0i2k4m6o8q0s2u4w6",
+        name: "Active users",
+        description: "Contacts on the pro plan",
+        createdAt: "2025-06-29T07:47:39.370Z",
+        updatedAt: "2025-06-29T07:47:39.370Z",
+        filter,
+      };
+
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        text: () => Promise.resolve(JSON.stringify(mockResponse)),
+      });
+
+      const result = await client.createAudienceSegment({
+        name: "Active users",
+        description: "Contacts on the pro plan",
+        filter,
+      });
+
+      expect(result).toEqual(mockResponse);
+      expect(fetch).toHaveBeenCalledWith(
+        expect.stringContaining("v1/audience-segments"),
+        expect.objectContaining({
+          method: "POST",
+          body: JSON.stringify({
+            name: "Active users",
+            filter,
+            description: "Contacts on the pro plan",
+          }),
+        })
+      );
+    });
+
+    it("should handle error when segment name already exists", async () => {
+      const filter = {
+        match: "all" as const,
+        conditions: [
+          {
+            type: "property" as const,
+            key: "planName",
+            operator: "equals" as const,
+            value: "pro",
+          },
+        ],
+      };
+      const mockResponse = {
+        message: "An audience segment with this name already exists",
+      };
+
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: false,
+        status: 400,
+        text: () => Promise.resolve(JSON.stringify(mockResponse)),
+      });
+
+      await expect(
+        client.createAudienceSegment({
+          name: "Active users",
+          filter,
+        })
+      ).rejects.toThrow(APIError);
+
+      expect(fetch).toHaveBeenCalledWith(
+        expect.stringContaining("v1/audience-segments"),
+        expect.objectContaining({
+          method: "POST",
+          body: JSON.stringify({
+            name: "Active users",
+            filter,
+          }),
+        })
+      );
+    });
+
+    it("should handle error for an invalid filter", async () => {
+      const filter = {
+        match: "all" as const,
+        conditions: [
+          {
+            type: "property" as const,
+            key: "planName",
+            operator: "equals" as const,
+            value: "pro",
+          },
+        ],
+      };
+      const mockResponse = {
+        message: "Invalid filter",
+      };
+
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: false,
+        status: 400,
+        text: () => Promise.resolve(JSON.stringify(mockResponse)),
+      });
+
+      try {
+        await client.createAudienceSegment({
+          name: "Active users",
+          filter,
+        });
+        fail("Should have thrown");
+      } catch (error) {
+        expect(error).toBeInstanceOf(APIError);
+        expect((error as APIError).statusCode).toBe(400);
+        expect((error as APIError).json).toEqual(mockResponse);
+      }
+    });
+  });
+
   describe("listThemes", () => {
     it("should list themes with pagination", async () => {
       const mockResponse = {
