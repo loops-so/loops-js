@@ -410,15 +410,13 @@ interface SimplifiedWorkflow {
   description?: string;
   mailingListId: string | null;
   rootNodeId: string;
-  nodes: Record<string, SimplifiedWorkflowNode>;
-}
-
-interface SimplifiedWorkflowWithRevision extends SimplifiedWorkflow {
   /**
    * The current workflow revision token. Pass the latest value as
-   * `expectedRevisionId` on the next workflow mutation.
+   * `expectedRevisionId` on the next workflow mutation. `null` for workflows
+   * that do not have a revision token yet.
    */
-  workflowRevisionId: string;
+  workflowRevisionId: string | null;
+  nodes: Record<string, SimplifiedWorkflowNode>;
 }
 
 type WorkflowNode = {
@@ -429,10 +427,17 @@ type WorkflowNode = {
 } & Record<string, unknown>;
 
 type WorkflowNodeWithRevision = WorkflowNode & {
-  workflowRevisionId: string;
+  /**
+   * The current workflow revision token. `null` for workflows that do not
+   * have a revision token yet.
+   */
+  workflowRevisionId: string | null;
 };
 
 type WorkflowQueuedContactPolicy = "fail" | "discard";
+
+/** Pass the latest `workflowRevisionId`, including `null` for older workflows. */
+type WorkflowExpectedRevisionId = string | null;
 
 type CreateWorkflowNodeTypeName =
   | "AudienceFilter"
@@ -444,14 +449,14 @@ type CreateWorkflowNodeTypeName =
 
 type CreateWorkflowNodeParams =
   | {
-      expectedRevisionId: string;
+      expectedRevisionId: WorkflowExpectedRevisionId;
       insertMode: "between";
       nodeTypeName: CreateWorkflowNodeTypeName;
       fromNodeId: string;
       toNodeId: string;
     }
   | {
-      expectedRevisionId: string;
+      expectedRevisionId: WorkflowExpectedRevisionId;
       insertMode: "before";
       nodeTypeName: CreateWorkflowNodeTypeName;
       beforeNodeId: string;
@@ -469,12 +474,12 @@ type CreatedWorkflowNode = WorkflowNodeWithRevision & {
 
 interface CreateWorkflowNodeResponse {
   node: CreatedWorkflowNode;
-  workflow: SimplifiedWorkflowWithRevision;
+  workflow: SimplifiedWorkflow;
 }
 
 interface AddWorkflowBranchResponse {
   node: WorkflowNodeWithRevision;
-  workflow: SimplifiedWorkflowWithRevision;
+  workflow: SimplifiedWorkflow;
 }
 
 interface WorkflowMailingListPreview {
@@ -744,7 +749,7 @@ interface UpdateComponentResponse extends ComponentResponse {
 interface Campaign {
   id: string;
   name: string;
-  status: string;
+  status: "Draft" | "Scheduled" | "Sending" | "Sent";
   createdAt: string;
   updatedAt: string;
   emailMessageId: string | null;
@@ -1446,7 +1451,7 @@ class LoopsClient {
    *
    * @param {string} transactionalId The ID of the transactional email.
    *
-   * @see https://loops.so/docs/api-reference/ensure-transactional-email-draft
+   * @see https://loops.so/docs/api-reference/ensure-transactional-draft
    *
    * @returns {Object} Transactional email with draft (JSON)
    */
@@ -1480,7 +1485,7 @@ class LoopsClient {
   /**
    * List dedicated sending IP addresses.
    *
-   * @see https://loops.so/docs/api-reference/get-dedicated-sending-ips
+   * @see https://loops.so/docs/api-reference/dedicated-sending-ips
    *
    * @returns {string[]} List of IP addresses
    */
@@ -2022,7 +2027,7 @@ class LoopsClient {
    * @param {Record<string, string>} [params.eventProperties] Event property values to render.
    * @param {Record<string, unknown>} [params.dataVariables] Transactional data variables to render.
    *
-   * @see https://loops.so/docs/api-reference/send-email-message-preview
+   * @see https://loops.so/docs/api-reference/preview-email-message
    *
    * @returns {Object} Preview confirmation (JSON)
    */
@@ -2186,7 +2191,7 @@ class LoopsClient {
     name: string;
     description?: string;
     mailingListId?: string | null;
-  }): Promise<SimplifiedWorkflowWithRevision> {
+  }): Promise<SimplifiedWorkflow> {
     const payload: {
       name: string;
       description?: string;
@@ -2212,7 +2217,7 @@ class LoopsClient {
    */
   async getWorkflow(
     workflowId: string
-  ): Promise<SimplifiedWorkflowWithRevision> {
+  ): Promise<SimplifiedWorkflow> {
     return this._makeQuery({
       path: `v1/workflows/${workflowId}`,
     });
@@ -2226,7 +2231,7 @@ class LoopsClient {
    *
    * @param {string} workflowId The ID of the workflow.
    * @param {Object} params
-   * @param {string} params.expectedRevisionId The workflow revision token from the latest read or mutation.
+   * @param {string | null} params.expectedRevisionId The workflow revision token from the latest read or mutation. Pass `null` for workflows without a revision yet.
    * @param {string} [params.name] The updated workflow name.
    * @param {string} [params.description] The updated workflow description.
    *
@@ -2241,13 +2246,13 @@ class LoopsClient {
       name,
       description,
     }: {
-      expectedRevisionId: string;
+      expectedRevisionId: WorkflowExpectedRevisionId;
       name?: string;
       description?: string;
     }
-  ): Promise<SimplifiedWorkflowWithRevision> {
+  ): Promise<SimplifiedWorkflow> {
     const payload: {
-      expectedRevisionId: string;
+      expectedRevisionId: WorkflowExpectedRevisionId;
       name?: string;
       description?: string;
     } = { expectedRevisionId };
@@ -2269,7 +2274,7 @@ class LoopsClient {
    *
    * @param {string} workflowId The ID of the workflow.
    * @param {Object} params
-   * @param {string} params.expectedRevisionId The workflow revision token from the latest read or mutation.
+   * @param {string | null} params.expectedRevisionId The workflow revision token from the latest read or mutation. Pass `null` for workflows without a revision yet.
    * @param {string | null} params.mailingListId The mailing list to use, or `null` to clear it.
    * @param {boolean} [params.dryRun] If `true`, validate without modifying the workflow.
    * @param {"fail" | "discard"} [params.queuedContactPolicy] How to handle queued contacts that would be removed.
@@ -2286,14 +2291,14 @@ class LoopsClient {
       dryRun,
       queuedContactPolicy,
     }: {
-      expectedRevisionId: string;
+      expectedRevisionId: WorkflowExpectedRevisionId;
       mailingListId: string | null;
       dryRun?: boolean;
       queuedContactPolicy?: WorkflowQueuedContactPolicy;
     }
   ): Promise<ChangeWorkflowMailingListResponse> {
     const payload: {
-      expectedRevisionId: string;
+      expectedRevisionId: WorkflowExpectedRevisionId;
       mailingListId: string | null;
       dryRun?: boolean;
       queuedContactPolicy?: WorkflowQueuedContactPolicy;
@@ -2362,7 +2367,7 @@ class LoopsClient {
    * @param {string} workflowId The ID of the workflow.
    * @param {string} nodeId The ID of the workflow node.
    * @param {Object} params
-   * @param {string} params.expectedRevisionId The workflow revision token from the latest read or mutation.
+   * @param {string | null} params.expectedRevisionId The workflow revision token from the latest read or mutation. Pass `null` for workflows without a revision yet.
    * @param {UpdateWorkflowNodePayload} params.payload Node-type-specific fields to update.
    *
    * @see https://loops.so/docs/api-reference/update-workflow-node
@@ -2376,7 +2381,7 @@ class LoopsClient {
       expectedRevisionId,
       payload,
     }: {
-      expectedRevisionId: string;
+      expectedRevisionId: WorkflowExpectedRevisionId;
       payload: UpdateWorkflowNodePayload;
     }
   ): Promise<WorkflowNodeWithRevision> {
@@ -2397,7 +2402,7 @@ class LoopsClient {
    * @param {string} workflowId The ID of the workflow.
    * @param {string} nodeId The ID of the workflow node.
    * @param {Object} params
-   * @param {string} params.expectedRevisionId The workflow revision token from the latest read or mutation.
+   * @param {string | null} params.expectedRevisionId The workflow revision token from the latest read or mutation. Pass `null` for workflows without a revision yet.
    * @param {boolean} [params.dryRun] If `true`, validate without modifying the workflow.
    * @param {"fail" | "discard"} [params.queuedContactPolicy] How to handle queued contacts.
    *
@@ -2413,13 +2418,13 @@ class LoopsClient {
       dryRun,
       queuedContactPolicy,
     }: {
-      expectedRevisionId: string;
+      expectedRevisionId: WorkflowExpectedRevisionId;
       dryRun?: boolean;
       queuedContactPolicy?: WorkflowQueuedContactPolicy;
     }
   ): Promise<DeleteWorkflowNodeResponse> {
     const payload: {
-      expectedRevisionId: string;
+      expectedRevisionId: WorkflowExpectedRevisionId;
       dryRun?: boolean;
       queuedContactPolicy?: WorkflowQueuedContactPolicy;
     } = { expectedRevisionId };
@@ -2440,7 +2445,7 @@ class LoopsClient {
    * @param {string} workflowId The ID of the workflow.
    * @param {string} nodeId The ID of the Branch or Experiment node.
    * @param {Object} params
-   * @param {string} params.expectedRevisionId The workflow revision token from the latest read or mutation.
+   * @param {string | null} params.expectedRevisionId The workflow revision token from the latest read or mutation. Pass `null` for workflows without a revision yet.
    *
    * @see https://loops.so/docs/api-reference/add-workflow-branch
    *
@@ -2452,7 +2457,7 @@ class LoopsClient {
     {
       expectedRevisionId,
     }: {
-      expectedRevisionId: string;
+      expectedRevisionId: WorkflowExpectedRevisionId;
     }
   ): Promise<AddWorkflowBranchResponse> {
     return this._makeQuery({
@@ -2472,7 +2477,7 @@ class LoopsClient {
    * @param {string} workflowId The ID of the workflow.
    * @param {string} nodeId The ID of the workflow node.
    * @param {Object} params
-   * @param {string} params.expectedRevisionId The workflow revision token from the latest read or mutation.
+   * @param {string | null} params.expectedRevisionId The workflow revision token from the latest read or mutation. Pass `null` for workflows without a revision yet.
    * @param {boolean} [params.dryRun] If `true`, validate without modifying the workflow.
    * @param {"fail" | "discard"} [params.queuedContactPolicy] How to handle queued contacts.
    *
@@ -2488,13 +2493,13 @@ class LoopsClient {
       dryRun,
       queuedContactPolicy,
     }: {
-      expectedRevisionId: string;
+      expectedRevisionId: WorkflowExpectedRevisionId;
       dryRun?: boolean;
       queuedContactPolicy?: WorkflowQueuedContactPolicy;
     }
   ): Promise<DeleteWorkflowNodeResponse> {
     const payload: {
-      expectedRevisionId: string;
+      expectedRevisionId: WorkflowExpectedRevisionId;
       dryRun?: boolean;
       queuedContactPolicy?: WorkflowQueuedContactPolicy;
     } = { expectedRevisionId };
@@ -2821,7 +2826,7 @@ export {
   WorkflowStatus,
   SimplifiedWorkflowNode,
   SimplifiedWorkflow,
-  SimplifiedWorkflowWithRevision,
+  WorkflowExpectedRevisionId,
   WorkflowNode,
   WorkflowNodeWithRevision,
   WorkflowQueuedContactPolicy,

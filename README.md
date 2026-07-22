@@ -1058,7 +1058,7 @@ const resp = await loops.updateTransactionalEmail("clfn0k1yg001imo0fdeqg30i8", {
 
 Ensure a transactional email has a draft email message. Use [`updateEmailMessage()`](#updateemailmessage) to edit the draft content.
 
-[API Reference](https://loops.so/docs/api-reference/ensure-transactional-email-draft)
+[API Reference](https://loops.so/docs/api-reference/ensure-transactional-draft)
 
 #### Parameters
 
@@ -2174,7 +2174,7 @@ const resp = await loops.updateCampaignGroup("clq3b7s9u007yl70u9v0w1x2y", {
 ### sendEmailMessagePreview()
 
 Send a test preview of an email message to one or more addresses.
-[API Reference](https://loops.so/docs/api-reference/send-email-message-preview)
+[API Reference](https://loops.so/docs/api-reference/preview-email-message)
 
 #### Parameters
 
@@ -2467,7 +2467,7 @@ const resp = await loops.createWorkflow({ name: "Onboarding" });
 
 ### getWorkflow()
 
-Retrieve a workflow graph with node type names, connections, and selected display fields. Includes `workflowRevisionId` for subsequent mutations.
+Retrieve a workflow graph with node type names, connections, and selected display fields. Includes `workflowRevisionId` (may be `null` for older workflows) for subsequent mutations.
 [API Reference](https://loops.so/docs/api-reference/get-workflow)
 
 #### Parameters
@@ -2519,7 +2519,7 @@ Update a workflow's name and/or description. To change the mailing list, use [`c
 | Name                 | Type   | Required | Notes                                                              |
 | -------------------- | ------ | -------- | ------------------------------------------------------------------ |
 | `workflowId`                 | string | Yes      | The ID of the workflow.                                            |
-| `expectedRevisionId` | string | Yes      | The workflow revision token from the latest read or mutation.      |
+| `expectedRevisionId` | string \| null | Yes      | The workflow revision token from the latest read or mutation. Pass `null` for workflows that do not have a revision yet. |
 | `name`               | string | No       | The updated workflow name.                                         |
 | `description`        | string | No       | The updated workflow description.                                  |
 
@@ -2569,7 +2569,7 @@ Dry run or apply a workflow mailing list change. If queued contacts would be rem
 | Name                 | Type               | Required | Notes                                                              |
 | -------------------- | ------------------ | -------- | ------------------------------------------------------------------ |
 | `workflowId`                 | string             | Yes      | The ID of the workflow.                                            |
-| `expectedRevisionId` | string             | Yes      | The workflow revision token from the latest read or mutation.      |
+| `expectedRevisionId` | string \| null | Yes      | The workflow revision token from the latest read or mutation. Pass `null` for workflows that do not have a revision yet. |
 | `mailingListId`      | string \| null     | Yes      | The mailing list to use, or `null` to clear it.                    |
 | `dryRun`             | boolean            | No       | If `true`, validate without modifying the workflow.                |
 | `queuedContactPolicy`| `"fail"` \| `"discard"` | No  | How to handle queued contacts that would be removed.               |
@@ -2607,7 +2607,7 @@ Create a new default workflow node. Use `insertMode: "between"` or `insertMode: 
 | Name                 | Type   | Required | Notes                                                                 |
 | -------------------- | ------ | -------- | --------------------------------------------------------------------- |
 | `workflowId`                 | string | Yes      | The ID of the workflow.                                               |
-| `expectedRevisionId` | string | Yes      | The workflow revision token from the latest read or mutation.         |
+| `expectedRevisionId` | string \| null | Yes      | The workflow revision token from the latest read or mutation. Pass `null` for workflows that do not have a revision yet. |
 | `insertMode`         | string | Yes      | `"between"` or `"before"`.                                            |
 | `nodeTypeName`       | string | Yes      | Node type to create (for example `TimerAction`, `AudienceFilter`).    |
 | `fromNodeId`         | string | Cond.    | Required when `insertMode` is `"between"`.                            |
@@ -2676,7 +2676,7 @@ const resp = await loops.createWorkflowNode("cls5d9u1w009yl70c7d8e9f0g", {
 
 ### getWorkflowNode()
 
-Retrieve detailed data for a single workflow node. Includes `workflowRevisionId`.
+Retrieve detailed data for a single workflow node. Includes `workflowRevisionId` (may be `null` for older workflows).
 [API Reference](https://loops.so/docs/api-reference/get-workflow-node)
 
 #### Parameters
@@ -2721,7 +2721,7 @@ Update workflow-node-owned fields for a single node.
 | -------------------- | ------ | -------- | ------------------------------------------------------------------ |
 | `workflowId`                 | string | Yes      | The ID of the workflow.                                            |
 | `nodeId`                 | string | Yes      | The ID of the workflow node.                                       |
-| `expectedRevisionId` | string | Yes      | The workflow revision token from the latest read or mutation.      |
+| `expectedRevisionId` | string \| null | Yes      | The workflow revision token from the latest read or mutation. Pass `null` for workflows that do not have a revision yet. |
 | `payload`            | object | Yes      | Node-type-specific fields to update.                               |
 
 #### Example
@@ -2766,7 +2766,7 @@ Delete a single workflow node. If contacts are queued, the response status is `q
 | -------------------- | ------------------ | -------- | ------------------------------------------------------------------ |
 | `workflowId`                 | string             | Yes      | The ID of the workflow.                                            |
 | `nodeId`                 | string             | Yes      | The ID of the workflow node.                                       |
-| `expectedRevisionId` | string             | Yes      | The workflow revision token from the latest read or mutation.      |
+| `expectedRevisionId` | string \| null | Yes      | The workflow revision token from the latest read or mutation. Pass `null` for workflows that do not have a revision yet. |
 | `dryRun`             | boolean            | No       | If `true`, validate without modifying the workflow.                |
 | `queuedContactPolicy`| `"fail"` \| `"discard"` | No  | How to handle queued contacts.                                     |
 
@@ -2807,7 +2807,7 @@ Add a branch and a child node under an existing Branch or Experiment node.
 | -------------------- | ------ | -------- | ------------------------------------------------------------------ |
 | `workflowId`                 | string | Yes      | The ID of the workflow.                                            |
 | `nodeId`                 | string | Yes      | The ID of the Branch or Experiment node.                           |
-| `expectedRevisionId` | string | Yes      | The workflow revision token from the latest read or mutation.      |
+| `expectedRevisionId` | string \| null | Yes      | The workflow revision token from the latest read or mutation. Pass `null` for workflows that do not have a revision yet. |
 
 #### Example
 
@@ -2869,7 +2869,7 @@ Delete a node and its downstream subtree. If contacts are queued, the response s
 | -------------------- | ------------------ | -------- | ------------------------------------------------------------------ |
 | `workflowId`                 | string             | Yes      | The ID of the workflow.                                            |
 | `nodeId`                 | string             | Yes      | The ID of the workflow node.                                       |
-| `expectedRevisionId` | string             | Yes      | The workflow revision token from the latest read or mutation.      |
+| `expectedRevisionId` | string \| null | Yes      | The workflow revision token from the latest read or mutation. Pass `null` for workflows that do not have a revision yet. |
 | `dryRun`             | boolean            | No       | If `true`, validate without modifying the workflow.                |
 | `queuedContactPolicy`| `"fail"` \| `"discard"` | No  | How to handle queued contacts.                                     |
 
@@ -2964,12 +2964,12 @@ const resp = await loops.completeUpload("clu7f1w3y011yl70m5n6o7p8q");
 
 ## Version history
 
-- `v7.1.0` (Jul 20, 2026)
+- `v7.1.0` (Jul 22, 2026)
   - Added event patterns ([`listEventPatterns()`](#listeventpatterns), [`getEventPattern()`](#geteventpattern), [`getEventPatternByName()`](#geteventpatternbyname)).
   - Expanded workflows with create/update/mutate APIs ([`createWorkflow()`](#createworkflow), [`updateWorkflow()`](#updateworkflow), [`changeWorkflowMailingList()`](#changeworkflowmailinglist), [`createWorkflowNode()`](#createworkflownode), [`updateWorkflowNode()`](#updateworkflownode), [`deleteWorkflowNode()`](#deleteworkflownode), [`addWorkflowBranch()`](#addworkflowbranch), [`deleteWorkflowNodesRecursive()`](#deleteworkflownodesrecursive)).
   - Added theme and component write APIs ([`createTheme()`](#createtheme), [`updateTheme()`](#updatetheme), [`createComponent()`](#createcomponent), [`updateComponent()`](#updatecomponent)).
   - Added [`runEmailMessageGuardian()`](#runemailmessageguardian).
-  - Aligned workflow response types with the API (`status`, `workflowRevisionId`; removed unused `emoji`).
+  - Aligned workflow response types with the API (`status`, nullable `workflowRevisionId`; removed unused `emoji`).
 - `v7.0.0` (Jun 24, 2026)
   - Added transactional email management ([`getTransactionalEmail()`](#gettransactionalemail), [`createTransactionalEmail()`](#createtransactionalemail), [`updateTransactionalEmail()`](#updatetransactionalemail), [`ensureTransactionalEmailDraft()`](#ensuretransactionalemaildraft), [`publishTransactionalEmail()`](#publishtransactionalemail)).
   - Added workflows ([`listWorkflows()`](#listworkflows), [`getWorkflow()`](#getworkflow), [`getWorkflowNode()`](#getworkflownode)).
