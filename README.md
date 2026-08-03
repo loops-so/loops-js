@@ -3023,7 +3023,7 @@ const resp = await loops.completeUpload("clu7f1w3y011yl70m5n6o7p8q");
 
 ## Version history
 
-- `v7.1.0` (Jul 22, 2026)
+- `v7.1.0` (Aug 3, 2026)
   - Added event patterns ([`listEventPatterns()`](#listeventpatterns), [`getEventPattern()`](#geteventpattern), [`getEventPatternByName()`](#geteventpatternbyname)).
   - Expanded workflows with create/update/mutate APIs ([`createWorkflow()`](#createworkflow), [`updateWorkflow()`](#updateworkflow), [`changeWorkflowMailingList()`](#changeworkflowmailinglist), [`createWorkflowNode()`](#createworkflownode), [`updateWorkflowNode()`](#updateworkflownode), [`deleteWorkflowNode()`](#deleteworkflownode), [`addWorkflowBranch()`](#addworkflowbranch), [`deleteWorkflowNodesRecursive()`](#deleteworkflownodesrecursive)).
   - Added theme and component write APIs ([`createTheme()`](#createtheme), [`updateTheme()`](#updatetheme), [`createComponent()`](#createcomponent), [`updateComponent()`](#updatecomponent)).
