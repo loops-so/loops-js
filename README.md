@@ -116,10 +116,15 @@ You can use custom contact properties in API calls. Please make sure to [add cus
 - [listDedicatedSendingIps()](#listdedicatedsendingips)
 - [listAudienceSegments()](#listaudiencesegments)
 - [getAudienceSegment()](#getaudiencesegment)
+- [createAudienceSegment()](#createaudiencesegment)
 - [listThemes()](#listthemes)
 - [getTheme()](#gettheme)
+- [createTheme()](#createtheme)
+- [updateTheme()](#updatetheme)
 - [listComponents()](#listcomponents)
 - [getComponent()](#getcomponent)
+- [createComponent()](#createcomponent)
+- [updateComponent()](#updatecomponent)
 - [listCampaigns()](#listcampaigns)
 - [createCampaign()](#createcampaign)
 - [getCampaign()](#getcampaign)
@@ -131,9 +136,21 @@ You can use custom contact properties in API calls. Please make sure to [add cus
 - [getEmailMessage()](#getemailmessage)
 - [updateEmailMessage()](#updateemailmessage)
 - [sendEmailMessagePreview()](#sendemailmessagepreview)
+- [runEmailMessageGuardian()](#runemailmessageguardian)
+- [listEventPatterns()](#listeventpatterns)
+- [getEventPattern()](#geteventpattern)
+- [getEventPatternByName()](#geteventpatternbyname)
 - [listWorkflows()](#listworkflows)
+- [createWorkflow()](#createworkflow)
 - [getWorkflow()](#getworkflow)
+- [updateWorkflow()](#updateworkflow)
+- [changeWorkflowMailingList()](#changeworkflowmailinglist)
+- [createWorkflowNode()](#createworkflownode)
 - [getWorkflowNode()](#getworkflownode)
+- [updateWorkflowNode()](#updateworkflownode)
+- [deleteWorkflowNode()](#deleteworkflownode)
+- [addWorkflowBranch()](#addworkflowbranch)
+- [deleteWorkflowNodesRecursive()](#deleteworkflownodesrecursive)
 - [createUpload()](#createupload)
 - [completeUpload()](#completeupload)
 
@@ -937,6 +954,23 @@ Retrieve a single transactional email by ID.
 const resp = await loops.getTransactionalEmail("clfn0k1yg001imo0fdeqg30i8");
 ```
 
+#### Response
+
+```json
+{
+  "id": "cll42l54f20i1la0lfooe3z12",
+  "name": "Sign up confirmation",
+  "draftEmailMessageId": "cle5f7g9h1i3j5k7l9m1n3p5",
+  "publishedEmailMessageId": "cle5f7g9h1i3j5k7l9m1n3p5",
+  "transactionalGroupId": "clg7n5p3q1r9s7t5u3v1w9y7",
+  "createdAt": "2025-06-29T07:47:39.370Z",
+  "updatedAt": "2025-06-29T07:47:39.370Z",
+  "dataVariables": [
+    "confirmationUrl"
+  ]
+}
+```
+
 ---
 
 ### createTransactionalEmail()
@@ -956,6 +990,22 @@ Create a new transactional email. An empty draft email message is created automa
 
 ```javascript
 const resp = await loops.createTransactionalEmail({ name: "Welcome email" });
+```
+
+#### Response
+
+```json
+{
+  "id": "cll42l54f20i1la0lfooe3z12",
+  "name": "Welcome email",
+  "draftEmailMessageId": "cle5f7g9h1i3j5k7l9m1n3p5",
+  "draftEmailMessageContentRevisionId": "clrev1s10n2i3d4e5f6g7h8",
+  "publishedEmailMessageId": null,
+  "transactionalGroupId": "clg7n5p3q1r9s7t5u3v1w9y7",
+  "createdAt": "2025-06-29T07:47:39.370Z",
+  "updatedAt": "2025-06-29T07:47:39.370Z",
+  "dataVariables": []
+}
 ```
 
 ---
@@ -986,13 +1036,30 @@ const resp = await loops.updateTransactionalEmail("clfn0k1yg001imo0fdeqg30i8", {
 });
 ```
 
+#### Response
+
+```json
+{
+  "id": "cll42l54f20i1la0lfooe3z12",
+  "name": "Updated name",
+  "draftEmailMessageId": "cle5f7g9h1i3j5k7l9m1n3p5",
+  "publishedEmailMessageId": "cle5f7g9h1i3j5k7l9m1n3p5",
+  "transactionalGroupId": "clg7n5p3q1r9s7t5u3v1w9y7",
+  "createdAt": "2025-06-29T07:47:39.370Z",
+  "updatedAt": "2025-06-29T07:47:39.370Z",
+  "dataVariables": [
+    "confirmationUrl"
+  ]
+}
+```
+
 ---
 
 ### ensureTransactionalEmailDraft()
 
 Ensure a transactional email has a draft email message. Use [`updateEmailMessage()`](#updateemailmessage) to edit the draft content.
 
-[API Reference](https://loops.so/docs/api-reference/ensure-transactional-email-draft)
+[API Reference](https://loops.so/docs/api-reference/ensure-transactional-draft)
 
 #### Parameters
 
@@ -1004,6 +1071,22 @@ Ensure a transactional email has a draft email message. Use [`updateEmailMessage
 
 ```javascript
 const resp = await loops.ensureTransactionalEmailDraft("clfn0k1yg001imo0fdeqg30i8");
+```
+
+#### Response
+
+```json
+{
+  "id": "cll42l54f20i1la0lfooe3z12",
+  "name": "Sign up confirmation",
+  "draftEmailMessageId": "cle5f7g9h1i3j5k7l9m1n3p5",
+  "draftEmailMessageContentRevisionId": "clrev1s10n2i3d4e5f6g7h8",
+  "publishedEmailMessageId": null,
+  "transactionalGroupId": "clg7n5p3q1r9s7t5u3v1w9y7",
+  "createdAt": "2025-06-29T07:47:39.370Z",
+  "updatedAt": "2025-06-29T07:47:39.370Z",
+  "dataVariables": []
+}
 ```
 
 ---
@@ -1024,6 +1107,21 @@ Publish a transactional email's current draft.
 
 ```javascript
 const resp = await loops.publishTransactionalEmail("clfn0k1yg001imo0fdeqg30i8");
+```
+
+#### Response
+
+```json
+{
+  "id": "cll42l54f20i1la0lfooe3z12",
+  "name": "Sign up confirmation",
+  "draftEmailMessageId": null,
+  "publishedEmailMessageId": "cle5f7g9h1i3j5k7l9m1n3p5",
+  "transactionalGroupId": "clg7n5p3q1r9s7t5u3v1w9y7",
+  "createdAt": "2025-06-29T07:47:39.370Z",
+  "updatedAt": "2025-06-29T07:47:39.370Z",
+  "dataVariables": []
+}
 ```
 
 ---
@@ -1144,6 +1242,83 @@ Error handling is done through the `APIError` class, which provides `statusCode`
 
 ---
 
+### createTheme()
+
+Create a new email theme.
+[API Reference](https://loops.so/docs/api-reference/create-theme)
+
+#### Parameters
+
+| Name     | Type   | Required | Notes                              |
+| -------- | ------ | -------- | ---------------------------------- |
+| `name`   | string | Yes      | The theme name.                    |
+| `styles` | object | No       | Style attributes for the theme.    |
+
+#### Example
+
+```javascript
+const resp = await loops.createTheme({
+  name: "Brand",
+  styles: { backgroundColor: "#111111" },
+});
+```
+
+#### Response
+
+```json
+{
+  "id": "clt3u5v7w9x1y3z5a7b9c1d3",
+  "name": "Brand",
+  "styles": {
+    "backgroundColor": "#111111"
+  },
+  "isDefault": false,
+  "createdAt": "2025-06-29T07:47:39.370Z",
+  "updatedAt": "2025-06-29T07:47:39.370Z"
+}
+```
+
+---
+
+### updateTheme()
+
+Update a theme's name and/or styles. When `styles` change, the update cascades to emails using the theme; `affectedEmailCount` reports how many were affected.
+[API Reference](https://loops.so/docs/api-reference/update-theme)
+
+#### Parameters
+
+| Name     | Type   | Required | Notes                           |
+| -------- | ------ | -------- | ------------------------------- |
+| `themeId`     | string | Yes      | The ID of the theme.            |
+| `name`   | string | No       | The theme name.                 |
+| `styles` | object | No       | Style attributes for the theme. |
+
+#### Example
+
+```javascript
+const resp = await loops.updateTheme("clo1z5q7s004yl70y3z4a5b6c", {
+  name: "Brand Updated",
+});
+```
+
+#### Response
+
+```json
+{
+  "id": "clt3u5v7w9x1y3z5a7b9c1d3",
+  "name": "Brand Updated",
+  "styles": {
+    "backgroundColor": "#111111"
+  },
+  "isDefault": false,
+  "createdAt": "2025-06-29T07:47:39.370Z",
+  "updatedAt": "2025-06-29T07:47:39.370Z",
+  "affectedEmailCount": 3
+}
+```
+
+---
+
 ### listComponents()
 
 Retrieve a paginated list of email components.
@@ -1218,6 +1393,73 @@ const resp = await loops.getComponent("clp2a6r8t005yl70d7e8f9g0h");
 ```
 
 Error handling is done through the `APIError` class, which provides `statusCode` and `json` properties containing the API's error response details. For implementation examples, see the [Usage section](#usage).
+
+---
+
+### createComponent()
+
+Create a new email component.
+[API Reference](https://loops.so/docs/api-reference/create-component)
+
+#### Parameters
+
+| Name   | Type   | Required | Notes                                 |
+| ------ | ------ | -------- | ------------------------------------- |
+| `name` | string | Yes      | The component name.                   |
+| `lmx`  | string | Yes      | The component body as an LMX string.  |
+
+#### Example
+
+```javascript
+const resp = await loops.createComponent({
+  name: "Footer",
+  lmx: "<Section>...</Section>",
+});
+```
+
+#### Response
+
+```json
+{
+  "id": "clp2a6r8t005yl70d7e8f9g0h",
+  "name": "Footer",
+  "lmx": "<Section>Footer content</Section>"
+}
+```
+
+---
+
+### updateComponent()
+
+Update a component's name and/or LMX body. When `lmx` changes, the update cascades to emails using the component; `affectedEmailCount` reports how many were affected.
+[API Reference](https://loops.so/docs/api-reference/update-component)
+
+#### Parameters
+
+| Name   | Type   | Required | Notes                                 |
+| ------ | ------ | -------- | ------------------------------------- |
+| `componentId`   | string | Yes      | The ID of the component.              |
+| `name` | string | No       | The component name.                   |
+| `lmx`  | string | No       | The component body as an LMX string.  |
+
+#### Example
+
+```javascript
+const resp = await loops.updateComponent("clp2a6r8t005yl70d7e8f9g0h", {
+  lmx: "<Section updated>...</Section>",
+});
+```
+
+#### Response
+
+```json
+{
+  "id": "clp2a6r8t005yl70d7e8f9g0h",
+  "name": "Footer",
+  "lmx": "<Section>Updated footer</Section>",
+  "affectedEmailCount": 2
+}
+```
 
 ---
 
@@ -1562,6 +1804,30 @@ Retrieve a paginated list of transactional groups.
 const resp = await loops.listTransactionalGroups();
 ```
 
+#### Response
+
+```json
+{
+  "pagination": {
+    "totalResults": 1,
+    "returnedResults": 1,
+    "perPage": 20,
+    "totalPages": 1,
+    "nextCursor": null,
+    "nextPage": null
+  },
+  "data": [
+    {
+      "id": "clg7n5p3q1r9s7t5u3v1w9y7",
+      "name": "Onboarding",
+      "description": "Top of funnel campaigns",
+      "createdAt": "2025-06-29T07:47:39.370Z",
+      "updatedAt": "2025-06-29T07:47:39.370Z"
+    }
+  ]
+}
+```
+
 ---
 
 ### createTransactionalGroup()
@@ -1585,6 +1851,18 @@ const resp = await loops.createTransactionalGroup({
 });
 ```
 
+#### Response
+
+```json
+{
+  "id": "clg7n5p3q1r9s7t5u3v1w9y7",
+  "name": "Onboarding",
+  "description": "Top of funnel campaigns",
+  "createdAt": "2025-06-29T07:47:39.370Z",
+  "updatedAt": "2025-06-29T07:47:39.370Z"
+}
+```
+
 ---
 
 ### getTransactionalGroup()
@@ -1602,6 +1880,18 @@ Retrieve a single transactional group by ID.
 
 ```javascript
 const resp = await loops.getTransactionalGroup("clq3b7s9u006yl70p5q6r7s8t");
+```
+
+#### Response
+
+```json
+{
+  "id": "clg7n5p3q1r9s7t5u3v1w9y7",
+  "name": "Onboarding",
+  "description": "Top of funnel campaigns",
+  "createdAt": "2025-06-29T07:47:39.370Z",
+  "updatedAt": "2025-06-29T07:47:39.370Z"
+}
 ```
 
 ---
@@ -1627,6 +1917,18 @@ const resp = await loops.updateTransactionalGroup("clq3b7s9u006yl70p5q6r7s8t", {
 });
 ```
 
+#### Response
+
+```json
+{
+  "id": "clg7n5p3q1r9s7t5u3v1w9y7",
+  "name": "Updated name",
+  "description": "Top of funnel campaigns",
+  "createdAt": "2025-06-29T07:47:39.370Z",
+  "updatedAt": "2025-06-29T07:47:39.370Z"
+}
+```
+
 ---
 
 ### listAudienceSegments()
@@ -1645,6 +1947,41 @@ Retrieve a paginated list of audience segments.
 
 ```javascript
 const resp = await loops.listAudienceSegments();
+```
+
+#### Response
+
+```json
+{
+  "pagination": {
+    "totalResults": 1,
+    "returnedResults": 1,
+    "perPage": 20,
+    "totalPages": 1,
+    "nextCursor": null,
+    "nextPage": null
+  },
+  "data": [
+    {
+      "id": "cls6e8g0i2k4m6o8q0s2u4w6",
+      "name": "Power users",
+      "description": "Contacts on the pro plan",
+      "createdAt": "2025-06-29T07:47:39.370Z",
+      "updatedAt": "2025-06-29T07:47:39.370Z",
+      "filter": {
+        "match": "all",
+        "conditions": [
+          {
+            "type": "property",
+            "key": "planName",
+            "operator": "equals",
+            "value": "pro"
+          }
+        ]
+      }
+    }
+  ]
+}
 ```
 
 ---
@@ -1666,6 +2003,87 @@ Retrieve a single audience segment by ID.
 const resp = await loops.getAudienceSegment("clr4c8t0v008yl70x3y4z5a6b");
 ```
 
+#### Response
+
+```json
+{
+  "id": "cls6e8g0i2k4m6o8q0s2u4w6",
+  "name": "Power users",
+  "description": "Contacts on the pro plan",
+  "createdAt": "2025-06-29T07:47:39.370Z",
+  "updatedAt": "2025-06-29T07:47:39.370Z",
+  "filter": {
+    "match": "all",
+    "conditions": [
+      {
+        "type": "property",
+        "key": "planName",
+        "operator": "equals",
+        "value": "pro"
+      }
+    ]
+  }
+}
+```
+
+---
+
+### createAudienceSegment()
+
+Create a new audience segment.
+[API Reference](https://loops.so/docs/api-reference/create-audience-segment)
+
+#### Parameters
+
+| Name | Type | Required | Notes |
+| ---- | ---- | -------- | ----- |
+| `name` | string | Yes | The name of the audience segment. Must be unique within the team. |
+| `description` | string | No | An optional description of the audience segment. |
+| `filter` | object | Yes | A tree of audience conditions combined with `match` (`all` or `any`). |
+
+#### Example
+
+```javascript
+const resp = await loops.createAudienceSegment({
+  name: "Active users",
+  description: "Contacts who opened a recent campaign",
+  filter: {
+    match: "all",
+    conditions: [
+      {
+        type: "property",
+        key: "planName",
+        operator: "equals",
+        value: "pro",
+      },
+    ],
+  },
+});
+```
+
+#### Response
+
+```json
+{
+  "id": "cls6e8g0i2k4m6o8q0s2u4w6",
+  "name": "Active users",
+  "description": "Contacts who opened a recent campaign",
+  "createdAt": "2025-06-29T07:47:39.370Z",
+  "updatedAt": "2025-06-29T07:47:39.370Z",
+  "filter": {
+    "match": "all",
+    "conditions": [
+      {
+        "type": "property",
+        "key": "planName",
+        "operator": "equals",
+        "value": "pro"
+      }
+    ]
+  }
+}
+```
+
 ---
 
 ### listCampaignGroups()
@@ -1684,6 +2102,30 @@ Retrieve a paginated list of campaign groups.
 
 ```javascript
 const resp = await loops.listCampaignGroups();
+```
+
+#### Response
+
+```json
+{
+  "pagination": {
+    "totalResults": 1,
+    "returnedResults": 1,
+    "perPage": 20,
+    "totalPages": 1,
+    "nextCursor": null,
+    "nextPage": null
+  },
+  "data": [
+    {
+      "id": "clg7n5p3q1r9s7t5u3v1w9y7",
+      "name": "Newsletters",
+      "description": "Monthly product updates",
+      "createdAt": "2025-06-29T07:47:39.370Z",
+      "updatedAt": "2025-06-29T07:47:39.370Z"
+    }
+  ]
+}
 ```
 
 ---
@@ -1708,6 +2150,18 @@ const resp = await loops.createCampaignGroup({
 });
 ```
 
+#### Response
+
+```json
+{
+  "id": "clg7n5p3q1r9s7t5u3v1w9y7",
+  "name": "Newsletters",
+  "description": "",
+  "createdAt": "2025-06-29T07:47:39.370Z",
+  "updatedAt": "2025-06-29T07:47:39.370Z"
+}
+```
+
 ---
 
 ### getCampaignGroup()
@@ -1725,6 +2179,18 @@ Retrieve a single campaign group by ID.
 
 ```javascript
 const resp = await loops.getCampaignGroup("clq3b7s9u007yl70u9v0w1x2y");
+```
+
+#### Response
+
+```json
+{
+  "id": "clg7n5p3q1r9s7t5u3v1w9y7",
+  "name": "Newsletters",
+  "description": "Monthly product updates",
+  "createdAt": "2025-06-29T07:47:39.370Z",
+  "updatedAt": "2025-06-29T07:47:39.370Z"
+}
 ```
 
 ---
@@ -1750,12 +2216,24 @@ const resp = await loops.updateCampaignGroup("clq3b7s9u007yl70u9v0w1x2y", {
 });
 ```
 
+#### Response
+
+```json
+{
+  "id": "clg7n5p3q1r9s7t5u3v1w9y7",
+  "name": "Newsletters",
+  "description": "Monthly product updates",
+  "createdAt": "2025-06-29T07:47:39.370Z",
+  "updatedAt": "2025-06-29T07:47:39.370Z"
+}
+```
+
 ---
 
 ### sendEmailMessagePreview()
 
 Send a test preview of an email message to one or more addresses.
-[API Reference](https://loops.so/docs/api-reference/send-email-message-preview)
+[API Reference](https://loops.so/docs/api-reference/preview-email-message)
 
 #### Parameters
 
@@ -1778,6 +2256,183 @@ const resp = await loops.sendEmailMessagePreview("clm9x3o5q002yl70a8b3c4d5e", {
 });
 ```
 
+#### Response
+
+```json
+{
+  "id": "cle5f7g9h1i3j5k7l9m1n3p5"
+}
+```
+
+---
+
+### runEmailMessageGuardian()
+
+Validate an email message against Guardian rules. Errors must be resolved before publishing; warnings are advisory.
+[API Reference](https://loops.so/docs/api-reference/run-guardian-checks)
+
+#### Parameters
+
+| Name | Type   | Required | Notes                          |
+| ---- | ------ | -------- | ------------------------------ |
+| `emailMessageId` | string | Yes      | The ID of the email message.   |
+
+#### Example
+
+```javascript
+const resp = await loops.runEmailMessageGuardian("clm9x3o5q002yl70a8b3c4d5e");
+```
+
+#### Response
+
+```json
+{
+  "errors": [
+    {
+      "rule": "missingButtonHrefs",
+      "title": "Missing button link",
+      "description": "Buttons won't work without href value",
+      "items": [
+        {
+          "label": "Click here"
+        }
+      ]
+    },
+    {
+      "rule": "missingLinkHrefs",
+      "title": "Missing text link",
+      "description": "Links won't work without href value",
+      "items": [
+        {
+          "label": "See more"
+        }
+      ]
+    }
+  ],
+  "warnings": []
+}
+```
+
+---
+
+### listEventPatterns()
+
+Retrieve a paginated list of event patterns available to workflow event trigger nodes.
+[API Reference](https://loops.so/docs/api-reference/list-event-patterns)
+
+#### Parameters
+
+| Name      | Type    | Required | Notes                                                                                                                         |
+| --------- | ------- | -------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `perPage` | integer | No       | How many results to return per page. Must be between 10 and 50. Defaults to 20 if omitted.                                    |
+| `cursor`  | string  | No       | A cursor, to return a specific page of results. Cursors can be found from the `pagination.nextCursor` value in each response. |
+
+#### Example
+
+```javascript
+const resp = await loops.listEventPatterns();
+```
+
+#### Response
+
+```json
+{
+  "pagination": {
+    "totalResults": 1,
+    "returnedResults": 1,
+    "perPage": 20,
+    "totalPages": 1,
+    "nextCursor": null,
+    "nextPage": null
+  },
+  "data": [
+    {
+      "id": "cle1a2b3c004yl70d5e6f7g8h",
+      "eventName": "signup",
+      "incomingWebhookPlatform": null
+    }
+  ]
+}
+```
+
+---
+
+### getEventPattern()
+
+Retrieve event pattern details by ID.
+[API Reference](https://loops.so/docs/api-reference/get-event-pattern)
+
+#### Parameters
+
+| Name | Type   | Required | Notes                        |
+| ---- | ------ | -------- | ---------------------------- |
+| `eventPatternId` | string | Yes      | The ID of the event pattern. |
+
+#### Example
+
+```javascript
+const resp = await loops.getEventPattern("cle1a2b3c004yl70d5e6f7g8h");
+```
+
+#### Response
+
+```json
+{
+  "id": "cle1a2b3c004yl70d5e6f7g8h",
+  "eventName": "signup",
+  "eventProperties": [
+    {
+      "name": "plan",
+      "type": "string"
+    },
+    {
+      "name": "trialDays",
+      "type": "number"
+    }
+  ],
+  "incomingWebhookPlatform": null
+}
+```
+
+---
+
+### getEventPatternByName()
+
+Retrieve event pattern details by event name.
+[API Reference](https://loops.so/docs/api-reference/get-event-pattern-by-name)
+
+#### Parameters
+
+| Name       | Type   | Required | Notes                          |
+| ---------- | ------ | -------- | ------------------------------ |
+| `eventName` | string | Yes      | The name of the event pattern. |
+
+#### Example
+
+```javascript
+const resp = await loops.getEventPatternByName("signup");
+```
+
+#### Response
+
+```json
+{
+  "id": "cle1a2b3c004yl70d5e6f7g8h",
+  "eventName": "signup",
+  "eventProperties": [
+    {
+      "name": "plan",
+      "type": "string"
+    },
+    {
+      "name": "trialDays",
+      "type": "number"
+    }
+  ],
+  "incomingWebhookPlatform": null
+}
+```
+
 ---
 
 ### listWorkflows()
@@ -1798,11 +2453,80 @@ Retrieve a paginated list of workflows.
 const resp = await loops.listWorkflows();
 ```
 
+#### Response
+
+```json
+{
+  "pagination": {
+    "totalResults": 1,
+    "returnedResults": 1,
+    "perPage": 20,
+    "totalPages": 1,
+    "nextCursor": null,
+    "nextPage": null
+  },
+  "data": [
+    {
+      "id": "clw1a3b5c7d9e1f3g5h7i9j1",
+      "name": "Onboarding",
+      "createdAt": "2025-06-29T07:47:39.370Z",
+      "updatedAt": "2025-06-29T07:47:39.370Z"
+    }
+  ]
+}
+```
+
+---
+
+### createWorkflow()
+
+Create a draft workflow with a blank trigger and exit node.
+[API Reference](https://loops.so/docs/api-reference/create-workflow)
+
+#### Parameters
+
+| Name            | Type           | Required | Notes                                              |
+| --------------- | -------------- | -------- | -------------------------------------------------- |
+| `name`          | string         | Yes      | The name of the workflow.                          |
+| `description`   | string         | No       | The description of the workflow.                   |
+| `mailingListId` | string \| null | No       | The ID of a mailing list the workflow sends to.    |
+
+#### Example
+
+```javascript
+const resp = await loops.createWorkflow({ name: "Onboarding" });
+```
+
+#### Response
+
+```json
+{
+  "id": "clw1a3b5c7d9e1f3g5h7i9j1",
+  "status": "Draft",
+  "name": "Onboarding",
+  "mailingListId": null,
+  "rootNodeId": "cf16k73gq014h3mmj5b6jdi9r",
+  "workflowRevisionId": "clrev0w0r1k2f3l4o5w6",
+  "nodes": {
+    "cf16k73gq014h3mmj5b6jdi9r": {
+      "typeName": "BlankTrigger",
+      "nextNodeIds": [
+        "cf16k73gq014h3mmj5b4jdifg"
+      ]
+    },
+    "cf16k73gq014h3mmj5b4jdifg": {
+      "typeName": "ExitAction",
+      "nextNodeIds": []
+    }
+  }
+}
+```
+
 ---
 
 ### getWorkflow()
 
-Retrieve a workflow graph with node type names, connections, and selected display fields.
+Retrieve a workflow graph with node type names, connections, and selected display fields. Includes `workflowRevisionId` (may be `null` for older workflows) for subsequent mutations.
 [API Reference](https://loops.so/docs/api-reference/get-workflow)
 
 #### Parameters
@@ -1817,11 +2541,201 @@ Retrieve a workflow graph with node type names, connections, and selected displa
 const resp = await loops.getWorkflow("cls5d9u1w009yl70c7d8e9f0g");
 ```
 
+#### Response
+
+```json
+{
+  "id": "clw1a3b5c7d9e1f3g5h7i9j1",
+  "status": "Draft",
+  "name": "Onboarding",
+  "mailingListId": null,
+  "rootNodeId": "cf16k73gq014h3mmj5b6jdi9r",
+  "workflowRevisionId": "clrev0w0r1k2f3l4o5w6",
+  "nodes": {
+    "cf16k73gq014h3mmj5b6jdi9r": {
+      "typeName": "SignupTrigger",
+      "nextNodeIds": [
+        "cf16k73gq014h3mmj5b4jdifg"
+      ]
+    },
+    "cf16k73gq014h3mmj5b4jdifg": {
+      "typeName": "ExitAction",
+      "nextNodeIds": []
+    }
+  }
+}
+```
+
+---
+
+### updateWorkflow()
+
+Update a workflow's name and/or description. To change the mailing list, use [`changeWorkflowMailingList()`](#changeworkflowmailinglist).
+[API Reference](https://loops.so/docs/api-reference/update-workflow)
+
+#### Parameters
+
+| Name                 | Type   | Required | Notes                                                              |
+| -------------------- | ------ | -------- | ------------------------------------------------------------------ |
+| `workflowId`                 | string | Yes      | The ID of the workflow.                                            |
+| `expectedRevisionId` | string \| null | Yes      | The workflow revision token from the latest read or mutation. Pass `null` for workflows that do not have a revision yet. |
+| `name`               | string | No       | The updated workflow name.                                         |
+| `description`        | string | No       | The updated workflow description.                                  |
+
+#### Example
+
+```javascript
+const resp = await loops.updateWorkflow("cls5d9u1w009yl70c7d8e9f0g", {
+  expectedRevisionId: "rev_1",
+  name: "Updated onboarding",
+});
+```
+
+#### Response
+
+```json
+{
+  "id": "clw1a3b5c7d9e1f3g5h7i9j1",
+  "status": "Draft",
+  "name": "Updated onboarding",
+  "mailingListId": null,
+  "rootNodeId": "cf16k73gq014h3mmj5b6jdi9r",
+  "workflowRevisionId": "clrev0w0r1k2f3l4o5w6",
+  "nodes": {
+    "cf16k73gq014h3mmj5b6jdi9r": {
+      "typeName": "BlankTrigger",
+      "nextNodeIds": [
+        "cf16k73gq014h3mmj5b4jdifg"
+      ]
+    },
+    "cf16k73gq014h3mmj5b4jdifg": {
+      "typeName": "ExitAction",
+      "nextNodeIds": []
+    }
+  }
+}
+```
+
+---
+
+### changeWorkflowMailingList()
+
+Dry run or apply a workflow mailing list change. If queued contacts would be removed, the response status is `queuedContactsFound`; retry with `queuedContactPolicy: "discard"` to apply.
+[API Reference](https://loops.so/docs/api-reference/change-workflow-mailing-list)
+
+#### Parameters
+
+| Name                 | Type               | Required | Notes                                                              |
+| -------------------- | ------------------ | -------- | ------------------------------------------------------------------ |
+| `workflowId`                 | string             | Yes      | The ID of the workflow.                                            |
+| `expectedRevisionId` | string \| null | Yes      | The workflow revision token from the latest read or mutation. Pass `null` for workflows that do not have a revision yet. |
+| `mailingListId`      | string \| null     | Yes      | The mailing list to use, or `null` to clear it.                    |
+| `dryRun`             | boolean            | No       | If `true`, validate without modifying the workflow.                |
+| `queuedContactPolicy`| `"fail"` \| `"discard"` | No  | How to handle queued contacts that would be removed.               |
+
+#### Example
+
+```javascript
+const resp = await loops.changeWorkflowMailingList("cls5d9u1w009yl70c7d8e9f0g", {
+  expectedRevisionId: "rev_1",
+  mailingListId: "clm1a2b3c004yl70d5e6f7g8h",
+});
+```
+
+#### Response
+
+```json
+{
+  "status": "updated",
+  "mailingListId": "clm1a2b3c004yl70d5e6f7g8h",
+  "workflowRevisionId": "clrev0w0r1k2f3l4o5w6",
+  "queuedContactCount": 0,
+  "queuedContactLimitReached": false
+}
+```
+
+---
+
+### createWorkflowNode()
+
+Create a new default workflow node. Use `insertMode: "between"` or `insertMode: "before"`, then configure with [`updateWorkflowNode()`](#updateworkflownode).
+[API Reference](https://loops.so/docs/api-reference/create-workflow-node)
+
+#### Parameters
+
+| Name                 | Type   | Required | Notes                                                                 |
+| -------------------- | ------ | -------- | --------------------------------------------------------------------- |
+| `workflowId`                 | string | Yes      | The ID of the workflow.                                               |
+| `expectedRevisionId` | string \| null | Yes      | The workflow revision token from the latest read or mutation. Pass `null` for workflows that do not have a revision yet. |
+| `insertMode`         | string | Yes      | `"between"` or `"before"`.                                            |
+| `nodeTypeName`       | string | Yes      | Node type to create (for example `TimerAction`, `AudienceFilter`).    |
+| `fromNodeId`         | string | Cond.    | Required when `insertMode` is `"between"`.                            |
+| `toNodeId`           | string | Cond.    | Required when `insertMode` is `"between"`.                            |
+| `beforeNodeId`       | string | Cond.    | Required when `insertMode` is `"before"`.                             |
+
+#### Example
+
+```javascript
+const resp = await loops.createWorkflowNode("cls5d9u1w009yl70c7d8e9f0g", {
+  expectedRevisionId: "rev_1",
+  insertMode: "between",
+  nodeTypeName: "TimerAction",
+  fromNodeId: "clt6e0v2x010yl70h1i2j3k4l",
+  toNodeId: "clu7f1w3y011yl70m5n6o7p8q",
+});
+```
+
+#### Response
+
+```json
+{
+  "node": {
+    "id": "cln8p0q2r4s6t8u0v2w4x6z8",
+    "workflowId": "clw1a3b5c7d9e1f3g5h7i9j1",
+    "typeName": "TimerAction",
+    "nextNodeIds": [
+      "clu7f1w3y011yl70m5n6o7p8q"
+    ],
+    "amount": 0,
+    "unit": "m",
+    "workflowRevisionId": "clrev0w0r1k2f3l4o5w6"
+  },
+  "workflow": {
+    "id": "clw1a3b5c7d9e1f3g5h7i9j1",
+    "status": "Draft",
+    "name": "Onboarding",
+    "mailingListId": null,
+    "rootNodeId": "clt6e0v2x010yl70h1i2j3k4l",
+    "workflowRevisionId": "clrev0w0r1k2f3l4o5w6",
+    "nodes": {
+      "clt6e0v2x010yl70h1i2j3k4l": {
+        "typeName": "BlankTrigger",
+        "nextNodeIds": [
+          "cln8p0q2r4s6t8u0v2w4x6z8"
+        ]
+      },
+      "cln8p0q2r4s6t8u0v2w4x6z8": {
+        "typeName": "TimerAction",
+        "nextNodeIds": [
+          "clu7f1w3y011yl70m5n6o7p8q"
+        ],
+        "amount": 0,
+        "unit": "m"
+      },
+      "clu7f1w3y011yl70m5n6o7p8q": {
+        "typeName": "ExitAction",
+        "nextNodeIds": []
+      }
+    }
+  }
+}
+```
+
 ---
 
 ### getWorkflowNode()
 
-Retrieve detailed data for a single workflow node.
+Retrieve detailed data for a single workflow node. Includes `workflowRevisionId` (may be `null` for older workflows).
 [API Reference](https://loops.so/docs/api-reference/get-workflow-node)
 
 #### Parameters
@@ -1835,6 +2749,212 @@ Retrieve detailed data for a single workflow node.
 
 ```javascript
 const resp = await loops.getWorkflowNode("cls5d9u1w009yl70c7d8e9f0g", "clt6e0v2x010yl70h1i2j3k4l");
+```
+
+#### Response
+
+```json
+{
+  "id": "cln8p0q2r4s6t8u0v2w4x6z8",
+  "workflowId": "clw1a3b5c7d9e1f3g5h7i9j1",
+  "typeName": "TimerAction",
+  "nextNodeIds": [
+    "cf16k73gq014h3mmj5b4jdifg"
+  ],
+  "amount": 1,
+  "unit": "h",
+  "workflowRevisionId": "clrev0w0r1k2f3l4o5w6"
+}
+```
+
+---
+
+### updateWorkflowNode()
+
+Update workflow-node-owned fields for a single node.
+[API Reference](https://loops.so/docs/api-reference/update-workflow-node)
+
+#### Parameters
+
+| Name                 | Type   | Required | Notes                                                              |
+| -------------------- | ------ | -------- | ------------------------------------------------------------------ |
+| `workflowId`                 | string | Yes      | The ID of the workflow.                                            |
+| `nodeId`                 | string | Yes      | The ID of the workflow node.                                       |
+| `expectedRevisionId` | string \| null | Yes      | The workflow revision token from the latest read or mutation. Pass `null` for workflows that do not have a revision yet. |
+| `payload`            | object | Yes      | Node-type-specific fields to update.                               |
+
+#### Example
+
+```javascript
+const resp = await loops.updateWorkflowNode(
+  "cls5d9u1w009yl70c7d8e9f0g",
+  "clt6e0v2x010yl70h1i2j3k4l",
+  {
+    expectedRevisionId: "rev_1",
+    payload: { amount: 1, unit: "h" },
+  }
+);
+```
+
+#### Response
+
+```json
+{
+  "id": "cln8p0q2r4s6t8u0v2w4x6z8",
+  "workflowId": "clw1a3b5c7d9e1f3g5h7i9j1",
+  "typeName": "TimerAction",
+  "nextNodeIds": [
+    "cf16k73gq014h3mmj5b4jdifg"
+  ],
+  "amount": 1,
+  "unit": "h",
+  "workflowRevisionId": "clrev0w0r1k2f3l4o5w6"
+}
+```
+
+---
+
+### deleteWorkflowNode()
+
+Delete a single workflow node. If contacts are queued, the response status is `queuedContactsFound`; retry with `queuedContactPolicy: "discard"`.
+[API Reference](https://loops.so/docs/api-reference/delete-workflow-node)
+
+#### Parameters
+
+| Name                 | Type               | Required | Notes                                                              |
+| -------------------- | ------------------ | -------- | ------------------------------------------------------------------ |
+| `workflowId`                 | string             | Yes      | The ID of the workflow.                                            |
+| `nodeId`                 | string             | Yes      | The ID of the workflow node.                                       |
+| `expectedRevisionId` | string \| null | Yes      | The workflow revision token from the latest read or mutation. Pass `null` for workflows that do not have a revision yet. |
+| `dryRun`             | boolean            | No       | If `true`, validate without modifying the workflow.                |
+| `queuedContactPolicy`| `"fail"` \| `"discard"` | No  | How to handle queued contacts.                                     |
+
+#### Example
+
+```javascript
+const resp = await loops.deleteWorkflowNode(
+  "cls5d9u1w009yl70c7d8e9f0g",
+  "clt6e0v2x010yl70h1i2j3k4l",
+  { expectedRevisionId: "rev_1" }
+);
+```
+
+#### Response
+
+```json
+{
+  "status": "deleted",
+  "nodeIds": [
+    "cln8p0q2r4s6t8u0v2w4x6z8"
+  ],
+  "workflowRevisionId": "clrev0w0r1k2f3l4o5w6",
+  "queuedContactCount": 0,
+  "queuedContactLimitReached": false
+}
+```
+
+---
+
+### addWorkflowBranch()
+
+Add a branch and a child node under an existing Branch or Experiment node.
+[API Reference](https://loops.so/docs/api-reference/add-workflow-branch)
+
+#### Parameters
+
+| Name                 | Type   | Required | Notes                                                              |
+| -------------------- | ------ | -------- | ------------------------------------------------------------------ |
+| `workflowId`                 | string | Yes      | The ID of the workflow.                                            |
+| `nodeId`                 | string | Yes      | The ID of the Branch or Experiment node.                           |
+| `expectedRevisionId` | string \| null | Yes      | The workflow revision token from the latest read or mutation. Pass `null` for workflows that do not have a revision yet. |
+
+#### Example
+
+```javascript
+const resp = await loops.addWorkflowBranch(
+  "cls5d9u1w009yl70c7d8e9f0g",
+  "clt6e0v2x010yl70h1i2j3k4l",
+  { expectedRevisionId: "rev_1" }
+);
+```
+
+#### Response
+
+```json
+{
+  "node": {
+    "id": "cln0a2b4c6d8e0f2g4h6i8j0",
+    "workflowId": "clw1a3b5c7d9e1f3g5h7i9j1",
+    "typeName": "AudienceFilter",
+    "nextNodeIds": [],
+    "audienceSegmentId": null,
+    "audienceFilter": null,
+    "appliesDownstream": false,
+    "workflowRevisionId": "clrev0w0r1k2f3l4o5w6"
+  },
+  "workflow": {
+    "id": "clw1a3b5c7d9e1f3g5h7i9j1",
+    "status": "Draft",
+    "name": "Onboarding",
+    "mailingListId": null,
+    "rootNodeId": "clt6e0v2x010yl70h1i2j3k4l",
+    "workflowRevisionId": "clrev0w0r1k2f3l4o5w6",
+    "nodes": {
+      "clt6e0v2x010yl70h1i2j3k4l": {
+        "typeName": "BranchNode",
+        "nextNodeIds": [
+          "cln0a2b4c6d8e0f2g4h6i8j0"
+        ]
+      },
+      "cln0a2b4c6d8e0f2g4h6i8j0": {
+        "typeName": "AudienceFilter",
+        "nextNodeIds": []
+      }
+    }
+  }
+}
+```
+
+---
+
+### deleteWorkflowNodesRecursive()
+
+Delete a node and its downstream subtree. If contacts are queued, the response status is `queuedContactsFound`; retry with `queuedContactPolicy: "discard"`.
+[API Reference](https://loops.so/docs/api-reference/delete-workflow-nodes)
+
+#### Parameters
+
+| Name                 | Type               | Required | Notes                                                              |
+| -------------------- | ------------------ | -------- | ------------------------------------------------------------------ |
+| `workflowId`                 | string             | Yes      | The ID of the workflow.                                            |
+| `nodeId`                 | string             | Yes      | The ID of the workflow node.                                       |
+| `expectedRevisionId` | string \| null | Yes      | The workflow revision token from the latest read or mutation. Pass `null` for workflows that do not have a revision yet. |
+| `dryRun`             | boolean            | No       | If `true`, validate without modifying the workflow.                |
+| `queuedContactPolicy`| `"fail"` \| `"discard"` | No  | How to handle queued contacts.                                     |
+
+#### Example
+
+```javascript
+const resp = await loops.deleteWorkflowNodesRecursive(
+  "cls5d9u1w009yl70c7d8e9f0g",
+  "clt6e0v2x010yl70h1i2j3k4l",
+  { expectedRevisionId: "rev_1", queuedContactPolicy: "discard" }
+);
+```
+
+#### Response
+
+```json
+{
+  "status": "deleted",
+  "nodeIds": [
+    "cln8p0q2r4s6t8u0v2w4x6z8",
+    "cln9q1r3s5t7u9v1w3x5y7z9"
+  ],
+  "workflowRevisionId": "clrev0w0r1k2f3l4o5w6",
+  "queuedContactCount": 0,
+  "queuedContactLimitReached": false
+}
 ```
 
 ---
@@ -1861,6 +2981,15 @@ const resp = await loops.createUpload({
 });
 ```
 
+#### Response
+
+```json
+{
+  "emailAssetId": "cla3s5s7e9t1i3d5f7g9h1j3",
+  "presignedUrl": "https://loops-assets.s3.amazonaws.com/uploads/cla3s5s7e9t1i3d5f7g9h1j3?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=..."
+}
+```
+
 ---
 
 ### completeUpload()
@@ -1881,10 +3010,26 @@ Finalize an asset after the file has been uploaded to the pre-signed URL.
 const resp = await loops.completeUpload("clu7f1w3y011yl70m5n6o7p8q");
 ```
 
+#### Response
+
+```json
+{
+  "emailAssetId": "cla3s5s7e9t1i3d5f7g9h1j3",
+  "finalUrl": "https://assets.loops.so/cla3s5s7e9t1i3d5f7g9h1j3/logo.png"
+}
+```
+
 ---
 
 ## Version history
 
+- `v7.1.0` (Aug 3, 2026)
+  - Added event patterns ([`listEventPatterns()`](#listeventpatterns), [`getEventPattern()`](#geteventpattern), [`getEventPatternByName()`](#geteventpatternbyname)).
+  - Expanded workflows with create/update/mutate APIs ([`createWorkflow()`](#createworkflow), [`updateWorkflow()`](#updateworkflow), [`changeWorkflowMailingList()`](#changeworkflowmailinglist), [`createWorkflowNode()`](#createworkflownode), [`updateWorkflowNode()`](#updateworkflownode), [`deleteWorkflowNode()`](#deleteworkflownode), [`addWorkflowBranch()`](#addworkflowbranch), [`deleteWorkflowNodesRecursive()`](#deleteworkflownodesrecursive)).
+  - Added theme and component write APIs ([`createTheme()`](#createtheme), [`updateTheme()`](#updatetheme), [`createComponent()`](#createcomponent), [`updateComponent()`](#updatecomponent)).
+  - Added [`createAudienceSegment()`](#createaudiencesegment).
+  - Added [`runEmailMessageGuardian()`](#runemailmessageguardian).
+  - Aligned workflow response types with the API (`status`, nullable `workflowRevisionId`; removed unused `emoji`).
 - `v7.0.0` (Jun 24, 2026)
   - Added transactional email management ([`getTransactionalEmail()`](#gettransactionalemail), [`createTransactionalEmail()`](#createtransactionalemail), [`updateTransactionalEmail()`](#updatetransactionalemail), [`ensureTransactionalEmailDraft()`](#ensuretransactionalemaildraft), [`publishTransactionalEmail()`](#publishtransactionalemail)).
   - Added workflows ([`listWorkflows()`](#listworkflows), [`getWorkflow()`](#getworkflow), [`getWorkflowNode()`](#getworkflownode)).
