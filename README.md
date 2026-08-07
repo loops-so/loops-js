@@ -150,7 +150,7 @@ You can use custom contact properties in API calls. Please make sure to [add cus
 - [updateWorkflowNode()](#updateworkflownode)
 - [deleteWorkflowNode()](#deleteworkflownode)
 - [addWorkflowBranch()](#addworkflowbranch)
-- [rerouteWorkflowNodeConnection()](#rerouteworkflownodeconnection)
+- [rerouteWorkflowNode()](#rerouteworkflownode)
 - [deleteWorkflowNodesRecursive()](#deleteworkflownodesrecursive)
 - [createUpload()](#createupload)
 - [completeUpload()](#completeupload)
@@ -2943,7 +2943,7 @@ const resp = await loops.addWorkflowBranch(
 
 ---
 
-### rerouteWorkflowNodeConnection()
+### rerouteWorkflowNode()
 
 Reroute a source node's single outgoing connection to another valid target node. The source must have exactly one outgoing connection (branch/experiment nodes are not supported).
 [API Reference](https://loops.so/docs/api-reference/reroute-node-connection)
@@ -2960,7 +2960,7 @@ Reroute a source node's single outgoing connection to another valid target node.
 #### Example
 
 ```javascript
-const resp = await loops.rerouteWorkflowNodeConnection(
+const resp = await loops.rerouteWorkflowNode(
   "cls5d9u1w009yl70c7d8e9f0g",
   "clt6e0v2x010yl70h1i2j3k4l",
   {
@@ -3111,7 +3111,7 @@ const resp = await loops.completeUpload("clu7f1w3y011yl70m5n6o7p8q");
 
 - `v7.2.0` (Aug 7, 2026)
   - Aligned with OpenAPI 1.21.6.
-  - Added [`rerouteWorkflowNodeConnection()`](#rerouteworkflownodeconnection).
+  - Added [`rerouteWorkflowNode()`](#rerouteworkflownode).
   - Added `insertMode: "after"` for [`createWorkflowNode()`](#createworkflownode); `before` mode now prefers `toNodeId` (`beforeNodeId` remains as a deprecated alias).
   - Mutation responses for mailing-list changes, node updates, and node deletes now include the latest `workflow`.
   - Removed `queuedContactLimitReached` from workflow mutation responses.

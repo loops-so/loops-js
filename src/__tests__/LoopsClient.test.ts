@@ -2221,7 +2221,7 @@ describe("LoopsClient", () => {
     });
   });
 
-  describe("rerouteWorkflowNodeConnection", () => {
+  describe("rerouteWorkflowNode", () => {
     it("should reroute a workflow node connection", async () => {
       const mockResponse = {
         id: "node1",
@@ -2244,7 +2244,7 @@ describe("LoopsClient", () => {
         text: () => Promise.resolve(JSON.stringify(mockResponse)),
       });
 
-      const result = await client.rerouteWorkflowNodeConnection(
+      const result = await client.rerouteWorkflowNode(
         "cls5d9u1w009yl70c7d8e9f0g",
         "node1",
         {

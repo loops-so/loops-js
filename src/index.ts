@@ -2537,7 +2537,7 @@ class LoopsClient {
    *
    * @returns {Object} Updated source node and latest workflow (JSON)
    */
-  async rerouteWorkflowNodeConnection(
+  async rerouteWorkflowNode(
     workflowId: string,
     nodeId: string,
     {
