@@ -459,7 +459,20 @@ type CreateWorkflowNodeParams =
       expectedRevisionId: WorkflowExpectedRevisionId;
       insertMode: "before";
       nodeTypeName: CreateWorkflowNodeTypeName;
+      toNodeId: string;
+    }
+  | {
+      expectedRevisionId: WorkflowExpectedRevisionId;
+      insertMode: "before";
+      nodeTypeName: CreateWorkflowNodeTypeName;
+      /** @deprecated Use `toNodeId` instead. */
       beforeNodeId: string;
+    }
+  | {
+      expectedRevisionId: WorkflowExpectedRevisionId;
+      insertMode: "after";
+      nodeTypeName: CreateWorkflowNodeTypeName;
+      fromNodeId: string;
     };
 
 type CreatedWorkflowNode = WorkflowNodeWithRevision & {
@@ -486,7 +499,6 @@ interface WorkflowMailingListPreview {
   status: "dryRun" | "queuedContactsFound";
   mailingListId: string | null;
   queuedContactCount: number;
-  queuedContactLimitReached: boolean;
 }
 
 interface WorkflowMailingListUpdatedResponse {
@@ -494,7 +506,7 @@ interface WorkflowMailingListUpdatedResponse {
   mailingListId: string | null;
   workflowRevisionId: string;
   queuedContactCount: number;
-  queuedContactLimitReached: boolean;
+  workflow: SimplifiedWorkflow;
 }
 
 type ChangeWorkflowMailingListResponse =
@@ -505,7 +517,6 @@ interface WorkflowQueuedContactDeletePreview {
   status: "dryRun" | "queuedContactsFound";
   nodeIds: string[];
   queuedContactCount: number;
-  queuedContactLimitReached: boolean;
 }
 
 interface WorkflowDeletedResponse {
@@ -513,8 +524,16 @@ interface WorkflowDeletedResponse {
   nodeIds: string[];
   workflowRevisionId: string;
   queuedContactCount: number;
-  queuedContactLimitReached: boolean;
+  workflow: SimplifiedWorkflow;
 }
+
+type UpdateWorkflowNodeResponse = WorkflowNodeWithRevision & {
+  workflow: SimplifiedWorkflow;
+};
+
+type RerouteNodeConnectionResponse = WorkflowNodeWithRevision & {
+  workflow: SimplifiedWorkflow;
+};
 
 type DeleteWorkflowNodeResponse =
   | WorkflowQueuedContactDeletePreview
@@ -2352,8 +2371,9 @@ class LoopsClient {
    * Create a new default workflow node and return it with the latest workflow.
    *
    * Use `insertMode: "between"` to place the node between an existing connection,
-   * or `insertMode: "before"` to insert before a node. Configure the node after
-   * creation with `updateWorkflowNode()`.
+   * `insertMode: "before"` to insert before a node (`toNodeId`), or
+   * `insertMode: "after"` to insert after a node that has exactly one outgoing
+   * connection. Configure the node after creation with `updateWorkflowNode()`.
    *
    * @param {string} workflowId The ID of the workflow.
    * @param {Object} params Create parameters including `insertMode` and revision.
@@ -2406,7 +2426,7 @@ class LoopsClient {
    *
    * @see https://loops.so/docs/api-reference/update-workflow-node
    *
-   * @returns {Object} Updated workflow node (JSON)
+   * @returns {Object} Updated workflow node and latest workflow (JSON)
    */
   async updateWorkflowNode(
     workflowId: string,
@@ -2418,7 +2438,7 @@ class LoopsClient {
       expectedRevisionId: WorkflowExpectedRevisionId;
       payload: UpdateWorkflowNodePayload;
     }
-  ): Promise<WorkflowNodeWithRevision> {
+  ): Promise<UpdateWorkflowNodeResponse> {
     return this._makeQuery({
       path: `v1/workflows/${workflowId}/nodes/${nodeId}`,
       method: "POST",
@@ -2498,6 +2518,40 @@ class LoopsClient {
       path: `v1/workflows/${workflowId}/nodes/${nodeId}/add-branch`,
       method: "POST",
       payload: { expectedRevisionId },
+    });
+  }
+
+  /**
+   * Reroute a source node's single outgoing connection to another target node.
+   *
+   * The source node must have exactly one outgoing connection. Branch and
+   * experiment branch nodes cannot be rerouted with this method.
+   *
+   * @param {string} workflowId The ID of the workflow.
+   * @param {string} nodeId The ID of the source workflow node.
+   * @param {Object} params
+   * @param {string | null} params.expectedRevisionId The workflow revision token from the latest read or mutation. Pass `null` for workflows without a revision yet.
+   * @param {string} params.newTargetNodeId The node that should receive the connection.
+   *
+   * @see https://loops.so/docs/api-reference/reroute-node-connection
+   *
+   * @returns {Object} Updated source node and latest workflow (JSON)
+   */
+  async rerouteWorkflowNodeConnection(
+    workflowId: string,
+    nodeId: string,
+    {
+      expectedRevisionId,
+      newTargetNodeId,
+    }: {
+      expectedRevisionId: WorkflowExpectedRevisionId;
+      newTargetNodeId: string;
+    }
+  ): Promise<RerouteNodeConnectionResponse> {
+    return this._makeQuery({
+      path: `v1/workflows/${workflowId}/nodes/${nodeId}/reroute`,
+      method: "POST",
+      payload: { expectedRevisionId, newTargetNodeId },
     });
   }
 
@@ -2875,6 +2929,8 @@ export {
   WorkflowQueuedContactDeletePreview,
   WorkflowDeletedResponse,
   DeleteWorkflowNodeResponse,
+  UpdateWorkflowNodeResponse,
+  RerouteNodeConnectionResponse,
   WorkflowContactPropertyComparisonOperator,
   WorkflowContactPropertyComparison,
   WorkflowContactPropertyQuery,

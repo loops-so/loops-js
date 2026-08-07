@@ -150,6 +150,7 @@ You can use custom contact properties in API calls. Please make sure to [add cus
 - [updateWorkflowNode()](#updateworkflownode)
 - [deleteWorkflowNode()](#deleteworkflownode)
 - [addWorkflowBranch()](#addworkflowbranch)
+- [rerouteWorkflowNodeConnection()](#rerouteworkflownodeconnection)
 - [deleteWorkflowNodesRecursive()](#deleteworkflownodesrecursive)
 - [createUpload()](#createupload)
 - [completeUpload()](#completeupload)
@@ -1701,7 +1702,7 @@ const resp = await loops.getEmailMessage("clm9x3o5q002yl70a8b3c4d5e");
   "fromEmail": "hello",
   "replyToEmail": "",
   "emailFormat": "styled",
-  "lmx": "<Email>...</Email>",
+  "lmx": "<H1>...</H1><Paragraph>...</Paragraph>",
   "contentRevisionId": "clv8g2x4z012yl70n5o6p7q8r",
   "updatedAt": "2025-01-01T00:00:00.000Z"
 }
@@ -1745,7 +1746,7 @@ const resp = await loops.updateEmailMessage("clm9x3o5q002yl70a8b3c4d5e", {
   previewText: "Preview text",
   fromName: "Loops",
   fromEmail: "hello",
-  lmx: "<Email>...</Email>",
+  lmx: "<H1>...</H1><Paragraph>...</Paragraph>",
 });
 ```
 
@@ -1761,7 +1762,7 @@ const resp = await loops.updateEmailMessage("clm9x3o5q002yl70a8b3c4d5e", {
   "fromEmail": "hello",
   "replyToEmail": "",
   "emailFormat": "styled",
-  "lmx": "<Email>...</Email>",
+  "lmx": "<H1>...</H1><Paragraph>...</Paragraph>",
   "contentRevisionId": "clv8g2x4z013yl70s9t0u1v2w",
   "updatedAt": "2025-01-02T00:00:00.000Z",
   "warnings": [
@@ -2650,7 +2651,15 @@ const resp = await loops.changeWorkflowMailingList("cls5d9u1w009yl70c7d8e9f0g", 
   "mailingListId": "clm1a2b3c004yl70d5e6f7g8h",
   "workflowRevisionId": "clrev0w0r1k2f3l4o5w6",
   "queuedContactCount": 0,
-  "queuedContactLimitReached": false
+  "workflow": {
+    "id": "clw1a3b5c7d9e1f3g5h7i9j1",
+    "status": "Draft",
+    "name": "Onboarding",
+    "mailingListId": "clm1a2b3c004yl70d5e6f7g8h",
+    "rootNodeId": "clt6e0v2x010yl70h1i2j3k4l",
+    "workflowRevisionId": "clrev0w0r1k2f3l4o5w6",
+    "nodes": {}
+  }
 }
 ```
 
@@ -2658,7 +2667,7 @@ const resp = await loops.changeWorkflowMailingList("cls5d9u1w009yl70c7d8e9f0g", 
 
 ### createWorkflowNode()
 
-Create a new default workflow node. Use `insertMode: "between"` or `insertMode: "before"`, then configure with [`updateWorkflowNode()`](#updateworkflownode).
+Create a new default workflow node. Use `insertMode: "between"`, `insertMode: "before"` (with `toNodeId`), or `insertMode: "after"`, then configure with [`updateWorkflowNode()`](#updateworkflownode).
 [API Reference](https://loops.so/docs/api-reference/create-workflow-node)
 
 #### Parameters
@@ -2667,11 +2676,11 @@ Create a new default workflow node. Use `insertMode: "between"` or `insertMode: 
 | -------------------- | ------ | -------- | --------------------------------------------------------------------- |
 | `workflowId`                 | string | Yes      | The ID of the workflow.                                               |
 | `expectedRevisionId` | string \| null | Yes      | The workflow revision token from the latest read or mutation. Pass `null` for workflows that do not have a revision yet. |
-| `insertMode`         | string | Yes      | `"between"` or `"before"`.                                            |
+| `insertMode`         | string | Yes      | `"between"`, `"before"`, or `"after"`.                                |
 | `nodeTypeName`       | string | Yes      | Node type to create (for example `TimerAction`, `AudienceFilter`).    |
-| `fromNodeId`         | string | Cond.    | Required when `insertMode` is `"between"`.                            |
-| `toNodeId`           | string | Cond.    | Required when `insertMode` is `"between"`.                            |
-| `beforeNodeId`       | string | Cond.    | Required when `insertMode` is `"before"`.                             |
+| `fromNodeId`         | string | Cond.    | Required when `insertMode` is `"between"` or `"after"`. For `"after"`, the source must have exactly one outgoing node. |
+| `toNodeId`           | string | Cond.    | Required when `insertMode` is `"between"` or `"before"`.              |
+| `beforeNodeId`       | string | Cond.    | Deprecated. Use `toNodeId` with `insertMode: "before"`.               |
 
 #### Example
 
@@ -2808,7 +2817,16 @@ const resp = await loops.updateWorkflowNode(
   ],
   "amount": 1,
   "unit": "h",
-  "workflowRevisionId": "clrev0w0r1k2f3l4o5w6"
+  "workflowRevisionId": "clrev0w0r1k2f3l4o5w6",
+  "workflow": {
+    "id": "clw1a3b5c7d9e1f3g5h7i9j1",
+    "status": "Draft",
+    "name": "Onboarding",
+    "mailingListId": null,
+    "rootNodeId": "clt6e0v2x010yl70h1i2j3k4l",
+    "workflowRevisionId": "clrev0w0r1k2f3l4o5w6",
+    "nodes": {}
+  }
 }
 ```
 
@@ -2849,7 +2867,15 @@ const resp = await loops.deleteWorkflowNode(
   ],
   "workflowRevisionId": "clrev0w0r1k2f3l4o5w6",
   "queuedContactCount": 0,
-  "queuedContactLimitReached": false
+  "workflow": {
+    "id": "clw1a3b5c7d9e1f3g5h7i9j1",
+    "status": "Draft",
+    "name": "Onboarding",
+    "mailingListId": null,
+    "rootNodeId": "clt6e0v2x010yl70h1i2j3k4l",
+    "workflowRevisionId": "clrev0w0r1k2f3l4o5w6",
+    "nodes": {}
+  }
 }
 ```
 
@@ -2917,6 +2943,58 @@ const resp = await loops.addWorkflowBranch(
 
 ---
 
+### rerouteWorkflowNodeConnection()
+
+Reroute a source node's single outgoing connection to another valid target node. The source must have exactly one outgoing connection (branch/experiment nodes are not supported).
+[API Reference](https://loops.so/docs/api-reference/reroute-node-connection)
+
+#### Parameters
+
+| Name                 | Type   | Required | Notes                                                              |
+| -------------------- | ------ | -------- | ------------------------------------------------------------------ |
+| `workflowId`                 | string | Yes      | The ID of the workflow.                                            |
+| `nodeId`                 | string | Yes      | The ID of the source workflow node.                                |
+| `expectedRevisionId` | string \| null | Yes      | The workflow revision token from the latest read or mutation. Pass `null` for workflows that do not have a revision yet. |
+| `newTargetNodeId`    | string | Yes      | The node that should receive the connection.                       |
+
+#### Example
+
+```javascript
+const resp = await loops.rerouteWorkflowNodeConnection(
+  "cls5d9u1w009yl70c7d8e9f0g",
+  "clt6e0v2x010yl70h1i2j3k4l",
+  {
+    expectedRevisionId: "rev_1",
+    newTargetNodeId: "clu7f1w3y011yl70m5n6o7p8q",
+  }
+);
+```
+
+#### Response
+
+```json
+{
+  "id": "cln8p0q2r4s6t8u0v2w4x6z8",
+  "workflowId": "clw1a3b5c7d9e1f3g5h7i9j1",
+  "typeName": "SignupTrigger",
+  "nextNodeIds": [
+    "clu7f1w3y011yl70m5n6o7p8q"
+  ],
+  "workflowRevisionId": "clrev0w0r1k2f3l4o5w6",
+  "workflow": {
+    "id": "clw1a3b5c7d9e1f3g5h7i9j1",
+    "status": "Draft",
+    "name": "Onboarding",
+    "mailingListId": null,
+    "rootNodeId": "cln8p0q2r4s6t8u0v2w4x6z8",
+    "workflowRevisionId": "clrev0w0r1k2f3l4o5w6",
+    "nodes": {}
+  }
+}
+```
+
+---
+
 ### deleteWorkflowNodesRecursive()
 
 Delete a node and its downstream subtree. If contacts are queued, the response status is `queuedContactsFound`; retry with `queuedContactPolicy: "discard"`.
@@ -2953,7 +3031,15 @@ const resp = await loops.deleteWorkflowNodesRecursive(
   ],
   "workflowRevisionId": "clrev0w0r1k2f3l4o5w6",
   "queuedContactCount": 0,
-  "queuedContactLimitReached": false
+  "workflow": {
+    "id": "clw1a3b5c7d9e1f3g5h7i9j1",
+    "status": "Draft",
+    "name": "Onboarding",
+    "mailingListId": null,
+    "rootNodeId": "clt6e0v2x010yl70h1i2j3k4l",
+    "workflowRevisionId": "clrev0w0r1k2f3l4o5w6",
+    "nodes": {}
+  }
 }
 ```
 
@@ -3023,6 +3109,12 @@ const resp = await loops.completeUpload("clu7f1w3y011yl70m5n6o7p8q");
 
 ## Version history
 
+- `v7.2.0` (Aug 7, 2026)
+  - Aligned with OpenAPI 1.21.6.
+  - Added [`rerouteWorkflowNodeConnection()`](#rerouteworkflownodeconnection).
+  - Added `insertMode: "after"` for [`createWorkflowNode()`](#createworkflownode); `before` mode now prefers `toNodeId` (`beforeNodeId` remains as a deprecated alias).
+  - Mutation responses for mailing-list changes, node updates, and node deletes now include the latest `workflow`.
+  - Removed `queuedContactLimitReached` from workflow mutation responses.
 - `v7.1.0` (Aug 3, 2026)
   - Added event patterns ([`listEventPatterns()`](#listeventpatterns), [`getEventPattern()`](#geteventpattern), [`getEventPatternByName()`](#geteventpatternbyname)).
   - Expanded workflows with create/update/mutate APIs ([`createWorkflow()`](#createworkflow), [`updateWorkflow()`](#updateworkflow), [`changeWorkflowMailingList()`](#changeworkflowmailinglist), [`createWorkflowNode()`](#createworkflownode), [`updateWorkflowNode()`](#updateworkflownode), [`deleteWorkflowNode()`](#deleteworkflownode), [`addWorkflowBranch()`](#addworkflowbranch), [`deleteWorkflowNodesRecursive()`](#deleteworkflownodesrecursive)).
