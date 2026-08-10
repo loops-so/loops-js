@@ -1890,7 +1890,14 @@ describe("LoopsClient", () => {
         mailingListId: "clm1",
         workflowRevisionId: "rev_2",
         queuedContactCount: 0,
-        queuedContactLimitReached: false,
+        workflow: {
+          id: "cls5d9u1w009yl70c7d8e9f0g",
+          status: "Draft",
+          mailingListId: "clm1",
+          rootNodeId: "root",
+          nodes: {},
+          workflowRevisionId: "rev_2",
+        },
       };
 
       global.fetch = jest.fn().mockResolvedValue({
@@ -1975,6 +1982,108 @@ describe("LoopsClient", () => {
         })
       );
     });
+
+    it("should create a workflow node after a node", async () => {
+      const mockResponse = {
+        node: {
+          id: "new_node",
+          workflowId: "cls5d9u1w009yl70c7d8e9f0g",
+          typeName: "TimerAction",
+          nextNodeIds: ["next"],
+          workflowRevisionId: "rev_2",
+        },
+        workflow: {
+          id: "cls5d9u1w009yl70c7d8e9f0g",
+          status: "Draft",
+          mailingListId: null,
+          rootNodeId: "from",
+          nodes: {},
+          workflowRevisionId: "rev_2",
+        },
+      };
+
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        text: () => Promise.resolve(JSON.stringify(mockResponse)),
+      });
+
+      const result = await client.createWorkflowNode(
+        "cls5d9u1w009yl70c7d8e9f0g",
+        {
+          expectedRevisionId: "rev_1",
+          insertMode: "after",
+          nodeTypeName: "TimerAction",
+          fromNodeId: "from",
+        }
+      );
+
+      expect(result).toEqual(mockResponse);
+      expect(fetch).toHaveBeenCalledWith(
+        expect.stringContaining(
+          "v1/workflows/cls5d9u1w009yl70c7d8e9f0g/nodes"
+        ),
+        expect.objectContaining({
+          method: "POST",
+          body: JSON.stringify({
+            expectedRevisionId: "rev_1",
+            insertMode: "after",
+            nodeTypeName: "TimerAction",
+            fromNodeId: "from",
+          }),
+        })
+      );
+    });
+
+    it("should create a workflow node before a node using toNodeId", async () => {
+      const mockResponse = {
+        node: {
+          id: "new_node",
+          workflowId: "cls5d9u1w009yl70c7d8e9f0g",
+          typeName: "AudienceFilter",
+          nextNodeIds: ["to"],
+          workflowRevisionId: "rev_2",
+        },
+        workflow: {
+          id: "cls5d9u1w009yl70c7d8e9f0g",
+          status: "Draft",
+          mailingListId: null,
+          rootNodeId: "root",
+          nodes: {},
+          workflowRevisionId: "rev_2",
+        },
+      };
+
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        text: () => Promise.resolve(JSON.stringify(mockResponse)),
+      });
+
+      const result = await client.createWorkflowNode(
+        "cls5d9u1w009yl70c7d8e9f0g",
+        {
+          expectedRevisionId: "rev_1",
+          insertMode: "before",
+          nodeTypeName: "AudienceFilter",
+          toNodeId: "to",
+        }
+      );
+
+      expect(result).toEqual(mockResponse);
+      expect(fetch).toHaveBeenCalledWith(
+        expect.stringContaining(
+          "v1/workflows/cls5d9u1w009yl70c7d8e9f0g/nodes"
+        ),
+        expect.objectContaining({
+          method: "POST",
+          body: JSON.stringify({
+            expectedRevisionId: "rev_1",
+            insertMode: "before",
+            nodeTypeName: "AudienceFilter",
+            toNodeId: "to",
+          }),
+        })
+      );
+    });
   });
 
   describe("updateWorkflowNode", () => {
@@ -1987,6 +2096,14 @@ describe("LoopsClient", () => {
         amount: 1,
         unit: "h",
         workflowRevisionId: "rev_2",
+        workflow: {
+          id: "cls5d9u1w009yl70c7d8e9f0g",
+          status: "Draft",
+          mailingListId: null,
+          rootNodeId: "root",
+          nodes: {},
+          workflowRevisionId: "rev_2",
+        },
       };
 
       global.fetch = jest.fn().mockResolvedValue({
@@ -2026,7 +2143,14 @@ describe("LoopsClient", () => {
         nodeIds: ["node1"],
         workflowRevisionId: "rev_2",
         queuedContactCount: 0,
-        queuedContactLimitReached: false,
+        workflow: {
+          id: "cls5d9u1w009yl70c7d8e9f0g",
+          status: "Draft",
+          mailingListId: null,
+          rootNodeId: "root",
+          nodes: {},
+          workflowRevisionId: "rev_2",
+        },
       };
 
       global.fetch = jest.fn().mockResolvedValue({
@@ -2097,6 +2221,54 @@ describe("LoopsClient", () => {
     });
   });
 
+  describe("rerouteWorkflowNode", () => {
+    it("should reroute a workflow node connection", async () => {
+      const mockResponse = {
+        id: "node1",
+        workflowId: "cls5d9u1w009yl70c7d8e9f0g",
+        typeName: "SignupTrigger",
+        nextNodeIds: ["target"],
+        workflowRevisionId: "rev_2",
+        workflow: {
+          id: "cls5d9u1w009yl70c7d8e9f0g",
+          status: "Draft",
+          mailingListId: null,
+          rootNodeId: "node1",
+          nodes: {},
+          workflowRevisionId: "rev_2",
+        },
+      };
+
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        text: () => Promise.resolve(JSON.stringify(mockResponse)),
+      });
+
+      const result = await client.rerouteWorkflowNode(
+        "cls5d9u1w009yl70c7d8e9f0g",
+        "node1",
+        {
+          expectedRevisionId: "rev_1",
+          newTargetNodeId: "target",
+        }
+      );
+
+      expect(result).toEqual(mockResponse);
+      expect(fetch).toHaveBeenCalledWith(
+        expect.stringContaining(
+          "v1/workflows/cls5d9u1w009yl70c7d8e9f0g/nodes/node1/reroute"
+        ),
+        expect.objectContaining({
+          method: "POST",
+          body: JSON.stringify({
+            expectedRevisionId: "rev_1",
+            newTargetNodeId: "target",
+          }),
+        })
+      );
+    });
+  });
+
   describe("deleteWorkflowNodesRecursive", () => {
     it("should recursively delete workflow nodes", async () => {
       const mockResponse = {
@@ -2104,7 +2276,14 @@ describe("LoopsClient", () => {
         nodeIds: ["node1", "node2"],
         workflowRevisionId: "rev_2",
         queuedContactCount: 0,
-        queuedContactLimitReached: false,
+        workflow: {
+          id: "cls5d9u1w009yl70c7d8e9f0g",
+          status: "Draft",
+          mailingListId: null,
+          rootNodeId: "root",
+          nodes: {},
+          workflowRevisionId: "rev_2",
+        },
       };
 
       global.fetch = jest.fn().mockResolvedValue({
