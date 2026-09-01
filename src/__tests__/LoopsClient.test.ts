@@ -817,6 +817,7 @@ describe("LoopsClient", () => {
       const mockTransactionalEmails = [
         {
           id: "clfn0k1yg001imo0fdeqg30i8",
+          url: "https://app.loops.so/transactional/clfn0k1yg001imo0fdeqg30i8",
           name: "Welcome Email",
           draftEmailMessageId: "clm8k2n4p000yl70f6g7h8i9j",
           publishedEmailMessageId: "clm8k2n4p001yl70k1l2m3n4o",
@@ -896,6 +897,7 @@ describe("LoopsClient", () => {
     it("should get a transactional email by ID", async () => {
       const mockResponse = {
         id: "clfn0k1yg001imo0fdeqg30i8",
+        url: "https://app.loops.so/transactional/clfn0k1yg001imo0fdeqg30i8",
         name: "Welcome Email",
         draftEmailMessageId: null,
         publishedEmailMessageId: "clm8k2n4p001yl70k1l2m3n4o",
@@ -924,6 +926,7 @@ describe("LoopsClient", () => {
     it("should create a transactional email", async () => {
       const mockResponse = {
         id: "clfn0k1yg001imo0fdeqg30i8",
+        url: "https://app.loops.so/transactional/clfn0k1yg001imo0fdeqg30i8",
         name: "Welcome Email",
         draftEmailMessageId: "clm8k2n4p000yl70f6g7h8i9j",
         draftEmailMessageContentRevisionId: "clv8g2x4z012yl70n5o6p7q8r",
@@ -958,6 +961,7 @@ describe("LoopsClient", () => {
     it("should update a transactional email", async () => {
       const mockResponse = {
         id: "clfn0k1yg001imo0fdeqg30i8",
+        url: "https://app.loops.so/transactional/clfn0k1yg001imo0fdeqg30i8",
         name: "Updated Email",
         draftEmailMessageId: "clm8k2n4p000yl70f6g7h8i9j",
         publishedEmailMessageId: "clm8k2n4p001yl70k1l2m3n4o",
@@ -991,6 +995,7 @@ describe("LoopsClient", () => {
     it("should ensure a transactional email draft exists", async () => {
       const mockResponse = {
         id: "clfn0k1yg001imo0fdeqg30i8",
+        url: "https://app.loops.so/transactional/clfn0k1yg001imo0fdeqg30i8",
         name: "Welcome Email",
         draftEmailMessageId: "clm8k2n4p000yl70f6g7h8i9j",
         draftEmailMessageContentRevisionId: "clv8g2x4z012yl70n5o6p7q8r",
@@ -1020,6 +1025,7 @@ describe("LoopsClient", () => {
     it("should publish a transactional email draft", async () => {
       const mockResponse = {
         id: "clfn0k1yg001imo0fdeqg30i8",
+        url: "https://app.loops.so/transactional/clfn0k1yg001imo0fdeqg30i8",
         name: "Welcome Email",
         draftEmailMessageId: null,
         publishedEmailMessageId: "clm8k2n4p001yl70k1l2m3n4o",
@@ -1364,6 +1370,7 @@ describe("LoopsClient", () => {
 
   const campaignFixture = {
     id: "cln0y4p6r003yl70i1j2k3l4m",
+    url: "https://app.loops.so/campaigns/cln0y4p6r003yl70i1j2k3l4m",
     name: "Spring announcement",
     status: "Draft",
     createdAt: "2025-01-01T00:00:00.000Z",
@@ -1821,6 +1828,7 @@ describe("LoopsClient", () => {
     it("should create a workflow", async () => {
       const mockResponse = {
         id: "cls5d9u1w009yl70c7d8e9f0g",
+        url: "https://app.loops.so/workflows/cls5d9u1w009yl70c7d8e9f0g",
         status: "Draft",
         name: "Onboarding",
         mailingListId: null,
@@ -1851,6 +1859,7 @@ describe("LoopsClient", () => {
     it("should update a workflow", async () => {
       const mockResponse = {
         id: "cls5d9u1w009yl70c7d8e9f0g",
+        url: "https://app.loops.so/workflows/cls5d9u1w009yl70c7d8e9f0g",
         status: "Draft",
         name: "Updated",
         mailingListId: null,
@@ -1883,6 +1892,74 @@ describe("LoopsClient", () => {
     });
   });
 
+  describe("deleteWorkflow", () => {
+    it("should delete a workflow", async () => {
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        status: 204,
+        text: () => Promise.resolve(""),
+      });
+
+      const result = await client.deleteWorkflow("cls5d9u1w009yl70c7d8e9f0g", {
+        expectedRevisionId: "rev_1",
+      });
+
+      expect(result).toBeUndefined();
+      expect(fetch).toHaveBeenCalledWith(
+        expect.stringContaining("v1/workflows/cls5d9u1w009yl70c7d8e9f0g"),
+        expect.objectContaining({
+          method: "DELETE",
+          body: JSON.stringify({
+            expectedRevisionId: "rev_1",
+          }),
+        })
+      );
+    });
+
+    it("should delete a workflow with confirmation", async () => {
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        status: 204,
+        text: () => Promise.resolve(""),
+      });
+
+      const result = await client.deleteWorkflow("cls5d9u1w009yl70c7d8e9f0g", {
+        expectedRevisionId: "rev_1",
+        confirmDelete: true,
+      });
+
+      expect(result).toBeUndefined();
+      expect(fetch).toHaveBeenCalledWith(
+        expect.stringContaining("v1/workflows/cls5d9u1w009yl70c7d8e9f0g"),
+        expect.objectContaining({
+          method: "DELETE",
+          body: JSON.stringify({
+            expectedRevisionId: "rev_1",
+            confirmDelete: true,
+          }),
+        })
+      );
+    });
+
+    it("should throw APIError when confirmation is required", async () => {
+      const mockResponse = {
+        message:
+          "This workflow is currently sending or has queued contacts. Retry with confirmDelete: true to delete it.",
+      };
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: false,
+        status: 409,
+        text: () => Promise.resolve(JSON.stringify(mockResponse)),
+      });
+
+      await expect(
+        client.deleteWorkflow("cls5d9u1w009yl70c7d8e9f0g", {
+          expectedRevisionId: "rev_1",
+        })
+      ).rejects.toThrow(APIError);
+    });
+  });
+
   describe("changeWorkflowMailingList", () => {
     it("should change a workflow mailing list", async () => {
       const mockResponse = {
@@ -1892,6 +1969,7 @@ describe("LoopsClient", () => {
         queuedContactCount: 0,
         workflow: {
           id: "cls5d9u1w009yl70c7d8e9f0g",
+          url: "https://app.loops.so/workflows/cls5d9u1w009yl70c7d8e9f0g",
           status: "Draft",
           mailingListId: "clm1",
           rootNodeId: "root",
@@ -1941,6 +2019,7 @@ describe("LoopsClient", () => {
         },
         workflow: {
           id: "cls5d9u1w009yl70c7d8e9f0g",
+          url: "https://app.loops.so/workflows/cls5d9u1w009yl70c7d8e9f0g",
           status: "Draft",
           mailingListId: null,
           rootNodeId: "from",
@@ -1994,6 +2073,7 @@ describe("LoopsClient", () => {
         },
         workflow: {
           id: "cls5d9u1w009yl70c7d8e9f0g",
+          url: "https://app.loops.so/workflows/cls5d9u1w009yl70c7d8e9f0g",
           status: "Draft",
           mailingListId: null,
           rootNodeId: "from",
@@ -2045,6 +2125,7 @@ describe("LoopsClient", () => {
         },
         workflow: {
           id: "cls5d9u1w009yl70c7d8e9f0g",
+          url: "https://app.loops.so/workflows/cls5d9u1w009yl70c7d8e9f0g",
           status: "Draft",
           mailingListId: null,
           rootNodeId: "root",
@@ -2098,6 +2179,7 @@ describe("LoopsClient", () => {
         workflowRevisionId: "rev_2",
         workflow: {
           id: "cls5d9u1w009yl70c7d8e9f0g",
+          url: "https://app.loops.so/workflows/cls5d9u1w009yl70c7d8e9f0g",
           status: "Draft",
           mailingListId: null,
           rootNodeId: "root",
@@ -2145,6 +2227,7 @@ describe("LoopsClient", () => {
         queuedContactCount: 0,
         workflow: {
           id: "cls5d9u1w009yl70c7d8e9f0g",
+          url: "https://app.loops.so/workflows/cls5d9u1w009yl70c7d8e9f0g",
           status: "Draft",
           mailingListId: null,
           rootNodeId: "root",
@@ -2189,6 +2272,7 @@ describe("LoopsClient", () => {
         },
         workflow: {
           id: "cls5d9u1w009yl70c7d8e9f0g",
+          url: "https://app.loops.so/workflows/cls5d9u1w009yl70c7d8e9f0g",
           status: "Draft",
           mailingListId: null,
           rootNodeId: "root",
@@ -2231,6 +2315,7 @@ describe("LoopsClient", () => {
         workflowRevisionId: "rev_2",
         workflow: {
           id: "cls5d9u1w009yl70c7d8e9f0g",
+          url: "https://app.loops.so/workflows/cls5d9u1w009yl70c7d8e9f0g",
           status: "Draft",
           mailingListId: null,
           rootNodeId: "node1",
@@ -2278,6 +2363,7 @@ describe("LoopsClient", () => {
         queuedContactCount: 0,
         workflow: {
           id: "cls5d9u1w009yl70c7d8e9f0g",
+          url: "https://app.loops.so/workflows/cls5d9u1w009yl70c7d8e9f0g",
           status: "Draft",
           mailingListId: null,
           rootNodeId: "root",

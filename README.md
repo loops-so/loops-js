@@ -144,6 +144,7 @@ You can use custom contact properties in API calls. Please make sure to [add cus
 - [createWorkflow()](#createworkflow)
 - [getWorkflow()](#getworkflow)
 - [updateWorkflow()](#updateworkflow)
+- [deleteWorkflow()](#deleteworkflow)
 - [changeWorkflowMailingList()](#changeworkflowmailinglist)
 - [createWorkflowNode()](#createworkflownode)
 - [getWorkflowNode()](#getworkflownode)
@@ -910,6 +911,7 @@ const resp = await loops.listTransactionalEmails({ perPage: 15 });
   "data": [
     {
       "id": "clfn0k1yg001imo0fdeqg30i8",
+      "url": "https://app.loops.so/transactional/clfn0k1yg001imo0fdeqg30i8",
       "name": "Sign up confirmation",
       "draftEmailMessageId": null,
       "publishedEmailMessageId": "clm9x3o5q002yl70a8b3c4d5e",
@@ -920,6 +922,7 @@ const resp = await loops.listTransactionalEmails({ perPage: 15 });
     },
     {
       "id": "cll42l54f20i1la0lfooe3z12",
+      "url": "https://app.loops.so/transactional/cll42l54f20i1la0lfooe3z12",
       "name": "Password reset",
       "draftEmailMessageId": "clm8k2n4p000yl70f6g7h8i9j",
       "publishedEmailMessageId": "clm8k2n4p001yl70k1l2m3n4o",
@@ -960,6 +963,7 @@ const resp = await loops.getTransactionalEmail("clfn0k1yg001imo0fdeqg30i8");
 ```json
 {
   "id": "cll42l54f20i1la0lfooe3z12",
+  "url": "https://app.loops.so/transactional/cll42l54f20i1la0lfooe3z12",
   "name": "Sign up confirmation",
   "draftEmailMessageId": "cle5f7g9h1i3j5k7l9m1n3p5",
   "publishedEmailMessageId": "cle5f7g9h1i3j5k7l9m1n3p5",
@@ -998,6 +1002,7 @@ const resp = await loops.createTransactionalEmail({ name: "Welcome email" });
 ```json
 {
   "id": "cll42l54f20i1la0lfooe3z12",
+  "url": "https://app.loops.so/transactional/cll42l54f20i1la0lfooe3z12",
   "name": "Welcome email",
   "draftEmailMessageId": "cle5f7g9h1i3j5k7l9m1n3p5",
   "draftEmailMessageContentRevisionId": "clrev1s10n2i3d4e5f6g7h8",
@@ -1042,6 +1047,7 @@ const resp = await loops.updateTransactionalEmail("clfn0k1yg001imo0fdeqg30i8", {
 ```json
 {
   "id": "cll42l54f20i1la0lfooe3z12",
+  "url": "https://app.loops.so/transactional/cll42l54f20i1la0lfooe3z12",
   "name": "Updated name",
   "draftEmailMessageId": "cle5f7g9h1i3j5k7l9m1n3p5",
   "publishedEmailMessageId": "cle5f7g9h1i3j5k7l9m1n3p5",
@@ -1079,6 +1085,7 @@ const resp = await loops.ensureTransactionalEmailDraft("clfn0k1yg001imo0fdeqg30i
 ```json
 {
   "id": "cll42l54f20i1la0lfooe3z12",
+  "url": "https://app.loops.so/transactional/cll42l54f20i1la0lfooe3z12",
   "name": "Sign up confirmation",
   "draftEmailMessageId": "cle5f7g9h1i3j5k7l9m1n3p5",
   "draftEmailMessageContentRevisionId": "clrev1s10n2i3d4e5f6g7h8",
@@ -1115,6 +1122,7 @@ const resp = await loops.publishTransactionalEmail("clfn0k1yg001imo0fdeqg30i8");
 ```json
 {
   "id": "cll42l54f20i1la0lfooe3z12",
+  "url": "https://app.loops.so/transactional/cll42l54f20i1la0lfooe3z12",
   "name": "Sign up confirmation",
   "draftEmailMessageId": null,
   "publishedEmailMessageId": "cle5f7g9h1i3j5k7l9m1n3p5",
@@ -1499,6 +1507,7 @@ const resp = await loops.listCampaigns({ perPage: 15 });
   "data": [
     {
       "id": "cln0y4p6r003yl70i1j2k3l4m",
+      "url": "https://app.loops.so/campaigns/cln0y4p6r003yl70i1j2k3l4m",
       "emailMessageId": "clm9x3o5q002yl70a8b3c4d5e",
       "name": "Spring announcement",
       "status": "Draft",
@@ -1554,6 +1563,7 @@ const resp = await loops.createCampaign({
 ```json
 {
   "id": "cln0y4p6r003yl70i1j2k3l4m",
+  "url": "https://app.loops.so/campaigns/cln0y4p6r003yl70i1j2k3l4m",
   "name": "Spring announcement",
   "status": "Draft",
   "createdAt": "2025-01-01T00:00:00.000Z",
@@ -1597,6 +1607,7 @@ const resp = await loops.getCampaign("cln0y4p6r003yl70i1j2k3l4m");
 ```json
 {
   "id": "cln0y4p6r003yl70i1j2k3l4m",
+  "url": "https://app.loops.so/campaigns/cln0y4p6r003yl70i1j2k3l4m",
   "name": "Spring announcement",
   "status": "Draft",
   "createdAt": "2025-01-01T00:00:00.000Z",
@@ -1645,6 +1656,7 @@ const resp = await loops.updateCampaign("cln0y4p6r003yl70i1j2k3l4m", { name: "Up
 ```json
 {
   "id": "cln0y4p6r003yl70i1j2k3l4m",
+  "url": "https://app.loops.so/campaigns/cln0y4p6r003yl70i1j2k3l4m",
   "name": "Updated name",
   "status": "Draft",
   "createdAt": "2025-01-01T00:00:00.000Z",
@@ -2469,6 +2481,7 @@ const resp = await loops.listWorkflows();
   "data": [
     {
       "id": "clw1a3b5c7d9e1f3g5h7i9j1",
+      "url": "https://app.loops.so/workflows/clw1a3b5c7d9e1f3g5h7i9j1",
       "name": "Onboarding",
       "createdAt": "2025-06-29T07:47:39.370Z",
       "updatedAt": "2025-06-29T07:47:39.370Z"
@@ -2503,6 +2516,7 @@ const resp = await loops.createWorkflow({ name: "Onboarding" });
 ```json
 {
   "id": "clw1a3b5c7d9e1f3g5h7i9j1",
+  "url": "https://app.loops.so/workflows/clw1a3b5c7d9e1f3g5h7i9j1",
   "status": "Draft",
   "name": "Onboarding",
   "mailingListId": null,
@@ -2547,6 +2561,7 @@ const resp = await loops.getWorkflow("cls5d9u1w009yl70c7d8e9f0g");
 ```json
 {
   "id": "clw1a3b5c7d9e1f3g5h7i9j1",
+  "url": "https://app.loops.so/workflows/clw1a3b5c7d9e1f3g5h7i9j1",
   "status": "Draft",
   "name": "Onboarding",
   "mailingListId": null,
@@ -2587,7 +2602,7 @@ Update a workflow's name and/or description. To change the mailing list, use [`c
 
 ```javascript
 const resp = await loops.updateWorkflow("cls5d9u1w009yl70c7d8e9f0g", {
-  expectedRevisionId: "rev_1",
+  expectedRevisionId: "clrev1s10n2i3d4e5f6g7h8",
   name: "Updated onboarding",
 });
 ```
@@ -2597,6 +2612,7 @@ const resp = await loops.updateWorkflow("cls5d9u1w009yl70c7d8e9f0g", {
 ```json
 {
   "id": "clw1a3b5c7d9e1f3g5h7i9j1",
+  "url": "https://app.loops.so/workflows/clw1a3b5c7d9e1f3g5h7i9j1",
   "status": "Draft",
   "name": "Updated onboarding",
   "mailingListId": null,
@@ -2619,6 +2635,41 @@ const resp = await loops.updateWorkflow("cls5d9u1w009yl70c7d8e9f0g", {
 
 ---
 
+### deleteWorkflow()
+
+Delete a workflow. Successful deletion returns no content. If the workflow is currently sending or has queued contacts, Loops returns `409 Conflict` instead of deleting; retry with `confirmDelete: true` to delete the workflow, stop sending, and cancel queued contacts.
+
+Note: Once deleted, workflows are not returned in other API endpoints.
+
+[API Reference](https://loops.so/docs/api-reference/delete-workflow)
+
+#### Parameters
+
+| Name                 | Type           | Required | Notes                                                              |
+| -------------------- | -------------- | -------- | ------------------------------------------------------------------ |
+| `workflowId`         | string         | Yes      | The ID of the workflow.                                            |
+| `expectedRevisionId` | string \| null | Yes      | The workflow revision token from the latest read or mutation. Pass `null` for workflows that do not have a revision yet. |
+| `confirmDelete`      | boolean        | No       | Set to `true` after a confirmation-required `409 Conflict` to confirm deletion. |
+
+#### Example
+
+```javascript
+await loops.deleteWorkflow("cls5d9u1w009yl70c7d8e9f0g", {
+  expectedRevisionId: "clrev1s10n2i3d4e5f6g7h8",
+});
+
+await loops.deleteWorkflow("cls5d9u1w009yl70c7d8e9f0g", {
+  expectedRevisionId: "clrev1s10n2i3d4e5f6g7h8",
+  confirmDelete: true,
+});
+```
+
+#### Response
+
+Successful deletion returns no content (`204 No Content`).
+
+---
+
 ### changeWorkflowMailingList()
 
 Dry run or apply a workflow mailing list change. If queued contacts would be removed, the response status is `queuedContactsFound`; retry with `queuedContactPolicy: "discard"` to apply.
@@ -2638,7 +2689,7 @@ Dry run or apply a workflow mailing list change. If queued contacts would be rem
 
 ```javascript
 const resp = await loops.changeWorkflowMailingList("cls5d9u1w009yl70c7d8e9f0g", {
-  expectedRevisionId: "rev_1",
+  expectedRevisionId: "clrev1s10n2i3d4e5f6g7h8",
   mailingListId: "clm1a2b3c004yl70d5e6f7g8h",
 });
 ```
@@ -2653,6 +2704,7 @@ const resp = await loops.changeWorkflowMailingList("cls5d9u1w009yl70c7d8e9f0g", 
   "queuedContactCount": 0,
   "workflow": {
     "id": "clw1a3b5c7d9e1f3g5h7i9j1",
+    "url": "https://app.loops.so/workflows/clw1a3b5c7d9e1f3g5h7i9j1",
     "status": "Draft",
     "name": "Onboarding",
     "mailingListId": "clm1a2b3c004yl70d5e6f7g8h",
@@ -2686,7 +2738,7 @@ Create a new default workflow node. Use `insertMode: "between"`, `insertMode: "b
 
 ```javascript
 const resp = await loops.createWorkflowNode("cls5d9u1w009yl70c7d8e9f0g", {
-  expectedRevisionId: "rev_1",
+  expectedRevisionId: "clrev1s10n2i3d4e5f6g7h8",
   insertMode: "between",
   nodeTypeName: "TimerAction",
   fromNodeId: "clt6e0v2x010yl70h1i2j3k4l",
@@ -2711,6 +2763,7 @@ const resp = await loops.createWorkflowNode("cls5d9u1w009yl70c7d8e9f0g", {
   },
   "workflow": {
     "id": "clw1a3b5c7d9e1f3g5h7i9j1",
+    "url": "https://app.loops.so/workflows/clw1a3b5c7d9e1f3g5h7i9j1",
     "status": "Draft",
     "name": "Onboarding",
     "mailingListId": null,
@@ -2799,7 +2852,7 @@ const resp = await loops.updateWorkflowNode(
   "cls5d9u1w009yl70c7d8e9f0g",
   "clt6e0v2x010yl70h1i2j3k4l",
   {
-    expectedRevisionId: "rev_1",
+    expectedRevisionId: "clrev1s10n2i3d4e5f6g7h8",
     payload: { amount: 1, unit: "h" },
   }
 );
@@ -2820,6 +2873,7 @@ const resp = await loops.updateWorkflowNode(
   "workflowRevisionId": "clrev0w0r1k2f3l4o5w6",
   "workflow": {
     "id": "clw1a3b5c7d9e1f3g5h7i9j1",
+    "url": "https://app.loops.so/workflows/clw1a3b5c7d9e1f3g5h7i9j1",
     "status": "Draft",
     "name": "Onboarding",
     "mailingListId": null,
@@ -2853,7 +2907,7 @@ Delete a single workflow node. If contacts are queued, the response status is `q
 const resp = await loops.deleteWorkflowNode(
   "cls5d9u1w009yl70c7d8e9f0g",
   "clt6e0v2x010yl70h1i2j3k4l",
-  { expectedRevisionId: "rev_1" }
+  { expectedRevisionId: "clrev1s10n2i3d4e5f6g7h8" }
 );
 ```
 
@@ -2869,6 +2923,7 @@ const resp = await loops.deleteWorkflowNode(
   "queuedContactCount": 0,
   "workflow": {
     "id": "clw1a3b5c7d9e1f3g5h7i9j1",
+    "url": "https://app.loops.so/workflows/clw1a3b5c7d9e1f3g5h7i9j1",
     "status": "Draft",
     "name": "Onboarding",
     "mailingListId": null,
@@ -2900,7 +2955,7 @@ Add a branch and a child node under an existing Branch or Experiment node.
 const resp = await loops.addWorkflowBranch(
   "cls5d9u1w009yl70c7d8e9f0g",
   "clt6e0v2x010yl70h1i2j3k4l",
-  { expectedRevisionId: "rev_1" }
+  { expectedRevisionId: "clrev1s10n2i3d4e5f6g7h8" }
 );
 ```
 
@@ -2920,6 +2975,7 @@ const resp = await loops.addWorkflowBranch(
   },
   "workflow": {
     "id": "clw1a3b5c7d9e1f3g5h7i9j1",
+    "url": "https://app.loops.so/workflows/clw1a3b5c7d9e1f3g5h7i9j1",
     "status": "Draft",
     "name": "Onboarding",
     "mailingListId": null,
@@ -2964,7 +3020,7 @@ const resp = await loops.rerouteWorkflowNode(
   "cls5d9u1w009yl70c7d8e9f0g",
   "clt6e0v2x010yl70h1i2j3k4l",
   {
-    expectedRevisionId: "rev_1",
+    expectedRevisionId: "clrev1s10n2i3d4e5f6g7h8",
     newTargetNodeId: "clu7f1w3y011yl70m5n6o7p8q",
   }
 );
@@ -2983,6 +3039,7 @@ const resp = await loops.rerouteWorkflowNode(
   "workflowRevisionId": "clrev0w0r1k2f3l4o5w6",
   "workflow": {
     "id": "clw1a3b5c7d9e1f3g5h7i9j1",
+    "url": "https://app.loops.so/workflows/clw1a3b5c7d9e1f3g5h7i9j1",
     "status": "Draft",
     "name": "Onboarding",
     "mailingListId": null,
@@ -3016,7 +3073,7 @@ Delete a node and its downstream subtree. If contacts are queued, the response s
 const resp = await loops.deleteWorkflowNodesRecursive(
   "cls5d9u1w009yl70c7d8e9f0g",
   "clt6e0v2x010yl70h1i2j3k4l",
-  { expectedRevisionId: "rev_1", queuedContactPolicy: "discard" }
+  { expectedRevisionId: "clrev1s10n2i3d4e5f6g7h8", queuedContactPolicy: "discard" }
 );
 ```
 
@@ -3033,6 +3090,7 @@ const resp = await loops.deleteWorkflowNodesRecursive(
   "queuedContactCount": 0,
   "workflow": {
     "id": "clw1a3b5c7d9e1f3g5h7i9j1",
+    "url": "https://app.loops.so/workflows/clw1a3b5c7d9e1f3g5h7i9j1",
     "status": "Draft",
     "name": "Onboarding",
     "mailingListId": null,
@@ -3109,6 +3167,10 @@ const resp = await loops.completeUpload("clu7f1w3y011yl70m5n6o7p8q");
 
 ## Version history
 
+- `v7.3.0` (Sep 1, 2026)
+  - Aligned with OpenAPI 1.21.9.
+  - Added [`deleteWorkflow()`](#deleteworkflow).
+  - Campaign, transactional email, and workflow responses now include a `url` field pointing to the resource in the Loops app.
 - `v7.2.0` (Aug 7, 2026)
   - Aligned with OpenAPI 1.21.6.
   - Added [`rerouteWorkflowNode()`](#rerouteworkflownode).
