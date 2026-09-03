@@ -234,6 +234,8 @@ interface ContactProperty {
 interface TransactionalEmailResource {
   /** The ID of the transactional email. */
   id: string;
+  /** The URL of the transactional email in the Loops app. */
+  url: string;
   /** The name of the transactional email. */
   name: string;
   /** The ID of the draft email message, or `null` if none. */
@@ -386,6 +388,8 @@ interface ListEventPatternsResponse {
 
 interface WorkflowSummary {
   id: string;
+  /** The URL of the workflow in the Loops app. */
+  url: string;
   name: string;
   createdAt: string;
   updatedAt: string;
@@ -405,6 +409,8 @@ type SimplifiedWorkflowNode = {
 
 interface SimplifiedWorkflow {
   id: string;
+  /** The URL of the workflow in the Loops app. */
+  url: string;
   status: WorkflowStatus;
   name?: string;
   description?: string;
@@ -767,6 +773,8 @@ interface UpdateComponentResponse extends ComponentResponse {
 
 interface Campaign {
   id: string;
+  /** The URL of the campaign in the Loops app. */
+  url: string;
   name: string;
   status: "Draft" | "Scheduled" | "Sending" | "Sent";
   createdAt: string;
@@ -964,6 +972,10 @@ class LoopsClient {
     // All other status codes from API, throw an error
     if (!response.ok) {
       throw new APIError(response.status, json, json === null ? text : undefined);
+    }
+
+    if (response.status === 204) {
+      return undefined as T;
     }
 
     if (json === null) {
@@ -2314,6 +2326,45 @@ class LoopsClient {
     return this._makeQuery({
       path: `v1/workflows/${workflowId}`,
       method: "POST",
+      payload,
+    });
+  }
+
+  /**
+   * Delete a workflow.
+   *
+   * Successful deletion returns no content. If the workflow is currently
+   * sending or has queued contacts, Loops returns `409 Conflict` instead of
+   * deleting. Retry with `confirmDelete: true` to delete the workflow, stop
+   * sending, and cancel queued contacts.
+   *
+   * Once deleted, workflows are not returned in other API endpoints.
+   *
+   * @param {string} workflowId The ID of the workflow.
+   * @param {Object} params
+   * @param {string | null} params.expectedRevisionId The workflow revision token from the latest read or mutation. Pass `null` for workflows without a revision yet.
+   * @param {boolean} [params.confirmDelete] Set to `true` after a confirmation-required `409 Conflict` to confirm deletion.
+   *
+   * @see https://loops.so/docs/api-reference/delete-workflow
+   */
+  async deleteWorkflow(
+    workflowId: string,
+    {
+      expectedRevisionId,
+      confirmDelete,
+    }: {
+      expectedRevisionId: WorkflowExpectedRevisionId;
+      confirmDelete?: boolean;
+    }
+  ): Promise<void> {
+    const payload: {
+      expectedRevisionId: WorkflowExpectedRevisionId;
+      confirmDelete?: boolean;
+    } = { expectedRevisionId };
+    if (confirmDelete !== undefined) payload.confirmDelete = confirmDelete;
+    await this._makeQuery({
+      path: `v1/workflows/${workflowId}`,
+      method: "DELETE",
       payload,
     });
   }
