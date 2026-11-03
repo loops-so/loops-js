@@ -8,6 +8,7 @@ interface QueryOptions {
 
 interface ApiKeySuccessResponse {
   success: true;
+  /** The name of the team associated with the API key. */
   teamName: string;
 }
 
@@ -53,14 +54,19 @@ interface SuppressionRemovalQuota {
 }
 
 interface CheckContactSuppressionSuccessResponse {
+  /** The contact that was checked. */
   contact: SuppressionContact;
+  /** Whether the contact is currently suppressed. */
   isSuppressed: boolean;
+  /** Remaining suppression-removal quota for the team. */
   removalQuota: SuppressionRemovalQuota;
 }
 
 interface RemoveContactSuppressionSuccessResponse {
   success: true;
+  /** Confirmation message for the suppression removal. */
   message: string;
+  /** Remaining suppression-removal quota for the team. */
   removalQuota: SuppressionRemovalQuota;
 }
 
@@ -171,19 +177,19 @@ interface TransactionalAttachment {
 
 interface MailingList {
   /**
-   * The ID of the list.
+   * The ID of the mailing list.
    */
   id: string;
   /**
-   * The name of the list.
+   * The name of the mailing list.
    */
   name: string;
   /**
-   * The list's description.
+   * The description of the mailing list. `null` if no description is set.
    */
   description: string | null;
   /**
-   * Whether the list is public (true) or private (false).
+   * Whether the mailing list is public (`true`) or private (`false`).
    * @see https://loops.so/docs/contacts/mailing-lists#list-visibility
    */
   isPublic: boolean;
@@ -238,15 +244,15 @@ interface TransactionalEmailResource {
   url: string;
   /** The name of the transactional email. */
   name: string;
-  /** The ID of the draft email message, or `null` if none. */
+  /** The ID of the draft email message. `null` if there is no draft version. */
   draftEmailMessageId: string | null;
-  /** The ID of the published email message, or `null` if none. */
+  /** The ID of the published email message. `null` if there is no published version. */
   publishedEmailMessageId: string | null;
   /** The ID of the group this transactional email belongs to. */
   transactionalGroupId: string | null;
-  /** The date the transactional email was created in ECMA-262 date-time format. */
+  /** ISO 8601 timestamp for when the transactional email was created. */
   createdAt: string;
-  /** The date the transactional email was last updated in ECMA-262 date-time format. */
+  /** ISO 8601 timestamp for when the transactional email was last updated. */
   updatedAt: string;
   /**
    * Data variable names used by the published email.
@@ -264,26 +270,39 @@ interface TransactionalDraftResponse extends TransactionalEmailResource {
 }
 
 interface Group {
+  /** The ID of the group. */
   id: string;
+  /** The name of the group. */
   name: string;
+  /** The description of the group. */
   description: string;
+  /** ISO 8601 timestamp for when the group was created. */
   createdAt: string;
+  /** ISO 8601 timestamp for when the group was last updated. */
   updatedAt: string;
 }
 
 interface ListGroupsResponse {
+  /** Pagination metadata for the result set. */
   pagination: PaginationData;
+  /** The groups returned for this page. */
   data: Group[];
 }
 
 interface AudienceFilterBetweenValue {
+  /** Start of the date range (inclusive), as an ISO 8601 timestamp. */
   from: string;
+  /** End of the date range (inclusive), as an ISO 8601 timestamp. */
   to: string;
 }
 
+/** Matches contacts by a property value. */
 interface PropertyCondition {
+  /** Discriminator for property conditions. */
   type: "property";
+  /** The contact property name. */
   key: string;
+  /** Comparison operator for the property value. */
   operator:
     | "any"
     | "contains"
@@ -301,19 +320,32 @@ interface PropertyCondition {
     | "after"
     | "before"
     | "between";
+  /**
+   * The comparison value. Omitted for value-less operators (e.g. `isTrue`,
+   * `empty`). A `{ from, to }` object for `between`.
+   */
   value?: string | number | AudienceFilterBetweenValue;
 }
 
+/** Matches contacts by mailing list opt-in status. */
 interface OptInCondition {
+  /** Discriminator for opt-in conditions. */
   type: "optIn";
+  /** The double opt-in status to match. */
   status: "accepted" | "pending" | "rejected" | null;
 }
 
+/** Matches contacts by their activity on a campaign or workflow. */
 interface ActivityCondition {
+  /** Discriminator for activity conditions. */
   type: "activity";
+  /** The email activity to match. */
   action: "sent" | "opened" | "clicked";
+  /** When `true`, matches contacts that did not perform the action. */
   negate: boolean;
+  /** The kind of resource the activity relates to. */
   target: "campaign" | "workflow" | "workflowEmail";
+  /** The ID of the campaign, workflow, or workflow email. */
   id: string;
 }
 
@@ -322,34 +354,56 @@ type AudienceFilterCondition =
   | OptInCondition
   | ActivityCondition;
 
+/** A tree of audience conditions combined with `match`. */
 interface AudienceFilter {
+  /**
+   * `all` matches contacts that meet every condition, `any` matches contacts
+   * that meet at least one.
+   */
   match: "all" | "any";
+  /** One or more audience filter conditions. */
   conditions: AudienceFilterCondition[];
 }
 
+/** When the campaign is scheduled to send. */
 interface CampaignScheduling {
+  /** Whether the campaign sends immediately or at a scheduled time. */
   method: "now" | "schedule";
   /** ISO 8601 send time. Null when the method is `now`. */
   timestamp: string | null;
 }
 
+/**
+ * When the campaign should send. `timestamp` is required and must be in the
+ * future when `method` is `schedule`, and must be omitted when `method` is
+ * `now`.
+ */
 interface CampaignSchedulingRequest {
+  /** Whether the campaign should send immediately or at a scheduled time. */
   method: "now" | "schedule";
   /** Required and must be in the future when `method` is `schedule`. */
   timestamp?: string;
 }
 
 interface AudienceSegment {
+  /** The ID of the audience segment. */
   id: string;
+  /** The name of the audience segment. */
   name: string;
+  /** An optional description of the audience segment. */
   description: string | null;
+  /** ISO 8601 timestamp for when the audience segment was created. */
   createdAt: string;
+  /** ISO 8601 timestamp for when the audience segment was last updated. */
   updatedAt: string;
+  /** A tree of audience conditions combined with `match`. */
   filter: AudienceFilter | null;
 }
 
 interface ListAudienceSegmentsResponse {
+  /** Pagination metadata for the result set. */
   pagination: PaginationData;
+  /** The audience segments returned for this page. */
   data: AudienceSegment[];
 }
 
@@ -370,7 +424,9 @@ interface EventPatternSummary {
 }
 
 interface WorkflowEventProperty {
+  /** The event property name. */
   name: string;
+  /** The type of the event property. */
   type: "string" | "number" | "boolean" | "date";
 }
 
@@ -382,43 +438,59 @@ interface EventPattern extends EventPatternSummary {
 }
 
 interface ListEventPatternsResponse {
+  /** Pagination metadata for the result set. */
   pagination: PaginationData;
+  /** The event patterns returned for this page. */
   data: EventPatternSummary[];
 }
 
 interface WorkflowSummary {
+  /** The ID of the workflow. */
   id: string;
   /** The URL of the workflow in the Loops app. */
   url: string;
+  /** The name of the workflow. */
   name: string;
   /** The ID of the workflow group this workflow belongs to. */
   workflowGroupId: string;
+  /** ISO 8601 timestamp for when the workflow was created. */
   createdAt: string;
+  /** ISO 8601 timestamp for when the workflow was last updated. */
   updatedAt: string;
 }
 
 interface ListWorkflowsResponse {
+  /** Pagination metadata for the result set. */
   pagination: PaginationData;
+  /** The workflows returned for this page. */
   data: WorkflowSummary[];
 }
 
 type WorkflowStatus = "Draft" | "Sending" | "Paused" | "PausedAndQueueing";
 
 type SimplifiedWorkflowNode = {
+  /** The node type name. */
   typeName: string;
+  /** IDs of nodes this node connects to next. */
   nextNodeIds: string[];
 } & Record<string, unknown>;
 
 interface SimplifiedWorkflow {
+  /** The ID of the workflow. */
   id: string;
   /** The URL of the workflow in the Loops app. */
   url: string;
+  /** The current status of the workflow. */
   status: WorkflowStatus;
+  /** The name of the workflow. */
   name?: string;
+  /** The description of the workflow. */
   description?: string;
   /** The ID of the workflow group this workflow belongs to. */
   workflowGroupId: string;
+  /** The ID of the mailing list the workflow sends to. */
   mailingListId: string | null;
+  /** The ID of the root node in the workflow graph. */
   rootNodeId: string;
   /**
    * The current workflow revision token. Pass the latest value as
@@ -426,13 +498,21 @@ interface SimplifiedWorkflow {
    * that do not have a revision token yet.
    */
   workflowRevisionId: string | null;
+  /**
+   * A map of node IDs to simplified node objects. Each node includes
+   * `typeName` and `nextNodeIds`, plus type-specific fields when present.
+   */
   nodes: Record<string, SimplifiedWorkflowNode>;
 }
 
 type WorkflowNode = {
+  /** The ID of the workflow node. */
   id: string;
+  /** The ID of the workflow this node belongs to. */
   workflowId: string;
+  /** The node type name. */
   typeName: string;
+  /** IDs of nodes this node connects to next. */
   nextNodeIds: string[];
 } & Record<string, unknown>;
 
@@ -496,26 +576,47 @@ type CreatedWorkflowNode = WorkflowNodeWithRevision & {
 };
 
 interface CreateWorkflowNodeResponse {
+  /** The created workflow node. */
   node: CreatedWorkflowNode;
+  /** The latest workflow graph after the mutation. */
   workflow: SimplifiedWorkflow;
 }
 
 interface AddWorkflowBranchResponse {
+  /** The created child node for the new branch. */
   node: WorkflowNodeWithRevision;
+  /** The latest workflow graph after the mutation. */
   workflow: SimplifiedWorkflow;
 }
 
 interface WorkflowMailingListPreview {
+  /** Preview status for the mailing list change. */
   status: "dryRun" | "queuedContactsFound";
+  /** The mailing list that would be set, or `null` to clear it. */
   mailingListId: string | null;
+  /**
+   * The number of queued contacts that would be removed from the workflow due
+   * to the mailing list changing.
+   */
   queuedContactCount: number;
 }
 
 interface WorkflowMailingListUpdatedResponse {
+  /** Indicates the mailing list change was applied. */
   status: "updated";
+  /** The mailing list now set on the workflow, or `null` if cleared. */
   mailingListId: string | null;
+  /**
+   * The current workflow revision token. Pass the latest value as
+   * `expectedRevisionId` on the next workflow mutation.
+   */
   workflowRevisionId: string;
+  /**
+   * The number of queued contacts that were removed from the workflow due to
+   * the mailing list changing.
+   */
   queuedContactCount: number;
+  /** The latest workflow graph after the mutation. */
   workflow: SimplifiedWorkflow;
 }
 
@@ -524,24 +625,43 @@ type ChangeWorkflowMailingListResponse =
   | WorkflowMailingListUpdatedResponse;
 
 interface WorkflowQueuedContactDeletePreview {
+  /** Preview status for the node deletion. */
   status: "dryRun" | "queuedContactsFound";
+  /** The IDs of the nodes that would be deleted. */
   nodeIds: string[];
+  /**
+   * The number of queued contacts that would be removed from the workflow due
+   * to the node deletion.
+   */
   queuedContactCount: number;
 }
 
 interface WorkflowDeletedResponse {
+  /** Indicates the node deletion was applied. */
   status: "deleted";
+  /** The IDs of the nodes that were deleted. */
   nodeIds: string[];
+  /**
+   * The current workflow revision token. Pass the latest value as
+   * `expectedRevisionId` on the next workflow mutation.
+   */
   workflowRevisionId: string;
+  /**
+   * The number of queued contacts that were removed from the workflow due to
+   * the node deletion.
+   */
   queuedContactCount: number;
+  /** The latest workflow graph after the mutation. */
   workflow: SimplifiedWorkflow;
 }
 
 type UpdateWorkflowNodeResponse = WorkflowNodeWithRevision & {
+  /** The latest workflow graph after the mutation. */
   workflow: SimplifiedWorkflow;
 };
 
 type RerouteNodeConnectionResponse = WorkflowNodeWithRevision & {
+  /** The latest workflow graph after the mutation. */
   workflow: SimplifiedWorkflow;
 };
 
@@ -568,13 +688,24 @@ type WorkflowContactPropertyComparisonOperator =
   | "between";
 
 interface WorkflowContactPropertyComparison {
+  /** The comparison value for the contact property. */
   value: string | number | boolean;
+  /**
+   * The comparison operator. It must be valid for the selected contact
+   * property's type and for the `is` or `was` side of the comparison.
+   */
   operator: WorkflowContactPropertyComparisonOperator;
 }
 
 interface WorkflowContactPropertyQuery {
+  /**
+   * The camel-cased `key` of the contact property to query. The property must
+   * exist for the team and must be available for Contact Updated triggers.
+   */
   key: string;
+  /** The comparison for the contact property's current value. */
   is: WorkflowContactPropertyComparison;
+  /** The comparison for the contact property's previous value. */
   was: WorkflowContactPropertyComparison;
 }
 
@@ -665,7 +796,9 @@ interface EmailMessageGuardianResponse {
 }
 
 interface ListTransactionalsResourceResponse {
+  /** Pagination metadata for the result set. */
   pagination: PaginationData;
+  /** The transactional emails returned for this page. */
   data: TransactionalEmailResource[];
 }
 
@@ -720,11 +853,16 @@ interface CreateUploadResponse {
 }
 
 interface CompleteUploadResponse {
+  /** The ID of the created asset. */
   emailAssetId: string;
   /** The public URL of the uploaded asset. */
   finalUrl: string;
 }
 
+/**
+ * Flat map of style attributes, matching the attribute names accepted by the
+ * LMX `<Style />` tag.
+ */
 interface ThemeStyles {
   backgroundColor?: string;
   backgroundXPadding?: number;
@@ -768,16 +906,27 @@ interface ThemeStyles {
 }
 
 interface Theme {
+  /** The ID of the theme. */
   id: string;
+  /** The name of the theme. */
   name: string;
+  /**
+   * Flat map of style attributes, matching the attribute names accepted by the
+   * LMX `<Style />` tag.
+   */
   styles: ThemeStyles;
+  /** Whether this theme is the team's default. */
   isDefault: boolean;
+  /** ISO 8601 timestamp for when the theme was created. */
   createdAt: string;
+  /** ISO 8601 timestamp for when the theme was last updated. */
   updatedAt: string;
 }
 
 interface ListThemesResponse {
+  /** Pagination metadata for the result set. */
   pagination: PaginationData;
+  /** The themes returned for this page. */
   data: Theme[];
 }
 
@@ -792,13 +941,18 @@ interface UpdateThemeResponse extends ThemeResponse {
 }
 
 interface Component {
+  /** The ID of the component. */
   id: string;
+  /** The name of the component. */
   name: string;
+  /** The component body serialized as LMX. */
   lmx: string;
 }
 
 interface ListComponentsResponse {
+  /** Pagination metadata for the result set. */
   pagination: PaginationData;
+  /** The components returned for this page. */
   data: Component[];
 }
 
@@ -813,27 +967,44 @@ interface UpdateComponentResponse extends ComponentResponse {
 }
 
 interface Campaign {
+  /** The ID of the campaign. */
   id: string;
   /** The URL of the campaign in the Loops app. */
   url: string;
+  /** The name of the campaign. */
   name: string;
+  /** The status of the campaign. */
   status: "Draft" | "Scheduled" | "Sending" | "Sent";
+  /** ISO 8601 timestamp for when the campaign was created. */
   createdAt: string;
+  /** ISO 8601 timestamp for when the campaign was last updated. */
   updatedAt: string;
+  /** The associated email message ID. */
   emailMessageId: string | null;
+  /** The ID of the campaign group this campaign belongs to. */
   campaignGroupId: string | null;
+  /** The ID of the mailing list this campaign sends to, if set. */
   mailingListId: string | null;
+  /** The ID of the audience segment this campaign targets, if set. */
   audienceSegmentId: string | null;
+  /** A tree of audience conditions combined with `match`. */
   audienceFilter: AudienceFilter | null;
+  /** When the campaign is scheduled to send. */
   scheduling: CampaignScheduling;
 }
 
 interface ListCampaignsResponse {
+  /** Pagination metadata for the result set. */
   pagination: PaginationData;
+  /** The campaigns returned for this page. */
   data: Campaign[];
 }
 
 interface CreateCampaignResponse extends Campaign {
+  /**
+   * The `contentRevisionId` of the newly created email message. Pass this as
+   * `expectedRevisionId` on your first update.
+   */
   emailMessageContentRevisionId: string | null;
 }
 
@@ -842,33 +1013,67 @@ type CampaignResponse = Campaign;
 type CampaignListItem = Campaign;
 
 interface EmailMessageWarning {
+  /** Identifier for the warning rule. */
   rule: string;
+  /** Warning severity. */
   severity: "warning";
+  /** Human-readable warning message. */
   message: string;
+  /** Optional path to the LMX element that triggered the warning. */
   path?: string;
 }
 
 interface EmailMessageResponse {
+  /** The ID of the email message. */
   id: string;
-  /** Present only when the message belongs to a campaign. */
+  /**
+   * The campaign this email message belongs to. Present only when the message
+   * belongs to a campaign (mutually exclusive with `transactionalId`).
+   */
   campaignId?: string;
-  /** Present only when the message belongs to a transactional email. */
+  /**
+   * The transactional email this email message belongs to. Present only when
+   * the message belongs to a transactional email (mutually exclusive with
+   * `campaignId`).
+   */
   transactionalId?: string;
+  /** The email subject. */
   subject: string;
+  /** The email preview text. */
   previewText: string;
+  /** The email sender name. */
   fromName: string;
+  /** The email sender email address, without the team's sending domain. */
   fromEmail: string;
+  /** The email reply-to address. */
   replyToEmail: string;
+  /** The email CC address. Only present when set. */
   ccEmail?: string;
+  /** The email BCC address. Only present when set. */
   bccEmail?: string;
+  /** ISO 639-1 language code for the email, e.g. `en` or `fr`. Only present when set. */
   languageCode?: string;
+  /** The rendering format of the email. */
   emailFormat: "styled" | "plain";
+  /** The email body serialized as LMX. */
   lmx: string;
+  /**
+   * The current content revision. Pass this as `expectedRevisionId` on your
+   * next update.
+   */
   contentRevisionId: string | null;
+  /** ISO 8601 timestamp for when the email message was last updated. */
   updatedAt: string;
+  /** Fallback values for contact properties. Only present when set. */
   contactPropertiesFallbacks?: Record<string, string>;
+  /** Fallback values for event properties. Only present when set. */
   eventPropertiesFallbacks?: Record<string, string>;
+  /** Fallback values for data variables. Only present when set. */
   dataVariablesFallbacks?: Record<string, string>;
+  /**
+   * Non-fatal issues raised while compiling the submitted LMX. Only present on
+   * update responses when warnings were produced.
+   */
   warnings?: EmailMessageWarning[];
 }
 
