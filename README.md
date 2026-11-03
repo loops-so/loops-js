@@ -106,6 +106,7 @@ You can use custom contact properties in API calls. Please make sure to [add cus
 - [sendTransactionalEmail()](#sendtransactionalemail)
 - [listTransactionalEmails()](#listtransactionalemails)
 - [getTransactionalEmail()](#gettransactionalemail)
+- [getTransactionalEmailMetrics()](#gettransactionalemailmetrics)
 - [createTransactionalEmail()](#createtransactionalemail)
 - [updateTransactionalEmail()](#updatetransactionalemail)
 - [ensureTransactionalEmailDraft()](#ensuretransactionalemaildraft)
@@ -122,6 +123,7 @@ You can use custom contact properties in API calls. Please make sure to [add cus
 - [listCampaigns()](#listcampaigns)
 - [createCampaign()](#createcampaign)
 - [getCampaign()](#getcampaign)
+- [getCampaignMetrics()](#getcampaignmetrics)
 - [updateCampaign()](#updatecampaign)
 - [getEmailMessage()](#getemailmessage)
 - [updateEmailMessage()](#updateemailmessage)
@@ -136,6 +138,10 @@ You can use custom contact properties in API calls. Please make sure to [add cus
 - [createCampaignGroup()](#createcampaigngroup)
 - [getCampaignGroup()](#getcampaigngroup)
 - [updateCampaignGroup()](#updatecampaigngroup)
+- [listWorkflowGroups()](#listworkflowgroups)
+- [createWorkflowGroup()](#createworkflowgroup)
+- [getWorkflowGroup()](#getworkflowgroup)
+- [updateWorkflowGroup()](#updateworkflowgroup)
 - [sendEmailMessagePreview()](#sendemailmessagepreview)
 - [runEmailMessageGuardian()](#runemailmessageguardian)
 - [listEventPatterns()](#listeventpatterns)
@@ -149,6 +155,7 @@ You can use custom contact properties in API calls. Please make sure to [add cus
 - [changeWorkflowMailingList()](#changeworkflowmailinglist)
 - [createWorkflowNode()](#createworkflownode)
 - [getWorkflowNode()](#getworkflownode)
+- [getWorkflowNodeMetrics()](#getworkflownodemetrics)
 - [updateWorkflowNode()](#updateworkflownode)
 - [deleteWorkflowNode()](#deleteworkflownode)
 - [addWorkflowBranch()](#addworkflowbranch)
@@ -979,6 +986,40 @@ const resp = await loops.getTransactionalEmail("cll42l54f20i1la0lfooe3z12");
 
 ---
 
+### getTransactionalEmailMetrics()
+
+Retrieve all-time delivery metrics for a transactional email, totalled across every published version.
+
+[API Reference](https://loops.so/docs/api-reference/get-transactional-email-metrics)
+
+#### Parameters
+
+| Name              | Type   | Required | Notes                              |
+| ----------------- | ------ | -------- | ---------------------------------- |
+| `transactionalId` | string | Yes      | The ID of the transactional email. |
+
+#### Example
+
+```javascript
+const resp = await loops.getTransactionalEmailMetrics("cll42l54f20i1la0lfooe3z12");
+```
+
+#### Response
+
+```json
+{
+  "sends": 4210,
+  "deliveries": 4175,
+  "spamReports": 1,
+  "hardBounces": 9,
+  "softBounces": 13
+}
+```
+
+Error handling is done through the `APIError` class, which provides `statusCode` and `json` properties containing the API's error response details. For implementation examples, see the [Usage section](#usage).
+
+---
+
 ### createTransactionalEmail()
 
 Create a new transactional email. An empty draft email message is created automatically.
@@ -1629,6 +1670,42 @@ Error handling is done through the `APIError` class, which provides `statusCode`
 
 ---
 
+### getCampaignMetrics()
+
+Retrieve all-time email engagement metrics for a sent campaign.
+
+[API Reference](https://loops.so/docs/api-reference/get-campaign-metrics)
+
+#### Parameters
+
+| Name         | Type   | Required | Notes                   |
+| ------------ | ------ | -------- | ----------------------- |
+| `campaignId` | string | Yes      | The ID of the campaign. |
+
+#### Example
+
+```javascript
+const resp = await loops.getCampaignMetrics("cln0y4p6r003yl70i1j2k3l4m");
+```
+
+#### Response
+
+```json
+{
+  "sends": 4210,
+  "opens": 1922,
+  "clicks": 301,
+  "unsubscribes": 12,
+  "spamReports": 1,
+  "hardBounces": 9,
+  "softBounces": 13
+}
+```
+
+Error handling is done through the `APIError` class, which provides `statusCode` and `json` properties containing the API's error response details. For implementation examples, see the [Usage section](#usage).
+
+---
+
 ### updateCampaign()
 
 Update a draft campaign's name, group, audience, or scheduling. At least one field must be provided. Campaigns can only be updated while in draft status.
@@ -2243,6 +2320,150 @@ const resp = await loops.updateCampaignGroup("clq3b7s9u007yl70u9v0w1x2y", {
 
 ---
 
+### listWorkflowGroups()
+
+Retrieve a paginated list of workflow groups.
+[API Reference](https://loops.so/docs/api-reference/list-workflow-groups)
+
+#### Parameters
+
+| Name      | Type    | Required | Notes                                                                                                                         |
+| --------- | ------- | -------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `perPage` | integer | No       | How many results to return per page. Must be between 10 and 50. Defaults to 20 if omitted.                                    |
+| `cursor`  | string  | No       | A cursor, to return a specific page of results. Cursors can be found from the `pagination.nextCursor` value in each response. |
+
+#### Example
+
+```javascript
+const resp = await loops.listWorkflowGroups();
+```
+
+#### Response
+
+```json
+{
+  "pagination": {
+    "totalResults": 1,
+    "returnedResults": 1,
+    "perPage": 20,
+    "totalPages": 1,
+    "nextCursor": null,
+    "nextPage": null
+  },
+  "data": [
+    {
+      "id": "clg7n5p3q1r9s7t5u3v1w9y7",
+      "name": "Onboarding",
+      "description": "Top of funnel",
+      "createdAt": "2025-06-29T07:47:39.370Z",
+      "updatedAt": "2025-06-29T07:47:39.370Z"
+    }
+  ]
+}
+```
+
+---
+
+### createWorkflowGroup()
+
+Create a new workflow group.
+[API Reference](https://loops.so/docs/api-reference/create-workflow-group)
+
+#### Parameters
+
+| Name          | Type   | Required | Notes                                   |
+| ------------- | ------ | -------- | --------------------------------------- |
+| `name`        | string | Yes      | The group name. Cannot be `"Unsorted"`. |
+| `description` | string | No       | An optional description for the group.  |
+
+#### Example
+
+```javascript
+const resp = await loops.createWorkflowGroup({
+  name: "Onboarding",
+});
+```
+
+#### Response
+
+```json
+{
+  "id": "clg7n5p3q1r9s7t5u3v1w9y7",
+  "name": "Onboarding",
+  "description": "",
+  "createdAt": "2025-06-29T07:47:39.370Z",
+  "updatedAt": "2025-06-29T07:47:39.370Z"
+}
+```
+
+---
+
+### getWorkflowGroup()
+
+Retrieve a single workflow group by ID.
+[API Reference](https://loops.so/docs/api-reference/get-workflow-group)
+
+#### Parameters
+
+| Name              | Type   | Required | Notes                         |
+| ----------------- | ------ | -------- | ----------------------------- |
+| `workflowGroupId` | string | Yes      | The ID of the workflow group. |
+
+#### Example
+
+```javascript
+const resp = await loops.getWorkflowGroup("clg7n5p3q1r9s7t5u3v1w9y7");
+```
+
+#### Response
+
+```json
+{
+  "id": "clg7n5p3q1r9s7t5u3v1w9y7",
+  "name": "Onboarding",
+  "description": "Top of funnel",
+  "createdAt": "2025-06-29T07:47:39.370Z",
+  "updatedAt": "2025-06-29T07:47:39.370Z"
+}
+```
+
+---
+
+### updateWorkflowGroup()
+
+Update a workflow group's name or description. At least one field must be provided. The reserved `"Unsorted"` group cannot be edited.
+[API Reference](https://loops.so/docs/api-reference/update-workflow-group)
+
+#### Parameters
+
+| Name              | Type   | Required | Notes                         |
+| ----------------- | ------ | -------- | ----------------------------- |
+| `workflowGroupId` | string | Yes      | The ID of the workflow group. |
+| `name`            | string | No       | The group name.               |
+| `description`     | string | No       | A description for the group.  |
+
+#### Example
+
+```javascript
+const resp = await loops.updateWorkflowGroup("clg7n5p3q1r9s7t5u3v1w9y7", {
+  description: "Top of funnel",
+});
+```
+
+#### Response
+
+```json
+{
+  "id": "clg7n5p3q1r9s7t5u3v1w9y7",
+  "name": "Onboarding",
+  "description": "Top of funnel",
+  "createdAt": "2025-06-29T07:47:39.370Z",
+  "updatedAt": "2025-06-29T07:47:39.370Z"
+}
+```
+
+---
+
 ### sendEmailMessagePreview()
 
 Send a test preview of an email message to one or more addresses.
@@ -2483,6 +2704,7 @@ const resp = await loops.listWorkflows();
       "id": "clw1a3b5c7d9e1f3g5h7i9j1",
       "url": "https://app.loops.so/workflows/clw1a3b5c7d9e1f3g5h7i9j1",
       "name": "Onboarding",
+      "workflowGroupId": "clg7n5p3q1r9s7t5u3v1w9y7",
       "createdAt": "2025-06-29T07:47:39.370Z",
       "updatedAt": "2025-06-29T07:47:39.370Z"
     }
@@ -2499,11 +2721,12 @@ Create a draft workflow with a blank trigger and exit node.
 
 #### Parameters
 
-| Name            | Type           | Required | Notes                                              |
-| --------------- | -------------- | -------- | -------------------------------------------------- |
-| `name`          | string         | Yes      | The name of the workflow.                          |
-| `description`   | string         | No       | The description of the workflow.                   |
-| `mailingListId` | string \| null | No       | The ID of a mailing list the workflow sends to.    |
+| Name              | Type           | Required | Notes                                                                                                                          |
+| ----------------- | -------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `name`            | string         | Yes      | The name of the workflow.                                                                                                      |
+| `description`     | string         | No       | The description of the workflow.                                                                                               |
+| `mailingListId`   | string \| null | No       | The ID of a mailing list the workflow sends to.                                                                                |
+| `workflowGroupId` | string         | No       | The ID of the workflow group to create this workflow in. Defaults to the team's Unsorted group when omitted.                   |
 
 #### Example
 
@@ -2519,6 +2742,7 @@ const resp = await loops.createWorkflow({ name: "Onboarding" });
   "url": "https://app.loops.so/workflows/clw1a3b5c7d9e1f3g5h7i9j1",
   "status": "Draft",
   "name": "Onboarding",
+  "workflowGroupId": "clg7n5p3q1r9s7t5u3v1w9y7",
   "mailingListId": null,
   "rootNodeId": "cf16k73gq014h3mmj5b6jdi9r",
   "workflowRevisionId": "clrev0w0r1k2f3l4o5w6",
@@ -2564,6 +2788,7 @@ const resp = await loops.getWorkflow("clw1a3b5c7d9e1f3g5h7i9j1");
   "url": "https://app.loops.so/workflows/clw1a3b5c7d9e1f3g5h7i9j1",
   "status": "Draft",
   "name": "Onboarding",
+  "workflowGroupId": "clg7n5p3q1r9s7t5u3v1w9y7",
   "mailingListId": null,
   "rootNodeId": "cf16k73gq014h3mmj5b6jdi9r",
   "workflowRevisionId": "clrev0w0r1k2f3l4o5w6",
@@ -2586,7 +2811,7 @@ const resp = await loops.getWorkflow("clw1a3b5c7d9e1f3g5h7i9j1");
 
 ### updateWorkflow()
 
-Update a workflow's name and/or description. To change the mailing list, use [`changeWorkflowMailingList()`](#changeworkflowmailinglist).
+Update a workflow's name, description, and/or workflow group. To change the mailing list, use [`changeWorkflowMailingList()`](#changeworkflowmailinglist).
 [API Reference](https://loops.so/docs/api-reference/update-workflow)
 
 #### Parameters
@@ -2597,6 +2822,7 @@ Update a workflow's name and/or description. To change the mailing list, use [`c
 | `expectedRevisionId` | string \| null | Yes      | The workflow revision token from the latest read or mutation. Pass `null` for workflows that do not have a revision yet. |
 | `name`               | string | No       | The updated workflow name.                                         |
 | `description`        | string | No       | The updated workflow description.                                  |
+| `workflowGroupId`    | string | No       | The ID of the workflow group to move this workflow into.           |
 
 #### Example
 
@@ -2615,6 +2841,7 @@ const resp = await loops.updateWorkflow("clw1a3b5c7d9e1f3g5h7i9j1", {
   "url": "https://app.loops.so/workflows/clw1a3b5c7d9e1f3g5h7i9j1",
   "status": "Draft",
   "name": "Updated onboarding",
+  "workflowGroupId": "clg7n5p3q1r9s7t5u3v1w9y7",
   "mailingListId": null,
   "rootNodeId": "cf16k73gq014h3mmj5b6jdi9r",
   "workflowRevisionId": "clrev0w0r1k2f3l4o5w6",
@@ -2828,6 +3055,45 @@ const resp = await loops.getWorkflowNode("clw1a3b5c7d9e1f3g5h7i9j1", "cln8p0q2r4
   "workflowRevisionId": "clrev0w0r1k2f3l4o5w6"
 }
 ```
+
+---
+
+### getWorkflowNodeMetrics()
+
+Retrieve all-time email engagement metrics for a workflow `SendEmailAction` node. Nodes of any other type return a `400` response.
+[API Reference](https://loops.so/docs/api-reference/get-workflow-node-metrics)
+
+#### Parameters
+
+| Name         | Type   | Required | Notes                        |
+| ------------ | ------ | -------- | ---------------------------- |
+| `workflowId` | string | Yes      | The ID of the workflow.      |
+| `nodeId`     | string | Yes      | The ID of the workflow node. |
+
+#### Example
+
+```javascript
+const resp = await loops.getWorkflowNodeMetrics(
+  "clw1a3b5c7d9e1f3g5h7i9j1",
+  "cln8p0q2r4s6t8u0v2w4x6z8"
+);
+```
+
+#### Response
+
+```json
+{
+  "sends": 4210,
+  "opens": 1922,
+  "clicks": 301,
+  "unsubscribes": 12,
+  "spamReports": 1,
+  "hardBounces": 9,
+  "softBounces": 13
+}
+```
+
+Error handling is done through the `APIError` class, which provides `statusCode` and `json` properties containing the API's error response details. For implementation examples, see the [Usage section](#usage).
 
 ---
 
@@ -3167,6 +3433,11 @@ const resp = await loops.completeUpload("cla3s5s7e9t1i3d5f7g9h1j3");
 
 ## Version history
 
+- `v7.4.0` (Nov 3, 2026)
+  - Aligned with OpenAPI 1.22.8.
+  - Added metrics endpoints ([`getCampaignMetrics()`](#getcampaignmetrics), [`getTransactionalEmailMetrics()`](#gettransactionalemailmetrics), [`getWorkflowNodeMetrics()`](#getworkflownodemetrics)).
+  - Added workflow groups ([`listWorkflowGroups()`](#listworkflowgroups), [`createWorkflowGroup()`](#createworkflowgroup), [`getWorkflowGroup()`](#getworkflowgroup), [`updateWorkflowGroup()`](#updateworkflowgroup)).
+  - Workflow create/update and responses now support `workflowGroupId`.
 - `v7.3.0` (Sep 1, 2026)
   - Aligned with OpenAPI 1.21.9.
   - Added [`deleteWorkflow()`](#deleteworkflow).

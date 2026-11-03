@@ -391,6 +391,8 @@ interface WorkflowSummary {
   /** The URL of the workflow in the Loops app. */
   url: string;
   name: string;
+  /** The ID of the workflow group this workflow belongs to. */
+  workflowGroupId: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -414,6 +416,8 @@ interface SimplifiedWorkflow {
   status: WorkflowStatus;
   name?: string;
   description?: string;
+  /** The ID of the workflow group this workflow belongs to. */
+  workflowGroupId: string;
   mailingListId: string | null;
   rootNodeId: string;
   /**
@@ -663,6 +667,43 @@ interface EmailMessageGuardianResponse {
 interface ListTransactionalsResourceResponse {
   pagination: PaginationData;
   data: TransactionalEmailResource[];
+}
+
+/**
+ * All-time email engagement counters.
+ * Opens and clicks count sends, not events: a send opened five times counts once.
+ */
+interface EmailMetricsResponse {
+  /** Number of sends. */
+  sends: number;
+  /** Number of sends that were opened at least once. */
+  opens: number;
+  /** Number of sends where at least one link was clicked. */
+  clicks: number;
+  /** Number of unsubscribes. */
+  unsubscribes: number;
+  /** Number of sends reported as spam. */
+  spamReports: number;
+  /** Number of sends that hard bounced. */
+  hardBounces: number;
+  /** Number of sends that soft bounced. */
+  softBounces: number;
+}
+
+/**
+ * All-time delivery counters for a transactional email.
+ */
+interface TransactionalMetricsResponse {
+  /** Number of sends. */
+  sends: number;
+  /** Number of sends delivered. */
+  deliveries: number;
+  /** Number of sends reported as spam. */
+  spamReports: number;
+  /** Number of sends that hard bounced. */
+  hardBounces: number;
+  /** Number of sends that soft bounced. */
+  softBounces: number;
 }
 
 interface CreateUploadResponse {
@@ -1444,6 +1485,25 @@ class LoopsClient {
   }
 
   /**
+   * Get all-time delivery metrics for a transactional email.
+   *
+   * Totals are across every published version of the transactional email.
+   *
+   * @param {string} transactionalId The ID of the transactional email.
+   *
+   * @see https://loops.so/docs/api-reference/get-transactional-email-metrics
+   *
+   * @returns {Object} Transactional email metrics (JSON)
+   */
+  async getTransactionalEmailMetrics(
+    transactionalId: string
+  ): Promise<TransactionalMetricsResponse> {
+    return this._makeQuery({
+      path: `v1/transactional-emails/${transactionalId}/metrics`,
+    });
+  }
+
+  /**
    * Update a transactional email.
    *
    * @param {string} transactionalId The ID of the transactional email.
@@ -1909,6 +1969,25 @@ class LoopsClient {
   }
 
   /**
+   * Get all-time email engagement metrics for a campaign.
+   *
+   * The campaign must have been sent and have an email message.
+   *
+   * @param {string} campaignId The ID of the campaign.
+   *
+   * @see https://loops.so/docs/api-reference/get-campaign-metrics
+   *
+   * @returns {Object} Campaign metrics (JSON)
+   */
+  async getCampaignMetrics(
+    campaignId: string
+  ): Promise<EmailMetricsResponse> {
+    return this._makeQuery({
+      path: `v1/campaigns/${campaignId}/metrics`,
+    });
+  }
+
+  /**
    * Update a draft campaign.
    *
    * @param {string} campaignId The ID of the campaign.
@@ -2243,6 +2322,7 @@ class LoopsClient {
    * @param {string} params.name The name of the workflow.
    * @param {string} [params.description] The description of the workflow.
    * @param {string | null} [params.mailingListId] The ID of a mailing list the workflow sends to.
+   * @param {string} [params.workflowGroupId] The ID of the workflow group to create this workflow in. Defaults to the team's Unsorted group when omitted.
    *
    * @see https://loops.so/docs/api-reference/create-workflow
    *
@@ -2252,18 +2332,22 @@ class LoopsClient {
     name,
     description,
     mailingListId,
+    workflowGroupId,
   }: {
     name: string;
     description?: string;
     mailingListId?: string | null;
+    workflowGroupId?: string;
   }): Promise<SimplifiedWorkflow> {
     const payload: {
       name: string;
       description?: string;
       mailingListId?: string | null;
+      workflowGroupId?: string;
     } = { name };
     if (description !== undefined) payload.description = description;
     if (mailingListId !== undefined) payload.mailingListId = mailingListId;
+    if (workflowGroupId !== undefined) payload.workflowGroupId = workflowGroupId;
     return this._makeQuery({
       path: "v1/workflows",
       method: "POST",
@@ -2291,14 +2375,15 @@ class LoopsClient {
   /**
    * Update a workflow's display properties.
    *
-   * At least one of `name` or `description` must be provided. To change the
-   * mailing list, use `changeWorkflowMailingList()`.
+   * At least one of `name`, `description`, or `workflowGroupId` must be
+   * provided. To change the mailing list, use `changeWorkflowMailingList()`.
    *
    * @param {string} workflowId The ID of the workflow.
    * @param {Object} params
    * @param {string | null} params.expectedRevisionId The workflow revision token from the latest read or mutation. Pass `null` for workflows without a revision yet.
    * @param {string} [params.name] The updated workflow name.
    * @param {string} [params.description] The updated workflow description.
+   * @param {string} [params.workflowGroupId] The ID of the workflow group to move this workflow into.
    *
    * @see https://loops.so/docs/api-reference/update-workflow
    *
@@ -2310,19 +2395,23 @@ class LoopsClient {
       expectedRevisionId,
       name,
       description,
+      workflowGroupId,
     }: {
       expectedRevisionId: WorkflowExpectedRevisionId;
       name?: string;
       description?: string;
+      workflowGroupId?: string;
     }
   ): Promise<SimplifiedWorkflow> {
     const payload: {
       expectedRevisionId: WorkflowExpectedRevisionId;
       name?: string;
       description?: string;
+      workflowGroupId?: string;
     } = { expectedRevisionId };
     if (name !== undefined) payload.name = name;
     if (description !== undefined) payload.description = description;
+    if (workflowGroupId !== undefined) payload.workflowGroupId = workflowGroupId;
     return this._makeQuery({
       path: `v1/workflows/${workflowId}`,
       method: "POST",
@@ -2460,6 +2549,28 @@ class LoopsClient {
   ): Promise<WorkflowNodeWithRevision> {
     return this._makeQuery({
       path: `v1/workflows/${workflowId}/nodes/${nodeId}`,
+    });
+  }
+
+  /**
+   * Get all-time email engagement metrics for a workflow `SendEmailAction` node.
+   *
+   * Nodes of any other type return a `400` response. A `SendEmailAction` node
+   * with an email that has not sent anything yet reports every counter as `0`.
+   *
+   * @param {string} workflowId The ID of the workflow.
+   * @param {string} nodeId The ID of the workflow node.
+   *
+   * @see https://loops.so/docs/api-reference/get-workflow-node-metrics
+   *
+   * @returns {Object} Workflow node metrics (JSON)
+   */
+  async getWorkflowNodeMetrics(
+    workflowId: string,
+    nodeId: string
+  ): Promise<EmailMetricsResponse> {
+    return this._makeQuery({
+      path: `v1/workflows/${workflowId}/nodes/${nodeId}/metrics`,
     });
   }
 
@@ -2649,6 +2760,108 @@ class LoopsClient {
     return this._makeQuery({
       path: `v1/workflows/${workflowId}/nodes/${nodeId}/recursive`,
       method: "DELETE",
+      payload,
+    });
+  }
+
+  /**
+   * List workflow groups.
+   *
+   * @param {Object} params
+   * @param {number} [params.perPage] How many results to return in each request. Must be between 10 and 50. Defaults to 20.
+   * @param {string} [params.cursor] A cursor, to return a specific page of results.
+   *
+   * @see https://loops.so/docs/api-reference/list-workflow-groups
+   *
+   * @returns {Object} List of workflow groups (JSON)
+   */
+  async listWorkflowGroups({
+    perPage,
+    cursor,
+  }: {
+    perPage?: number;
+    cursor?: string;
+  } = {}): Promise<ListGroupsResponse> {
+    const params: { perPage: string; cursor?: string } = {
+      perPage: (perPage || 20).toString(),
+    };
+    if (cursor) params["cursor"] = cursor;
+    return this._makeQuery({
+      path: "v1/workflow-groups",
+      params,
+    });
+  }
+
+  /**
+   * Create a workflow group.
+   *
+   * @param {Object} params
+   * @param {string} params.name The group name.
+   * @param {string} [params.description] An optional description for the group.
+   *
+   * @see https://loops.so/docs/api-reference/create-workflow-group
+   *
+   * @returns {Object} Created workflow group (JSON)
+   */
+  async createWorkflowGroup({
+    name,
+    description,
+  }: {
+    name: string;
+    description?: string;
+  }): Promise<Group> {
+    const payload: { name: string; description?: string } = { name };
+    if (description !== undefined) payload.description = description;
+    return this._makeQuery({
+      path: "v1/workflow-groups",
+      method: "POST",
+      payload,
+    });
+  }
+
+  /**
+   * Get a workflow group by ID.
+   *
+   * @param {string} workflowGroupId The ID of the workflow group.
+   *
+   * @see https://loops.so/docs/api-reference/get-workflow-group
+   *
+   * @returns {Object} Workflow group (JSON)
+   */
+  async getWorkflowGroup(workflowGroupId: string): Promise<Group> {
+    return this._makeQuery({
+      path: `v1/workflow-groups/${workflowGroupId}`,
+    });
+  }
+
+  /**
+   * Update a workflow group.
+   *
+   * @param {string} workflowGroupId The ID of the workflow group.
+   * @param {Object} params
+   * @param {string} [params.name] The group name.
+   * @param {string} [params.description] A description for the group.
+   *
+   * @see https://loops.so/docs/api-reference/update-workflow-group
+   *
+   * @returns {Object} Updated workflow group (JSON)
+   */
+  async updateWorkflowGroup(
+    workflowGroupId: string,
+    {
+      name,
+      description,
+    }: {
+      name?: string;
+      description?: string;
+    }
+  ): Promise<Group> {
+    const payload: { name?: string; description?: string } = {};
+    if (name !== undefined) payload.name = name;
+    if (description !== undefined) payload.description = description;
+    return this._makeQuery({
+      path: `v1/workflow-groups/${workflowGroupId}`,
+      method: "POST",
       payload,
     });
   }
@@ -2931,6 +3144,8 @@ export {
   TransactionalEmailResource,
   TransactionalDraftResponse,
   ListTransactionalsResourceResponse,
+  EmailMetricsResponse,
+  TransactionalMetricsResponse,
   CreateUploadResponse,
   CompleteUploadResponse,
   MailingLists,

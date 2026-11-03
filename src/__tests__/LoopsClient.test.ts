@@ -922,6 +922,35 @@ describe("LoopsClient", () => {
     });
   });
 
+  describe("getTransactionalEmailMetrics", () => {
+    it("should get transactional email metrics by ID", async () => {
+      const mockResponse = {
+        sends: 4210,
+        deliveries: 4175,
+        spamReports: 1,
+        hardBounces: 9,
+        softBounces: 13,
+      };
+
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        text: () => Promise.resolve(JSON.stringify(mockResponse)),
+      });
+
+      const result = await client.getTransactionalEmailMetrics(
+        "clfn0k1yg001imo0fdeqg30i8"
+      );
+
+      expect(result).toEqual(mockResponse);
+      expect(fetch).toHaveBeenCalledWith(
+        expect.stringContaining(
+          "v1/transactional-emails/clfn0k1yg001imo0fdeqg30i8/metrics"
+        ),
+        expect.objectContaining({ method: "GET" })
+      );
+    });
+  });
+
   describe("createTransactionalEmail", () => {
     it("should create a transactional email", async () => {
       const mockResponse = {
@@ -1456,6 +1485,37 @@ describe("LoopsClient", () => {
     });
   });
 
+  describe("getCampaignMetrics", () => {
+    it("should get campaign metrics by ID", async () => {
+      const mockResponse = {
+        sends: 4210,
+        opens: 1922,
+        clicks: 301,
+        unsubscribes: 12,
+        spamReports: 1,
+        hardBounces: 9,
+        softBounces: 13,
+      };
+
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        text: () => Promise.resolve(JSON.stringify(mockResponse)),
+      });
+
+      const result = await client.getCampaignMetrics(
+        "cln0y4p6r003yl70i1j2k3l4m"
+      );
+
+      expect(result).toEqual(mockResponse);
+      expect(fetch).toHaveBeenCalledWith(
+        expect.stringContaining(
+          "v1/campaigns/cln0y4p6r003yl70i1j2k3l4m/metrics"
+        ),
+        expect.objectContaining({ method: "GET" })
+      );
+    });
+  });
+
   describe("updateCampaign", () => {
     it("should update a draft campaign", async () => {
       const mockResponse = {
@@ -1831,6 +1891,7 @@ describe("LoopsClient", () => {
         url: "https://app.loops.so/workflows/cls5d9u1w009yl70c7d8e9f0g",
         status: "Draft",
         name: "Onboarding",
+        workflowGroupId: "clg7n5p3q1r9s7t5u3v1w9y7",
         mailingListId: null,
         rootNodeId: "clt6e0v2x010yl70h1i2j3k4l",
         nodes: {},
@@ -1842,14 +1903,20 @@ describe("LoopsClient", () => {
         text: () => Promise.resolve(JSON.stringify(mockResponse)),
       });
 
-      const result = await client.createWorkflow({ name: "Onboarding" });
+      const result = await client.createWorkflow({
+        name: "Onboarding",
+        workflowGroupId: "clg7n5p3q1r9s7t5u3v1w9y7",
+      });
 
       expect(result).toEqual(mockResponse);
       expect(fetch).toHaveBeenCalledWith(
         expect.stringContaining("v1/workflows"),
         expect.objectContaining({
           method: "POST",
-          body: JSON.stringify({ name: "Onboarding" }),
+          body: JSON.stringify({
+            name: "Onboarding",
+            workflowGroupId: "clg7n5p3q1r9s7t5u3v1w9y7",
+          }),
         })
       );
     });
@@ -1862,6 +1929,7 @@ describe("LoopsClient", () => {
         url: "https://app.loops.so/workflows/cls5d9u1w009yl70c7d8e9f0g",
         status: "Draft",
         name: "Updated",
+        workflowGroupId: "clg8m4n6p8q0r2s4t6u8v0w2",
         mailingListId: null,
         rootNodeId: "clt6e0v2x010yl70h1i2j3k4l",
         nodes: {},
@@ -1876,6 +1944,7 @@ describe("LoopsClient", () => {
       const result = await client.updateWorkflow("cls5d9u1w009yl70c7d8e9f0g", {
         expectedRevisionId: "rev_1",
         name: "Updated",
+        workflowGroupId: "clg8m4n6p8q0r2s4t6u8v0w2",
       });
 
       expect(result).toEqual(mockResponse);
@@ -1886,6 +1955,7 @@ describe("LoopsClient", () => {
           body: JSON.stringify({
             expectedRevisionId: "rev_1",
             name: "Updated",
+            workflowGroupId: "clg8m4n6p8q0r2s4t6u8v0w2",
           }),
         })
       );
@@ -2394,6 +2464,163 @@ describe("LoopsClient", () => {
             expectedRevisionId: "rev_1",
             queuedContactPolicy: "discard",
           }),
+        })
+      );
+    });
+  });
+
+  describe("getWorkflowNodeMetrics", () => {
+    it("should get workflow node metrics", async () => {
+      const mockResponse = {
+        sends: 4210,
+        opens: 1922,
+        clicks: 301,
+        unsubscribes: 12,
+        spamReports: 1,
+        hardBounces: 9,
+        softBounces: 13,
+      };
+
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        text: () => Promise.resolve(JSON.stringify(mockResponse)),
+      });
+
+      const result = await client.getWorkflowNodeMetrics(
+        "cls5d9u1w009yl70c7d8e9f0g",
+        "node1"
+      );
+
+      expect(result).toEqual(mockResponse);
+      expect(fetch).toHaveBeenCalledWith(
+        expect.stringContaining(
+          "v1/workflows/cls5d9u1w009yl70c7d8e9f0g/nodes/node1/metrics"
+        ),
+        expect.objectContaining({ method: "GET" })
+      );
+    });
+  });
+
+  describe("listWorkflowGroups", () => {
+    it("should list workflow groups", async () => {
+      const mockResponse = {
+        pagination: {
+          totalResults: 1,
+          returnedResults: 1,
+          perPage: 20,
+          totalPages: 1,
+          nextCursor: null,
+          nextPage: null,
+        },
+        data: [
+          {
+            id: "clg7n5p3q1r9s7t5u3v1w9y7",
+            name: "Onboarding",
+            description: "Top of funnel",
+            createdAt: "2025-06-29T07:47:39.370Z",
+            updatedAt: "2025-06-29T07:47:39.370Z",
+          },
+        ],
+      };
+
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        text: () => Promise.resolve(JSON.stringify(mockResponse)),
+      });
+
+      const result = await client.listWorkflowGroups();
+
+      expect(result).toEqual(mockResponse);
+      expect(fetch).toHaveBeenCalledWith(
+        expect.stringContaining("v1/workflow-groups?perPage=20"),
+        expect.objectContaining({ method: "GET" })
+      );
+    });
+  });
+
+  describe("createWorkflowGroup", () => {
+    it("should create a workflow group", async () => {
+      const mockResponse = {
+        id: "clg7n5p3q1r9s7t5u3v1w9y7",
+        name: "Onboarding",
+        description: "",
+        createdAt: "2025-06-29T07:47:39.370Z",
+        updatedAt: "2025-06-29T07:47:39.370Z",
+      };
+
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        text: () => Promise.resolve(JSON.stringify(mockResponse)),
+      });
+
+      const result = await client.createWorkflowGroup({ name: "Onboarding" });
+
+      expect(result).toEqual(mockResponse);
+      expect(fetch).toHaveBeenCalledWith(
+        expect.stringContaining("v1/workflow-groups"),
+        expect.objectContaining({
+          method: "POST",
+          body: JSON.stringify({ name: "Onboarding" }),
+        })
+      );
+    });
+  });
+
+  describe("getWorkflowGroup", () => {
+    it("should get a workflow group by ID", async () => {
+      const mockResponse = {
+        id: "clg7n5p3q1r9s7t5u3v1w9y7",
+        name: "Onboarding",
+        description: "Top of funnel",
+        createdAt: "2025-06-29T07:47:39.370Z",
+        updatedAt: "2025-06-29T07:47:39.370Z",
+      };
+
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        text: () => Promise.resolve(JSON.stringify(mockResponse)),
+      });
+
+      const result = await client.getWorkflowGroup("clg7n5p3q1r9s7t5u3v1w9y7");
+
+      expect(result).toEqual(mockResponse);
+      expect(fetch).toHaveBeenCalledWith(
+        expect.stringContaining(
+          "v1/workflow-groups/clg7n5p3q1r9s7t5u3v1w9y7"
+        ),
+        expect.objectContaining({ method: "GET" })
+      );
+    });
+  });
+
+  describe("updateWorkflowGroup", () => {
+    it("should update a workflow group", async () => {
+      const mockResponse = {
+        id: "clg7n5p3q1r9s7t5u3v1w9y7",
+        name: "Onboarding",
+        description: "Updated description",
+        createdAt: "2025-06-29T07:47:39.370Z",
+        updatedAt: "2025-06-30T07:47:39.370Z",
+      };
+
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        text: () => Promise.resolve(JSON.stringify(mockResponse)),
+      });
+
+      const result = await client.updateWorkflowGroup(
+        "clg7n5p3q1r9s7t5u3v1w9y7",
+        { description: "Updated description" }
+      );
+
+      expect(result).toEqual(mockResponse);
+      expect(fetch).toHaveBeenCalledWith(
+        expect.stringContaining(
+          "v1/workflow-groups/clg7n5p3q1r9s7t5u3v1w9y7"
+        ),
+        expect.objectContaining({
+          method: "POST",
+          body: JSON.stringify({ description: "Updated description" }),
         })
       );
     });
