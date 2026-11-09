@@ -1629,6 +1629,7 @@ class LoopsClient {
    * @param {Object} params
    * @param {number} [params.perPage] How many results to return in each request. Must be between 10 and 50. Defaults to 20.
    * @param {string} [params.cursor] A cursor, to return a specific page of results. Cursors can be found from the `pagination.nextCursor` value in each response.
+   * @param {string} [params.transactionalGroupId] Only return transactional emails in this transactional group.
    *
    * @see https://loops.so/docs/api-reference/list-transactional-emails
    *
@@ -1637,14 +1638,23 @@ class LoopsClient {
   async listTransactionalEmails({
     perPage,
     cursor,
+    transactionalGroupId,
   }: {
     perPage?: number;
     cursor?: string;
+    transactionalGroupId?: string;
   } = {}): Promise<ListTransactionalsResourceResponse> {
-    const params: { perPage: string; cursor?: string } = {
+    const params: {
+      perPage: string;
+      cursor?: string;
+      transactionalGroupId?: string;
+    } = {
       perPage: (perPage || 20).toString(),
     };
     if (cursor) params["cursor"] = cursor;
+    if (transactionalGroupId) {
+      params["transactionalGroupId"] = transactionalGroupId;
+    }
     return this._makeQuery({
       path: "v1/transactional-emails",
       params,
@@ -2092,6 +2102,7 @@ class LoopsClient {
    * @param {Object} params
    * @param {number} [params.perPage] How many results to return in each request. Must be between 10 and 50. Defaults to 20.
    * @param {string} [params.cursor] A cursor, to return a specific page of results. Cursors can be found from the `pagination.nextCursor` value in each response.
+   * @param {string} [params.campaignGroupId] Only return campaigns in this campaign group.
    *
    * @see https://loops.so/docs/api-reference/list-campaigns
    *
@@ -2100,14 +2111,21 @@ class LoopsClient {
   async listCampaigns({
     perPage,
     cursor,
+    campaignGroupId,
   }: {
     perPage?: number;
     cursor?: string;
+    campaignGroupId?: string;
   } = {}): Promise<ListCampaignsResponse> {
-    const params: { perPage: string; cursor?: string } = {
+    const params: {
+      perPage: string;
+      cursor?: string;
+      campaignGroupId?: string;
+    } = {
       perPage: (perPage || 20).toString(),
     };
     if (cursor) params["cursor"] = cursor;
+    if (campaignGroupId) params["campaignGroupId"] = campaignGroupId;
     return this._makeQuery({
       path: "v1/campaigns",
       params,
@@ -2556,6 +2574,7 @@ class LoopsClient {
    * @param {Object} params
    * @param {number} [params.perPage] How many results to return in each request. Must be between 10 and 50. Defaults to 20.
    * @param {string} [params.cursor] A cursor, to return a specific page of results.
+   * @param {string} [params.workflowGroupId] Only return workflows in this workflow group.
    *
    * @see https://loops.so/docs/api-reference/list-workflows
    *
@@ -2564,14 +2583,21 @@ class LoopsClient {
   async listWorkflows({
     perPage,
     cursor,
+    workflowGroupId,
   }: {
     perPage?: number;
     cursor?: string;
+    workflowGroupId?: string;
   } = {}): Promise<ListWorkflowsResponse> {
-    const params: { perPage: string; cursor?: string } = {
+    const params: {
+      perPage: string;
+      cursor?: string;
+      workflowGroupId?: string;
+    } = {
       perPage: (perPage || 20).toString(),
     };
     if (cursor) params["cursor"] = cursor;
+    if (workflowGroupId) params["workflowGroupId"] = workflowGroupId;
     return this._makeQuery({
       path: "v1/workflows",
       params,

@@ -853,6 +853,16 @@ describe("LoopsClient", () => {
         })
       );
 
+      await client.listTransactionalEmails({
+        transactionalGroupId: "clg7n5p3q1r9s7t5u3v1w9y7",
+      });
+      expect(fetch).toHaveBeenLastCalledWith(
+        expect.stringContaining(
+          "transactionalGroupId=clg7n5p3q1r9s7t5u3v1w9y7"
+        ),
+        expect.objectContaining({ method: "GET" })
+      );
+
       result.data.forEach((email) => {
         expect(typeof email.id).toBe("string");
         expect(typeof email.name).toBe("string");
@@ -1436,6 +1446,54 @@ describe("LoopsClient", () => {
       expect(result).toEqual(mockResponse);
       expect(fetch).toHaveBeenCalledWith(
         expect.stringContaining("v1/campaigns?perPage=20"),
+        expect.objectContaining({ method: "GET" })
+      );
+
+      await client.listCampaigns({
+        campaignGroupId: "clg7n5p3q1r9s7t5u3v1w9y7",
+      });
+      expect(fetch).toHaveBeenLastCalledWith(
+        expect.stringContaining("campaignGroupId=clg7n5p3q1r9s7t5u3v1w9y7"),
+        expect.objectContaining({ method: "GET" })
+      );
+    });
+  });
+
+  describe("listWorkflows", () => {
+    it("should list workflows with an optional group filter", async () => {
+      const mockResponse = {
+        pagination: {
+          totalResults: 1,
+          returnedResults: 1,
+          perPage: 20,
+          totalPages: 1,
+          nextCursor: null,
+          nextPage: null,
+        },
+        data: [
+          {
+            id: "clw1a3b5c7d9e1f3g5h7i9j1",
+            url: "https://app.loops.so/workflows/clw1a3b5c7d9e1f3g5h7i9j1",
+            name: "Onboarding",
+            workflowGroupId: "clg7n5p3q1r9s7t5u3v1w9y7",
+            createdAt: "2025-06-29T07:47:39.370Z",
+            updatedAt: "2025-06-29T07:47:39.370Z",
+          },
+        ],
+      };
+
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        text: () => Promise.resolve(JSON.stringify(mockResponse)),
+      });
+
+      const result = await client.listWorkflows({
+        workflowGroupId: "clg7n5p3q1r9s7t5u3v1w9y7",
+      });
+
+      expect(result).toEqual(mockResponse);
+      expect(fetch).toHaveBeenCalledWith(
+        expect.stringContaining("workflowGroupId=clg7n5p3q1r9s7t5u3v1w9y7"),
         expect.objectContaining({ method: "GET" })
       );
     });
