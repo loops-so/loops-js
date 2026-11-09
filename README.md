@@ -143,6 +143,7 @@ You can use custom contact properties in API calls. Please make sure to [add cus
 - [getWorkflowGroup()](#getworkflowgroup)
 - [updateWorkflowGroup()](#updateworkflowgroup)
 - [sendEmailMessagePreview()](#sendemailmessagepreview)
+- [renderEmailMessage()](#renderemailmessage)
 - [runEmailMessageGuardian()](#runemailmessageguardian)
 - [listEventPatterns()](#listeventpatterns)
 - [getEventPattern()](#geteventpattern)
@@ -2500,6 +2501,40 @@ const resp = await loops.sendEmailMessagePreview("clm9x3o5q002yl70a8b3c4d5e", {
 
 ---
 
+### renderEmailMessage()
+
+Render an email message as HTML without sending it. The HTML matches a preview email body. Accepted variable fields depend on the parent type.
+[API Reference](https://loops.so/docs/api-reference/render-email-message)
+
+#### Parameters
+
+| Name                | Type   | Required | Notes                                                                                       |
+| ------------------- | ------ | -------- | ------------------------------------------------------------------------------------------- |
+| `emailMessageId`    | string | Yes      | The ID of the email message.                                                                |
+| `contactProperties` | object | No       | Contact property values to render. Accepted for campaign and workflow emails.               |
+| `eventProperties`   | object | No       | Event property values to render. Accepted for workflow emails only.                         |
+| `dataVariables`     | object | No       | Transactional data variables to render. Accepted for transactional emails only.             |
+
+#### Example
+
+```javascript
+const resp = await loops.renderEmailMessage("clm9x3o5q002yl70a8b3c4d5e", {
+  contactProperties: {
+    firstName: "Alex",
+  },
+});
+```
+
+#### Response
+
+```json
+{
+  "html": "<html><body>Hello, Alex!</body></html>"
+}
+```
+
+---
+
 ### runEmailMessageGuardian()
 
 Validate an email message against Guardian rules. Errors must be resolved before publishing; warnings are advisory.
@@ -3433,6 +3468,9 @@ const resp = await loops.completeUpload("cla3s5s7e9t1i3d5f7g9h1j3");
 
 ## Version history
 
+- `v7.5.0` (Nov 9, 2026)
+  - Aligned with OpenAPI 1.23.0.
+  - Added [`renderEmailMessage()`](#renderemailmessage) to render an email message as HTML without sending it.
 - `v7.4.0` (Nov 3, 2026)
   - Aligned with OpenAPI 1.22.8.
   - Added metrics endpoints ([`getCampaignMetrics()`](#getcampaignmetrics), [`getTransactionalEmailMetrics()`](#gettransactionalemailmetrics), [`getWorkflowNodeMetrics()`](#getworkflownodemetrics)).

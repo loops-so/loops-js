@@ -747,6 +747,14 @@ interface EmailMessagePreviewResponse {
   id: string;
 }
 
+interface EmailMessageRenderResponse {
+  /**
+   * The rendered HTML. For emails made in the editor, it includes the rendered
+   * subject in `<title>` and the rendered preview text.
+   */
+  html: string;
+}
+
 type GuardianRuleName =
   | "unsupportedContactProperties"
   | "missingFallbackContactProperties"
@@ -2415,6 +2423,56 @@ class LoopsClient {
   }
 
   /**
+   * Render an email message as HTML without sending it.
+   *
+   * The HTML matches a preview email body. Accepted variable fields depend on
+   * the parent type: campaigns accept `contactProperties`, workflows accept
+   * `contactProperties` and `eventProperties`, and transactional emails accept
+   * `dataVariables`. A variable without a value uses its fallback, or shows a
+   * missing-value marker as in a preview email.
+   *
+   * @param {string} emailMessageId The ID of the email message.
+   * @param {Object} [params]
+   * @param {Record<string, string>} [params.contactProperties] Contact property values to render.
+   * @param {Record<string, string>} [params.eventProperties] Event property values to render.
+   * @param {Record<string, string>} [params.dataVariables] Transactional data variables to render.
+   *
+   * @see https://loops.so/docs/api-reference/render-email-message
+   *
+   * @returns {Object} Rendered HTML (JSON)
+   */
+  async renderEmailMessage(
+    emailMessageId: string,
+    {
+      contactProperties,
+      eventProperties,
+      dataVariables,
+    }: {
+      contactProperties?: Record<string, string>;
+      eventProperties?: Record<string, string>;
+      dataVariables?: Record<string, string>;
+    } = {}
+  ): Promise<EmailMessageRenderResponse> {
+    const payload: {
+      contactProperties?: Record<string, string>;
+      eventProperties?: Record<string, string>;
+      dataVariables?: Record<string, string>;
+    } = {};
+    if (contactProperties !== undefined) {
+      payload.contactProperties = contactProperties;
+    }
+    if (eventProperties !== undefined) {
+      payload.eventProperties = eventProperties;
+    }
+    if (dataVariables !== undefined) payload.dataVariables = dataVariables;
+    return this._makeQuery({
+      path: `v1/email-messages/${emailMessageId}/render`,
+      method: "POST",
+      payload,
+    });
+  }
+
+  /**
    * Run Guardian checks on an email message.
    *
    * Validates content against Guardian rules and returns errors and warnings.
@@ -3407,6 +3465,7 @@ export {
   WorkflowContactPropertyQuery,
   UpdateWorkflowNodePayload,
   EmailMessagePreviewResponse,
+  EmailMessageRenderResponse,
   GuardianRuleName,
   GuardianRuleItem,
   GuardianRule,

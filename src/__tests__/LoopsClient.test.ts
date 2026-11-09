@@ -1766,6 +1766,63 @@ describe("LoopsClient", () => {
     });
   });
 
+  describe("renderEmailMessage", () => {
+    it("should render an email message as HTML", async () => {
+      const mockResponse = {
+        html: "<html><body>Hello, Alex!</body></html>",
+      };
+
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        text: () => Promise.resolve(JSON.stringify(mockResponse)),
+      });
+
+      const result = await client.renderEmailMessage(
+        "clm9x3o5q002yl70a8b3c4d5e",
+        {
+          contactProperties: { firstName: "Alex" },
+        }
+      );
+
+      expect(result).toEqual(mockResponse);
+      expect(fetch).toHaveBeenCalledWith(
+        expect.stringContaining(
+          "v1/email-messages/clm9x3o5q002yl70a8b3c4d5e/render"
+        ),
+        expect.objectContaining({
+          method: "POST",
+          body: JSON.stringify({
+            contactProperties: { firstName: "Alex" },
+          }),
+        })
+      );
+    });
+
+    it("should render with an empty body when no variables are provided", async () => {
+      const mockResponse = { html: "<html><body></body></html>" };
+
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        text: () => Promise.resolve(JSON.stringify(mockResponse)),
+      });
+
+      const result = await client.renderEmailMessage(
+        "clm9x3o5q002yl70a8b3c4d5e"
+      );
+
+      expect(result).toEqual(mockResponse);
+      expect(fetch).toHaveBeenCalledWith(
+        expect.stringContaining(
+          "v1/email-messages/clm9x3o5q002yl70a8b3c4d5e/render"
+        ),
+        expect.objectContaining({
+          method: "POST",
+          body: JSON.stringify({}),
+        })
+      );
+    });
+  });
+
   describe("runEmailMessageGuardian", () => {
     it("should run guardian checks", async () => {
       const mockResponse = {
