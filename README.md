@@ -143,6 +143,7 @@ You can use custom contact properties in API calls. Please make sure to [add cus
 - [getWorkflowGroup()](#getworkflowgroup)
 - [updateWorkflowGroup()](#updateworkflowgroup)
 - [sendEmailMessagePreview()](#sendemailmessagepreview)
+- [renderEmailMessage()](#renderemailmessage)
 - [runEmailMessageGuardian()](#runemailmessageguardian)
 - [listEventPatterns()](#listeventpatterns)
 - [getEventPattern()](#geteventpattern)
@@ -891,10 +892,11 @@ Get a paginated list of transactional emails, most recently created first.
 
 #### Parameters
 
-| Name      | Type    | Required | Notes                                                                                                                         |
-| --------- | ------- | -------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| `perPage` | integer | No       | How many results to return per page. Must be between 10 and 50. Defaults to 20 if omitted.                                    |
-| `cursor`  | string  | No       | A cursor, to return a specific page of results. Cursors can be found from the `pagination.nextCursor` value in each response. |
+| Name                    | Type    | Required | Notes                                                                                                                         |
+| ----------------------- | ------- | -------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `perPage`               | integer | No       | How many results to return per page. Must be between 10 and 50. Defaults to 20 if omitted.                                    |
+| `cursor`                | string  | No       | A cursor, to return a specific page of results. Cursors can be found from the `pagination.nextCursor` value in each response. |
+| `transactionalGroupId`  | string  | No       | Only return transactional emails in this transactional group.                                                                 |
 
 #### Example
 
@@ -902,6 +904,10 @@ Get a paginated list of transactional emails, most recently created first.
 const resp = await loops.listTransactionalEmails();
 
 const resp = await loops.listTransactionalEmails({ perPage: 15 });
+
+const resp = await loops.listTransactionalEmails({
+  transactionalGroupId: "clg7n5p3q1r9s7t5u3v1w9y7",
+});
 ```
 
 #### Response
@@ -1521,10 +1527,11 @@ Retrieve a paginated list of campaigns.
 
 #### Parameters
 
-| Name      | Type    | Required | Notes                                                                                                                         |
-| --------- | ------- | -------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| `perPage` | integer | No       | How many results to return per page. Must be between 10 and 50. Defaults to 20 if omitted.                                    |
-| `cursor`  | string  | No       | A cursor, to return a specific page of results. Cursors can be found from the `pagination.nextCursor` value in each response. |
+| Name               | Type    | Required | Notes                                                                                                                         |
+| ------------------ | ------- | -------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `perPage`          | integer | No       | How many results to return per page. Must be between 10 and 50. Defaults to 20 if omitted.                                    |
+| `cursor`           | string  | No       | A cursor, to return a specific page of results. Cursors can be found from the `pagination.nextCursor` value in each response. |
+| `campaignGroupId`  | string  | No       | Only return campaigns in this campaign group.                                                                                 |
 
 #### Example
 
@@ -1532,6 +1539,10 @@ Retrieve a paginated list of campaigns.
 const resp = await loops.listCampaigns();
 
 const resp = await loops.listCampaigns({ perPage: 15 });
+
+const resp = await loops.listCampaigns({
+  campaignGroupId: "clg7n5p3q1r9s7t5u3v1w9y7",
+});
 ```
 
 #### Response
@@ -2500,6 +2511,40 @@ const resp = await loops.sendEmailMessagePreview("clm9x3o5q002yl70a8b3c4d5e", {
 
 ---
 
+### renderEmailMessage()
+
+Render an email message as HTML without sending it. The HTML matches a preview email body. Accepted variable fields depend on the parent type.
+[API Reference](https://loops.so/docs/api-reference/render-email-message)
+
+#### Parameters
+
+| Name                | Type   | Required | Notes                                                                                       |
+| ------------------- | ------ | -------- | ------------------------------------------------------------------------------------------- |
+| `emailMessageId`    | string | Yes      | The ID of the email message.                                                                |
+| `contactProperties` | object | No       | Contact property values to render. Accepted for campaign and workflow emails.               |
+| `eventProperties`   | object | No       | Event property values to render. Accepted for workflow emails only.                         |
+| `dataVariables`     | object | No       | Transactional data variables to render. Accepted for transactional emails only.             |
+
+#### Example
+
+```javascript
+const resp = await loops.renderEmailMessage("clm9x3o5q002yl70a8b3c4d5e", {
+  contactProperties: {
+    firstName: "Alex",
+  },
+});
+```
+
+#### Response
+
+```json
+{
+  "html": "<html><body>Hello, Alex!</body></html>"
+}
+```
+
+---
+
 ### runEmailMessageGuardian()
 
 Validate an email message against Guardian rules. Errors must be resolved before publishing; warnings are advisory.
@@ -2676,15 +2721,20 @@ Retrieve a paginated list of workflows.
 
 #### Parameters
 
-| Name      | Type    | Required | Notes                                                                                                                         |
-| --------- | ------- | -------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| `perPage` | integer | No       | How many results to return per page. Must be between 10 and 50. Defaults to 20 if omitted.                                    |
-| `cursor`  | string  | No       | A cursor, to return a specific page of results. Cursors can be found from the `pagination.nextCursor` value in each response. |
+| Name               | Type    | Required | Notes                                                                                                                         |
+| ------------------ | ------- | -------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `perPage`          | integer | No       | How many results to return per page. Must be between 10 and 50. Defaults to 20 if omitted.                                    |
+| `cursor`           | string  | No       | A cursor, to return a specific page of results. Cursors can be found from the `pagination.nextCursor` value in each response. |
+| `workflowGroupId`  | string  | No       | Only return workflows in this workflow group.                                                                                 |
 
 #### Example
 
 ```javascript
 const resp = await loops.listWorkflows();
+
+const resp = await loops.listWorkflows({
+  workflowGroupId: "clg7n5p3q1r9s7t5u3v1w9y7",
+});
 ```
 
 #### Response
@@ -3433,6 +3483,10 @@ const resp = await loops.completeUpload("cla3s5s7e9t1i3d5f7g9h1j3");
 
 ## Version history
 
+- `v7.5.0` (Nov 9, 2026)
+  - Aligned with OpenAPI 1.23.0.
+  - Added [`renderEmailMessage()`](#renderemailmessage) to render an email message as HTML without sending it.
+  - Added group filters to [`listCampaigns()`](#listcampaigns) (`campaignGroupId`), [`listWorkflows()`](#listworkflows) (`workflowGroupId`), and [`listTransactionalEmails()`](#listtransactionalemails) (`transactionalGroupId`).
 - `v7.4.0` (Nov 3, 2026)
   - Aligned with OpenAPI 1.22.8.
   - Added metrics endpoints ([`getCampaignMetrics()`](#getcampaignmetrics), [`getTransactionalEmailMetrics()`](#gettransactionalemailmetrics), [`getWorkflowNodeMetrics()`](#getworkflownodemetrics)).

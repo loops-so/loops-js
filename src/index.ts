@@ -747,6 +747,14 @@ interface EmailMessagePreviewResponse {
   id: string;
 }
 
+interface EmailMessageRenderResponse {
+  /**
+   * The rendered HTML. For emails made in the editor, it includes the rendered
+   * subject in `<title>` and the rendered preview text.
+   */
+  html: string;
+}
+
 type GuardianRuleName =
   | "unsupportedContactProperties"
   | "missingFallbackContactProperties"
@@ -1621,6 +1629,7 @@ class LoopsClient {
    * @param {Object} params
    * @param {number} [params.perPage] How many results to return in each request. Must be between 10 and 50. Defaults to 20.
    * @param {string} [params.cursor] A cursor, to return a specific page of results. Cursors can be found from the `pagination.nextCursor` value in each response.
+   * @param {string} [params.transactionalGroupId] Only return transactional emails in this transactional group.
    *
    * @see https://loops.so/docs/api-reference/list-transactional-emails
    *
@@ -1629,14 +1638,23 @@ class LoopsClient {
   async listTransactionalEmails({
     perPage,
     cursor,
+    transactionalGroupId,
   }: {
     perPage?: number;
     cursor?: string;
+    transactionalGroupId?: string;
   } = {}): Promise<ListTransactionalsResourceResponse> {
-    const params: { perPage: string; cursor?: string } = {
+    const params: {
+      perPage: string;
+      cursor?: string;
+      transactionalGroupId?: string;
+    } = {
       perPage: (perPage || 20).toString(),
     };
     if (cursor) params["cursor"] = cursor;
+    if (transactionalGroupId) {
+      params["transactionalGroupId"] = transactionalGroupId;
+    }
     return this._makeQuery({
       path: "v1/transactional-emails",
       params,
@@ -2084,6 +2102,7 @@ class LoopsClient {
    * @param {Object} params
    * @param {number} [params.perPage] How many results to return in each request. Must be between 10 and 50. Defaults to 20.
    * @param {string} [params.cursor] A cursor, to return a specific page of results. Cursors can be found from the `pagination.nextCursor` value in each response.
+   * @param {string} [params.campaignGroupId] Only return campaigns in this campaign group.
    *
    * @see https://loops.so/docs/api-reference/list-campaigns
    *
@@ -2092,14 +2111,21 @@ class LoopsClient {
   async listCampaigns({
     perPage,
     cursor,
+    campaignGroupId,
   }: {
     perPage?: number;
     cursor?: string;
+    campaignGroupId?: string;
   } = {}): Promise<ListCampaignsResponse> {
-    const params: { perPage: string; cursor?: string } = {
+    const params: {
+      perPage: string;
+      cursor?: string;
+      campaignGroupId?: string;
+    } = {
       perPage: (perPage || 20).toString(),
     };
     if (cursor) params["cursor"] = cursor;
+    if (campaignGroupId) params["campaignGroupId"] = campaignGroupId;
     return this._makeQuery({
       path: "v1/campaigns",
       params,
@@ -2415,6 +2441,56 @@ class LoopsClient {
   }
 
   /**
+   * Render an email message as HTML without sending it.
+   *
+   * The HTML matches a preview email body. Accepted variable fields depend on
+   * the parent type: campaigns accept `contactProperties`, workflows accept
+   * `contactProperties` and `eventProperties`, and transactional emails accept
+   * `dataVariables`. A variable without a value uses its fallback, or shows a
+   * missing-value marker as in a preview email.
+   *
+   * @param {string} emailMessageId The ID of the email message.
+   * @param {Object} [params]
+   * @param {Record<string, string>} [params.contactProperties] Contact property values to render.
+   * @param {Record<string, string>} [params.eventProperties] Event property values to render.
+   * @param {Record<string, string>} [params.dataVariables] Transactional data variables to render.
+   *
+   * @see https://loops.so/docs/api-reference/render-email-message
+   *
+   * @returns {Object} Rendered HTML (JSON)
+   */
+  async renderEmailMessage(
+    emailMessageId: string,
+    {
+      contactProperties,
+      eventProperties,
+      dataVariables,
+    }: {
+      contactProperties?: Record<string, string>;
+      eventProperties?: Record<string, string>;
+      dataVariables?: Record<string, string>;
+    } = {}
+  ): Promise<EmailMessageRenderResponse> {
+    const payload: {
+      contactProperties?: Record<string, string>;
+      eventProperties?: Record<string, string>;
+      dataVariables?: Record<string, string>;
+    } = {};
+    if (contactProperties !== undefined) {
+      payload.contactProperties = contactProperties;
+    }
+    if (eventProperties !== undefined) {
+      payload.eventProperties = eventProperties;
+    }
+    if (dataVariables !== undefined) payload.dataVariables = dataVariables;
+    return this._makeQuery({
+      path: `v1/email-messages/${emailMessageId}/render`,
+      method: "POST",
+      payload,
+    });
+  }
+
+  /**
    * Run Guardian checks on an email message.
    *
    * Validates content against Guardian rules and returns errors and warnings.
@@ -2498,6 +2574,7 @@ class LoopsClient {
    * @param {Object} params
    * @param {number} [params.perPage] How many results to return in each request. Must be between 10 and 50. Defaults to 20.
    * @param {string} [params.cursor] A cursor, to return a specific page of results.
+   * @param {string} [params.workflowGroupId] Only return workflows in this workflow group.
    *
    * @see https://loops.so/docs/api-reference/list-workflows
    *
@@ -2506,14 +2583,21 @@ class LoopsClient {
   async listWorkflows({
     perPage,
     cursor,
+    workflowGroupId,
   }: {
     perPage?: number;
     cursor?: string;
+    workflowGroupId?: string;
   } = {}): Promise<ListWorkflowsResponse> {
-    const params: { perPage: string; cursor?: string } = {
+    const params: {
+      perPage: string;
+      cursor?: string;
+      workflowGroupId?: string;
+    } = {
       perPage: (perPage || 20).toString(),
     };
     if (cursor) params["cursor"] = cursor;
+    if (workflowGroupId) params["workflowGroupId"] = workflowGroupId;
     return this._makeQuery({
       path: "v1/workflows",
       params,
@@ -3407,6 +3491,7 @@ export {
   WorkflowContactPropertyQuery,
   UpdateWorkflowNodePayload,
   EmailMessagePreviewResponse,
+  EmailMessageRenderResponse,
   GuardianRuleName,
   GuardianRuleItem,
   GuardianRule,
