@@ -195,6 +195,97 @@ interface MailingList {
   isPublic: boolean;
 }
 
+interface WebhookContactIdentity {
+  id: string;
+  email: string;
+  userId: string | null;
+}
+
+interface WebhookEmail {
+  id: string;
+  emailMessageId: string;
+  subject: string;
+}
+
+type WebhookContact = Pick<
+  Contact,
+  | "id"
+  | "email"
+  | "firstName"
+  | "lastName"
+  | "source"
+  | "subscribed"
+  | "userGroup"
+  | "userId"
+  | "mailingLists"
+> & {
+  // Contact webhooks are sent only after double opt-in confirmation.
+  optInStatus: "accepted" | null;
+  [property: string]: unknown;
+};
+
+type WebhookMarketingSource =
+  | { sourceType: "campaign"; campaignId: string }
+  | { sourceType: "loop"; loopId: string };
+
+type WebhookEmailSource =
+  | WebhookMarketingSource
+  | { sourceType: "transactional"; transactionalId: string };
+
+type WebhookContactPayload = { contactIdentity: WebhookContactIdentity };
+type WebhookEmailPayload = WebhookContactPayload & { email: WebhookEmail };
+
+interface WebhookEventPayloads {
+  "contact.created": WebhookContactPayload & { contact: WebhookContact };
+  "contact.unsubscribed": WebhookContactPayload;
+  "contact.deleted": WebhookContactPayload;
+  "contact.mailingList.subscribed": WebhookContactPayload & {
+    mailingList: MailingList;
+  };
+  "contact.mailingList.unsubscribed": WebhookContactPayload & {
+    mailingList: MailingList;
+  };
+  "campaign.email.sent": WebhookEmailPayload & {
+    campaignId: string;
+    campaignName: string;
+    mailingLists?: MailingList[];
+  };
+  "loop.email.sent": WebhookEmailPayload & {
+    loopId: string;
+    loopName: string;
+    mailingLists?: MailingList[];
+  };
+  "transactional.email.sent": WebhookEmailPayload & {
+    transactionalId: string;
+    transactionalName: string;
+  };
+  "email.delivered": WebhookEmailPayload & WebhookEmailSource;
+  "email.softBounced": WebhookEmailPayload & WebhookEmailSource;
+  "email.hardBounced": WebhookEmailPayload & WebhookEmailSource;
+  "email.opened": WebhookEmailPayload & WebhookMarketingSource;
+  "email.clicked": WebhookEmailPayload & WebhookMarketingSource;
+  "email.unsubscribed": WebhookEmailPayload & WebhookMarketingSource;
+  "email.resubscribed": WebhookEmailPayload & WebhookMarketingSource;
+  "email.spamReported": WebhookEmailPayload & WebhookEmailSource;
+  "testing.testEvent": { message: string };
+}
+
+type WebhookEventName = keyof WebhookEventPayloads;
+
+/**
+ * A documented Loops webhook payload, narrowed by `eventName`.
+ * This type does not verify signatures or validate incoming JSON at runtime.
+ * @see https://loops.so/docs/webhooks
+ */
+type WebhookEvent = {
+  [Name in WebhookEventName]: {
+    eventName: Name;
+    /** Unix timestamp in seconds when the event occurred. */
+    eventTime: number;
+    webhookSchemaVersion: "1.0.0";
+  } & WebhookEventPayloads[Name];
+}[WebhookEventName];
+
 interface PaginationData {
   /**
    * Total results found.
@@ -3418,6 +3509,11 @@ export {
   RemoveContactSuppressionSuccessResponse,
   ErrorResponse,
   Contact,
+  WebhookEvent,
+  WebhookEventName,
+  WebhookContact,
+  WebhookContactIdentity,
+  WebhookEmail,
   ContactProperty,
   ContactPropertySuccessResponse,
   EventSuccessResponse,
