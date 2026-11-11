@@ -71,6 +71,45 @@ try {
 }
 ```
 
+## Verifying webhooks
+
+Use `verifyWebhook` to confirm that an inbound webhook was signed by Loops. Pass the **raw request body string** (not a parsed JSON object) and your signing secret from [Settings → Webhooks](https://app.loops.so/settings?page=webhooks).
+
+```javascript
+import { verifyWebhook, WebhookVerificationError } from "loops";
+
+export async function POST(req) {
+  const rawBody = await req.text();
+
+  try {
+    const event = verifyWebhook({
+      headers: req.headers,
+      rawBody,
+      secret: process.env.LOOPS_SIGNING_SECRET,
+    });
+
+    // process event...
+    return Response.json({ ok: true, eventName: event.eventName });
+  } catch (error) {
+    if (error instanceof WebhookVerificationError) {
+      const status =
+        error.code === "MISSING_SECRET"
+          ? 500
+          : error.code === "INVALID_SIGNATURE" ||
+              error.code === "INVALID_TIMESTAMP"
+            ? 401
+            : 400;
+      return Response.json({ message: error.message }, { status });
+    }
+    throw error;
+  }
+}
+```
+
+`verifyWebhook` throws `WebhookVerificationError` with a `code` of `MISSING_SECRET`, `MISSING_HEADERS`, `INVALID_TIMESTAMP`, `INVALID_SIGNATURE`, or `INVALID_BODY`.
+
+See the [webhooks docs](https://loops.so/docs/webhooks) for event payloads and setup.
+
 ## Default contact properties
 
 Each contact in Loops has a set of default properties. These will always be returned in API results.
