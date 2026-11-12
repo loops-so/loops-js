@@ -1276,7 +1276,7 @@ async function hmacSha256Base64(
  *
  * Uses the signing secret from Settings → Webhooks. Pass the raw request
  * body string, not a parsed JSON object. Uses the Web Crypto API, so it
- * works in Node 18+, browsers, and edge runtimes.
+ * works in Node 20+, browsers, and edge runtimes.
  *
  * @returns The parsed JSON payload when verification succeeds.
  * @throws {WebhookVerificationError} When headers, timestamp, signature,

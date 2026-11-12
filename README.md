@@ -14,7 +14,7 @@ You can install the package [from npm](https://www.npmjs.com/package/loops):
 npm install loops
 ```
 
-Minimum Node version required: 18.0.0.
+Minimum Node version required: 20.0.0.
 
 You will need a Loops API key to use the package.
 
@@ -3522,6 +3522,7 @@ const resp = await loops.completeUpload("cla3s5s7e9t1i3d5f7g9h1j3");
 
 ## Version history
 
+- `v8.0.0` (Nov 12, 2026) - Added [`verifyWebhook()`](#verifying-webhooks). Updated minimum Node version to 20.0.0.
 - `v7.5.0` (Nov 9, 2026)
   - Aligned with OpenAPI 1.23.0.
   - Added [`renderEmailMessage()`](#renderemailmessage) to render an email message as HTML without sending it.
