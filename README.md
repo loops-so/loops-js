@@ -82,7 +82,7 @@ export async function POST(req) {
   const rawBody = await req.text();
 
   try {
-    const event = verifyWebhook({
+    const event = await verifyWebhook({
       headers: req.headers,
       rawBody,
       secret: process.env.LOOPS_SIGNING_SECRET,

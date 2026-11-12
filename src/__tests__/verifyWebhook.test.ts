@@ -1,28 +1,55 @@
-import { createHmac, randomBytes } from "node:crypto";
 import { verifyWebhook, WebhookVerificationError } from "../index";
 
-const SECRET_BYTES = randomBytes(32);
-const SECRET = `whsec_${SECRET_BYTES.toString("base64")}`;
-const SECRET_WITHOUT_PREFIX = SECRET_BYTES.toString("base64");
+function bytesToBase64(bytes: Uint8Array): string {
+  let binary = "";
+  for (let i = 0; i < bytes.length; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary);
+}
 
-function sign(params: {
+function base64ToBytes(value: string): Uint8Array {
+  const binary = atob(value);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  return bytes;
+}
+
+const SECRET_BYTES = globalThis.crypto.getRandomValues(new Uint8Array(32));
+const SECRET = `whsec_${bytesToBase64(SECRET_BYTES)}`;
+const SECRET_WITHOUT_PREFIX = bytesToBase64(SECRET_BYTES);
+
+async function sign(params: {
   id: string;
   timestamp: string | number;
   rawBody: string;
   secret?: string;
-}): string {
+}): Promise<string> {
   const secret = params.secret ?? SECRET;
   const encoded = secret.startsWith("whsec_")
     ? secret.slice("whsec_".length)
     : secret;
-  const key = Buffer.from(encoded, "base64");
-  const digest = createHmac("sha256", key)
-    .update(`${params.id}.${params.timestamp}.${params.rawBody}`)
-    .digest("base64");
-  return `v1,${digest}`;
+  const keyBytes = base64ToBytes(encoded);
+  const cryptoKey = await globalThis.crypto.subtle.importKey(
+    "raw",
+    keyBytes,
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"]
+  );
+  const signature = await globalThis.crypto.subtle.sign(
+    "HMAC",
+    cryptoKey,
+    new TextEncoder().encode(
+      `${params.id}.${params.timestamp}.${params.rawBody}`
+    )
+  );
+  return `v1,${bytesToBase64(new Uint8Array(signature))}`;
 }
 
-function validPayload(overrides?: {
+async function validPayload(overrides?: {
   id?: string;
   timestamp?: number;
   rawBody?: string;
@@ -33,7 +60,7 @@ function validPayload(overrides?: {
   const timestamp = overrides?.timestamp ?? Math.floor(Date.now() / 1000);
   const rawBody =
     overrides?.rawBody ?? JSON.stringify({ eventName: "email.sent" });
-  const signature = sign({
+  const signature = await sign({
     id,
     timestamp,
     rawBody,
@@ -56,10 +83,10 @@ function validPayload(overrides?: {
 }
 
 describe("verifyWebhook", () => {
-  it("verifies a valid request and returns the parsed payload", () => {
-    const { headers, rawBody } = validPayload();
+  it("verifies a valid request and returns the parsed payload", async () => {
+    const { headers, rawBody } = await validPayload();
 
-    const event = verifyWebhook({
+    const event = await verifyWebhook({
       headers,
       rawBody,
       secret: SECRET,
@@ -68,29 +95,29 @@ describe("verifyWebhook", () => {
     expect(event).toEqual({ eventName: "email.sent" });
   });
 
-  it("accepts secrets without the whsec_ prefix", () => {
-    const { headers, rawBody } = validPayload({
+  it("accepts secrets without the whsec_ prefix", async () => {
+    const { headers, rawBody } = await validPayload({
       secret: SECRET_WITHOUT_PREFIX,
     });
 
-    expect(() =>
+    await expect(
       verifyWebhook({
         headers,
         rawBody,
         secret: SECRET_WITHOUT_PREFIX,
       })
-    ).not.toThrow();
+    ).resolves.toEqual({ eventName: "email.sent" });
   });
 
-  it("accepts a Headers object", () => {
-    const { id, timestamp, rawBody } = validPayload();
+  it("accepts a Headers object", async () => {
+    const { id, timestamp, rawBody } = await validPayload();
     const headers = new Headers({
       "webhook-id": id,
       "webhook-timestamp": timestamp,
-      "webhook-signature": sign({ id, timestamp, rawBody }),
+      "webhook-signature": await sign({ id, timestamp, rawBody }),
     });
 
-    const event = verifyWebhook({
+    const event = await verifyWebhook({
       headers,
       rawBody,
       secret: SECRET,
@@ -99,28 +126,28 @@ describe("verifyWebhook", () => {
     expect(event).toEqual({ eventName: "email.sent" });
   });
 
-  it("matches any v1 signature when multiple are present", () => {
-    const { headers, rawBody } = validPayload({
+  it("matches any v1 signature when multiple are present", async () => {
+    const { headers, rawBody } = await validPayload({
       extraSignatures: ["v1,not-a-real-signature", "v0,ignored"],
     });
 
-    expect(() =>
+    await expect(
       verifyWebhook({
         headers,
         rawBody,
         secret: SECRET,
       })
-    ).not.toThrow();
+    ).resolves.toEqual({ eventName: "email.sent" });
   });
 
-  it("is case-insensitive for header names on plain objects", () => {
-    const { id, timestamp, rawBody } = validPayload();
+  it("is case-insensitive for header names on plain objects", async () => {
+    const { id, timestamp, rawBody } = await validPayload();
 
-    const event = verifyWebhook({
+    const event = await verifyWebhook({
       headers: {
         "Webhook-Id": id,
         "Webhook-Timestamp": timestamp,
-        "Webhook-Signature": sign({ id, timestamp, rawBody }),
+        "Webhook-Signature": await sign({ id, timestamp, rawBody }),
       },
       rawBody,
       secret: SECRET,
@@ -129,11 +156,11 @@ describe("verifyWebhook", () => {
     expect(event).toEqual({ eventName: "email.sent" });
   });
 
-  it("joins array header values", () => {
-    const { id, timestamp, rawBody } = validPayload();
-    const good = sign({ id, timestamp, rawBody });
+  it("joins array header values", async () => {
+    const { id, timestamp, rawBody } = await validPayload();
+    const good = await sign({ id, timestamp, rawBody });
 
-    const event = verifyWebhook({
+    const event = await verifyWebhook({
       headers: {
         "webhook-id": [id],
         "webhook-timestamp": [timestamp],
@@ -146,11 +173,11 @@ describe("verifyWebhook", () => {
     expect(event).toEqual({ eventName: "email.sent" });
   });
 
-  it("throws MISSING_SECRET when secret is empty", () => {
-    const { headers, rawBody } = validPayload();
+  it("throws MISSING_SECRET when secret is empty", async () => {
+    const { headers, rawBody } = await validPayload();
 
     try {
-      verifyWebhook({ headers, rawBody, secret: "" });
+      await verifyWebhook({ headers, rawBody, secret: "" });
       throw new Error("expected verifyWebhook to throw");
     } catch (error) {
       expect(error).toBeInstanceOf(WebhookVerificationError);
@@ -158,11 +185,11 @@ describe("verifyWebhook", () => {
     }
   });
 
-  it("throws MISSING_HEADERS when a required header is absent", () => {
-    const { rawBody } = validPayload();
+  it("throws MISSING_HEADERS when a required header is absent", async () => {
+    const { rawBody } = await validPayload();
 
     try {
-      verifyWebhook({
+      await verifyWebhook({
         headers: {
           "webhook-id": "msg_test_123",
           "webhook-timestamp": String(Math.floor(Date.now() / 1000)),
@@ -177,11 +204,11 @@ describe("verifyWebhook", () => {
     }
   });
 
-  it("throws INVALID_TIMESTAMP for a non-numeric timestamp", () => {
-    const { id, rawBody } = validPayload();
+  it("throws INVALID_TIMESTAMP for a non-numeric timestamp", async () => {
+    const { id, rawBody } = await validPayload();
 
     try {
-      verifyWebhook({
+      await verifyWebhook({
         headers: {
           "webhook-id": id,
           "webhook-timestamp": "not-a-number",
@@ -199,12 +226,12 @@ describe("verifyWebhook", () => {
     }
   });
 
-  it("throws INVALID_TIMESTAMP when the timestamp is outside tolerance", () => {
+  it("throws INVALID_TIMESTAMP when the timestamp is outside tolerance", async () => {
     const stale = Math.floor(Date.now() / 1000) - 301;
-    const { headers, rawBody } = validPayload({ timestamp: stale });
+    const { headers, rawBody } = await validPayload({ timestamp: stale });
 
     try {
-      verifyWebhook({ headers, rawBody, secret: SECRET });
+      await verifyWebhook({ headers, rawBody, secret: SECRET });
       throw new Error("expected verifyWebhook to throw");
     } catch (error) {
       expect(error).toBeInstanceOf(WebhookVerificationError);
@@ -214,25 +241,25 @@ describe("verifyWebhook", () => {
     }
   });
 
-  it("allows a custom toleranceSeconds", () => {
+  it("allows a custom toleranceSeconds", async () => {
     const stale = Math.floor(Date.now() / 1000) - 301;
-    const { headers, rawBody } = validPayload({ timestamp: stale });
+    const { headers, rawBody } = await validPayload({ timestamp: stale });
 
-    expect(() =>
+    await expect(
       verifyWebhook({
         headers,
         rawBody,
         secret: SECRET,
         toleranceSeconds: 600,
       })
-    ).not.toThrow();
+    ).resolves.toEqual({ eventName: "email.sent" });
   });
 
-  it("throws INVALID_SIGNATURE for a bad signature", () => {
-    const { id, timestamp, rawBody } = validPayload();
+  it("throws INVALID_SIGNATURE for a bad signature", async () => {
+    const { id, timestamp, rawBody } = await validPayload();
 
     try {
-      verifyWebhook({
+      await verifyWebhook({
         headers: {
           "webhook-id": id,
           "webhook-timestamp": timestamp,
@@ -250,11 +277,11 @@ describe("verifyWebhook", () => {
     }
   });
 
-  it("throws INVALID_SIGNATURE when the body has been altered", () => {
-    const { headers } = validPayload();
+  it("throws INVALID_SIGNATURE when the body has been altered", async () => {
+    const { headers } = await validPayload();
 
     try {
-      verifyWebhook({
+      await verifyWebhook({
         headers,
         rawBody: JSON.stringify({ eventName: "tampered" }),
         secret: SECRET,
@@ -268,17 +295,17 @@ describe("verifyWebhook", () => {
     }
   });
 
-  it("throws INVALID_BODY when the verified body is not JSON", () => {
+  it("throws INVALID_BODY when the verified body is not JSON", async () => {
     const rawBody = "not-json";
     const id = "msg_test_123";
     const timestamp = String(Math.floor(Date.now() / 1000));
 
     try {
-      verifyWebhook({
+      await verifyWebhook({
         headers: {
           "webhook-id": id,
           "webhook-timestamp": timestamp,
-          "webhook-signature": sign({ id, timestamp, rawBody }),
+          "webhook-signature": await sign({ id, timestamp, rawBody }),
         },
         rawBody,
         secret: SECRET,

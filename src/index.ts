@@ -1,5 +1,3 @@
-import { createHmac, timingSafeEqual } from "node:crypto";
-
 interface QueryOptions {
   path: `v1/${string}`;
   method?: "GET" | "POST" | "PUT" | "DELETE";
@@ -1224,18 +1222,61 @@ function getWebhookHeader(
   return null;
 }
 
+function base64ToBytes(value: string): Uint8Array {
+  const binary = atob(value);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  return bytes;
+}
+
+function bytesToBase64(bytes: Uint8Array): string {
+  let binary = "";
+  for (let i = 0; i < bytes.length; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary);
+}
+
 function timingSafeEqualString(a: string, b: string): boolean {
-  const left = Buffer.from(a);
-  const right = Buffer.from(b);
+  const encoder = new TextEncoder();
+  const left = encoder.encode(a);
+  const right = encoder.encode(b);
   if (left.length !== right.length) return false;
-  return timingSafeEqual(left, right);
+  let diff = 0;
+  for (let i = 0; i < left.length; i++) {
+    diff |= left[i] ^ right[i];
+  }
+  return diff === 0;
+}
+
+async function hmacSha256Base64(
+  key: Uint8Array,
+  message: string
+): Promise<string> {
+  const cryptoKey = await globalThis.crypto.subtle.importKey(
+    "raw",
+    // Newer DOM libs type Uint8Array as ArrayBufferLike; BufferSource wants ArrayBuffer.
+    key as BufferSource,
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"]
+  );
+  const signature = await globalThis.crypto.subtle.sign(
+    "HMAC",
+    cryptoKey,
+    new TextEncoder().encode(message)
+  );
+  return bytesToBase64(new Uint8Array(signature));
 }
 
 /**
  * Verifies that a webhook request was signed by Loops.
  *
  * Uses the signing secret from Settings → Webhooks. Pass the raw request
- * body string, not a parsed JSON object.
+ * body string, not a parsed JSON object. Uses the Web Crypto API, so it
+ * works in Node 18+, browsers, and edge runtimes.
  *
  * @returns The parsed JSON payload when verification succeeds.
  * @throws {WebhookVerificationError} When headers, timestamp, signature,
@@ -1245,19 +1286,19 @@ function timingSafeEqualString(a: string, b: string): boolean {
  * ```ts
  * import { verifyWebhook, WebhookVerificationError } from "loops";
  *
- * const event = verifyWebhook({
+ * const event = await verifyWebhook({
  *   headers: req.headers,
  *   rawBody,
  *   secret: process.env.LOOPS_SIGNING_SECRET!,
  * });
  * ```
  */
-function verifyWebhook({
+async function verifyWebhook({
   headers,
   rawBody,
   secret,
   toleranceSeconds = DEFAULT_WEBHOOK_TOLERANCE_SECONDS,
-}: VerifyWebhookOptions): unknown {
+}: VerifyWebhookOptions): Promise<unknown> {
   if (!secret) {
     throw new WebhookVerificationError(
       "Missing webhook signing secret",
@@ -1295,11 +1336,11 @@ function verifyWebhook({
   const encoded = secret.startsWith(WEBHOOK_SECRET_PREFIX)
     ? secret.slice(WEBHOOK_SECRET_PREFIX.length)
     : secret;
-  const key = Buffer.from(encoded, "base64");
-
-  const expected = createHmac("sha256", key)
-    .update(`${id}.${timestamp}.${rawBody}`)
-    .digest("base64");
+  const key = base64ToBytes(encoded);
+  const expected = await hmacSha256Base64(
+    key,
+    `${id}.${timestamp}.${rawBody}`
+  );
 
   const matched = signatureHeader.split(/\s+/).some((entry) => {
     const comma = entry.indexOf(",");
