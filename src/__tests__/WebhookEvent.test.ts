@@ -1,4 +1,9 @@
-import type { WebhookEvent } from "../index";
+import type { WebhookContact, WebhookEvent } from "../index";
+
+type Equal<A, B> =
+  (<T>() => T extends A ? 1 : 2) extends <T>() => T extends B ? 1 : 2
+    ? true
+    : false;
 
 const common = {
   eventTime: 1734425918,
@@ -170,5 +175,20 @@ describe("WebhookEvent", () => {
     const incomplete: WebhookEvent = namelessCampaign;
     expect(invalidSource).toBeDefined();
     expect(incomplete).toBeDefined();
+  });
+
+  it("keeps known contact field types next to custom properties", () => {
+    const fieldTypes: [
+      Equal<WebhookContact["firstName"], string | null>,
+      Equal<WebhookContact["subscribed"], boolean>,
+      Equal<WebhookContact["userGroup"], string>,
+      Equal<WebhookContact["mailingLists"], Record<string, true>>,
+      Equal<WebhookContact["optInStatus"], "accepted" | null>,
+      Equal<
+        WebhookContact["favoriteColor"],
+        string | number | boolean | null | Record<string, true>
+      >,
+    ] = [true, true, true, true, true, true];
+    expect(fieldTypes).not.toContain(false);
   });
 });
