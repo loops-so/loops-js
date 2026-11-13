@@ -221,7 +221,7 @@ type WebhookContact = Pick<
 > & {
   // Contact webhooks are sent only after double opt-in confirmation.
   optInStatus: "accepted" | null;
-  [property: string]: unknown;
+  [property: string]: string | number | boolean | null | Record<string, true>;
 };
 
 type WebhookMarketingSource =
