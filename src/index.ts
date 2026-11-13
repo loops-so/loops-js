@@ -195,18 +195,45 @@ interface MailingList {
   isPublic: boolean;
 }
 
+/**
+ * A contact's identifiers. Use `findContact()` to retrieve the full contact.
+ */
 interface WebhookContactIdentity {
+  /**
+   * The contact's ID.
+   */
   id: string;
+  /**
+   * The contact's email address.
+   */
   email: string;
+  /**
+   * The contact's unique user ID.
+   */
   userId: string | null;
 }
 
+/**
+ * Details about an individual email sent to a recipient.
+ */
 interface WebhookEmail {
+  /**
+   * The unique ID of the email.
+   */
   id: string;
+  /**
+   * The ID of the sent version of the campaign, workflow or transactional email.
+   */
   emailMessageId: string;
+  /**
+   * The subject of the email.
+   */
   subject: string;
 }
 
+/**
+ * A full contact object, including custom contact properties.
+ */
 type WebhookContact = Pick<
   Contact,
   | "id"
@@ -219,57 +246,217 @@ type WebhookContact = Pick<
   | "userId"
   | "mailingLists"
 > & {
-  // Contact webhooks are sent only after double opt-in confirmation.
+  /**
+   * The contact's double opt-in status. `null` unless the contact was created
+   * via a form with double opt-in enabled. `contact.created` is only sent once
+   * the contact has confirmed, so this is never `"pending"` or `"rejected"`.
+   * @see https://loops.so/docs/contacts/double-opt-in
+   */
   optInStatus: "accepted" | null;
+  /**
+   * Custom contact properties.
+   */
   [property: string]: string | number | boolean | null | Record<string, true>;
 };
 
+/**
+ * The campaign or workflow email an event relates to, for events that are not
+ * available for transactional emails.
+ */
 type WebhookMarketingSource =
-  | { sourceType: "campaign"; campaignId: string }
-  | { sourceType: "loop"; loopId: string };
+  | {
+      /**
+       * The type of email this event relates to. Workflow emails use `loop`.
+       */
+      sourceType: "campaign";
+      /**
+       * The ID of the campaign.
+       */
+      campaignId: string;
+    }
+  | {
+      /**
+       * The type of email this event relates to. Workflow emails use `loop`.
+       */
+      sourceType: "loop";
+      /**
+       * The ID of the workflow.
+       */
+      loopId: string;
+    };
 
+/**
+ * The campaign, workflow or transactional email an event relates to.
+ */
 type WebhookEmailSource =
   | WebhookMarketingSource
-  | { sourceType: "transactional"; transactionalId: string };
+  | {
+      /**
+       * The type of email this event relates to. Workflow emails use `loop`.
+       */
+      sourceType: "transactional";
+      /**
+       * The ID of the transactional email.
+       */
+      transactionalId: string;
+    };
 
-type WebhookContactPayload = { contactIdentity: WebhookContactIdentity };
-type WebhookEmailPayload = WebhookContactPayload & { email: WebhookEmail };
+/**
+ * Fields included in every event except `testing.testEvent`.
+ */
+type WebhookContactPayload = {
+  /**
+   * The contact's identifiers.
+   */
+  contactIdentity: WebhookContactIdentity;
+};
 
+/**
+ * Fields included in every event that relates to an email.
+ */
+type WebhookEmailPayload = WebhookContactPayload & {
+  /**
+   * Details about the email sent to the contact.
+   */
+  email: WebhookEmail;
+};
+
+/**
+ * The event-specific fields of each webhook event, keyed by `eventName`.
+ * @see https://loops.so/docs/webhooks#event-types
+ */
 interface WebhookEventPayloads {
-  "contact.created": WebhookContactPayload & { contact: WebhookContact };
+  /**
+   * Sent when a new contact is created in your audience.
+   */
+  "contact.created": WebhookContactPayload & {
+    /**
+     * The new contact, including all of its properties.
+     */
+    contact: WebhookContact;
+  };
+  /**
+   * Sent when a contact is unsubscribed from your audience, and alongside
+   * `contact.deleted` when a contact is deleted.
+   */
   "contact.unsubscribed": WebhookContactPayload;
+  /**
+   * Sent when a contact is deleted from your audience.
+   */
   "contact.deleted": WebhookContactPayload;
+  /**
+   * Sent when a contact is subscribed to a mailing list.
+   */
   "contact.mailingList.subscribed": WebhookContactPayload & {
+    /**
+     * The mailing list the contact was subscribed to.
+     */
     mailingList: MailingList;
   };
+  /**
+   * Sent when a contact is unsubscribed from a mailing list.
+   */
   "contact.mailingList.unsubscribed": WebhookContactPayload & {
+    /**
+     * The mailing list the contact was unsubscribed from.
+     */
     mailingList: MailingList;
   };
+  /**
+   * Sent when a campaign is sent to a contact.
+   */
   "campaign.email.sent": WebhookEmailPayload & {
+    /**
+     * The ID of the campaign.
+     */
     campaignId: string;
+    /**
+     * The name of the campaign.
+     */
     campaignName: string;
+    /**
+     * The mailing lists the campaign was sent to, if any.
+     */
     mailingLists?: MailingList[];
   };
+  /**
+   * Sent when a workflow email is sent to a contact.
+   */
   "loop.email.sent": WebhookEmailPayload & {
+    /**
+     * The ID of the workflow.
+     */
     loopId: string;
+    /**
+     * The name of the workflow.
+     */
     loopName: string;
+    /**
+     * The mailing lists the workflow was sent to, if any.
+     */
     mailingLists?: MailingList[];
   };
+  /**
+   * Sent when a transactional email is sent.
+   */
   "transactional.email.sent": WebhookEmailPayload & {
+    /**
+     * The ID of the transactional email.
+     */
     transactionalId: string;
+    /**
+     * The name of the transactional email.
+     */
     transactionalName: string;
   };
+  /**
+   * Sent when an email is delivered to its recipient.
+   */
   "email.delivered": WebhookEmailPayload & WebhookEmailSource;
+  /**
+   * Sent when an email soft bounces.
+   */
   "email.softBounced": WebhookEmailPayload & WebhookEmailSource;
+  /**
+   * Sent when an email hard bounces.
+   */
   "email.hardBounced": WebhookEmailPayload & WebhookEmailSource;
+  /**
+   * Sent when a campaign or workflow email is opened.
+   */
   "email.opened": WebhookEmailPayload & WebhookMarketingSource;
+  /**
+   * Sent when a link in a campaign or workflow email is clicked.
+   */
   "email.clicked": WebhookEmailPayload & WebhookMarketingSource;
+  /**
+   * Sent when a recipient unsubscribes from marketing email or a mailing list
+   * using an email's "Unsubscribe" link.
+   */
   "email.unsubscribed": WebhookEmailPayload & WebhookMarketingSource;
+  /**
+   * Sent when a recipient resubscribes to marketing email from an email's
+   * preference center.
+   */
   "email.resubscribed": WebhookEmailPayload & WebhookMarketingSource;
+  /**
+   * Sent when a recipient reports your email as spam.
+   */
   "email.spamReported": WebhookEmailPayload & WebhookEmailSource;
-  "testing.testEvent": { message: string };
+  /**
+   * Sent when you send a test request from the Webhooks settings page.
+   */
+  "testing.testEvent": {
+    /**
+     * The test message, `"test"`.
+     */
+    message: string;
+  };
 }
 
+/**
+ * The name of a webhook event, such as `contact.created`.
+ */
 type WebhookEventName = keyof WebhookEventPayloads;
 
 /**
@@ -279,9 +466,17 @@ type WebhookEventName = keyof WebhookEventPayloads;
  */
 type WebhookEvent = {
   [Name in WebhookEventName]: {
+    /**
+     * The event type.
+     */
     eventName: Name;
-    /** Unix timestamp in seconds when the event occurred. */
+    /**
+     * Unix timestamp in seconds when the event occurred.
+     */
     eventTime: number;
+    /**
+     * The webhook schema version. `1.0.0` for all events.
+     */
     webhookSchemaVersion: "1.0.0";
   } & WebhookEventPayloads[Name];
 }[WebhookEventName];
