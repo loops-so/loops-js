@@ -71,6 +71,37 @@ try {
 }
 ```
 
+## Idempotency keys
+
+`sendEvent()` and `sendTransactionalEmail()` accept a `headers` option. Pass an `Idempotency-Key` header to make retries safe: if an earlier request from your team to the same endpoint reserved the key in the previous 24 hours, the API returns `409 Conflict` and the SDK throws an `APIError` with `statusCode` `409`. That request doesn't send the event or email. A request rejected before the key is reserved, such as an event with no `eventName`, doesn't use up the key.
+
+Keys can be up to 100 characters. Create one key for each event or email you send, such as a V4 UUID, store it, and reuse it only when you retry that send. A `409` means the key was already used, not that the earlier request succeeded.
+
+```javascript
+import { LoopsClient, APIError } from "loops";
+
+const loops = new LoopsClient(process.env.LOOPS_API_KEY);
+
+try {
+  await loops.sendTransactionalEmail({
+    transactionalId: "clfq6dinn000yl70fgwwyp82l",
+    email: "test@example.com",
+    headers: {
+      // The key you saved for this email, reused only for its retries
+      "Idempotency-Key": idempotencyKey,
+    },
+  });
+} catch (error) {
+  if (error instanceof APIError && error.statusCode === 409) {
+    // This key was used in the last 24 hours, so this request sent nothing.
+    // Don't mark the email as sent until you confirm the earlier request succeeded.
+  }
+  throw error;
+}
+```
+
+See the API reference for [sendEvent](https://loops.so/docs/api-reference/send-event#parameter-idempotency-key) and [sendTransactionalEmail](https://loops.so/docs/api-reference/send-transactional-email#parameter-idempotency-key).
+
 ## Default contact properties
 
 Each contact in Loops has a set of default properties. These will always be returned in API results.
@@ -85,6 +116,19 @@ Each contact in Loops has a set of default properties. These will always be retu
 - `userId`
 - `mailingLists`
 - `optInStatus`
+
+When you create or update a contact, put default properties like `firstName`, `lastName`, `subscribed`, `userGroup` and `source` inside `properties` (or `contactProperties` for `sendEvent()`), next to your custom properties. `email` and `mailingLists` are separate parameters, and so is `userId` for `updateContact()` and `sendEvent()`. For `createContact()`, pass `userId` inside `properties`. The SDK sends every property as a top-level field in the API request, which is the format the API expects.
+
+```javascript
+await loops.updateContact({
+  email: "test@example.com",
+  properties: {
+    firstName: "Bob",
+    subscribed: false,
+  },
+});
+// Request body: { "firstName": "Bob", "subscribed": false, "email": "test@example.com" }
+```
 
 ## Custom contact properties
 
@@ -214,7 +258,7 @@ Create a new contact.
 | Name           | Type   | Required | Notes                                                                                                                                                                                                                                                                                                                                                                                                                |
 | -------------- | ------ | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `email`        | string | Yes      | If a contact already exists with this email address, an error response will be returned.                                                                                                                                                                                                                                                                                                                             |
-| `properties`   | object | No       | An object containing default and any custom properties for your contact.<br />Please [add custom properties](https://loops.so/docs/contacts/properties#custom-contact-properties) in your Loops account before using them with the SDK.<br />Values can be of type `string`, `number`, `null` (to reset a value), `boolean` or `date` ([see allowed date formats](https://loops.so/docs/contacts/properties#dates)). |
+| `properties`   | object | No       | An object containing default properties (such as `firstName`, `lastName`, `subscribed`, `userGroup` and `source`) and any custom properties for your contact. Pass `subscribed` and other default properties here, not as top-level parameters.<br />Please [add custom properties](https://loops.so/docs/contacts/properties#custom-contact-properties) in your Loops account before using them with the SDK.<br />Values can be of type `string`, `number`, `null` (to reset a custom property) or `boolean`. Send dates as a Unix timestamp in milliseconds or a date string ([see allowed date formats](https://loops.so/docs/contacts/properties#dates)). |
 | `mailingLists` | object | No       | An object of mailing list IDs and boolean subscription statuses.                                                                                                                                                                                                                                                                                                                                                     |
 
 #### Examples
@@ -272,7 +316,7 @@ Note: To update a contact's email address, the contact requires a `userId` value
 | -------------- | ------ | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `email`        | string | No       | The email address of the contact to update. If there is no contact with this email address, a new contact will be created using the email and properties in this request. Required if `userId` is not present.                                                                                                                                                                                                       |
 | `userId`       | string | No       | The contact's unique user ID. If you use `userId` without `email`, this value must have already been added to your contact in Loops. Required if `email` is not present.                                                                                                                                                                                                                                             |
-| `properties`   | object | No       | An object containing default and any custom properties for your contact.<br />Please [add custom properties](https://loops.so/docs/contacts/properties#custom-contact-properties) in your Loops account before using them with the SDK.<br />Values can be of type `string`, `number`, `null` (to reset a value), `boolean` or `date` ([see allowed date formats](https://loops.so/docs/contacts/properties#dates)). |
+| `properties`   | object | No       | An object containing default properties (such as `firstName`, `lastName`, `subscribed`, `userGroup` and `source`) and any custom properties for your contact. Pass `subscribed` and other default properties here, not as top-level parameters.<br />Please [add custom properties](https://loops.so/docs/contacts/properties#custom-contact-properties) in your Loops account before using them with the SDK.<br />Values can be of type `string`, `number`, `null` (to reset a custom property) or `boolean`. Send dates as a Unix timestamp in milliseconds or a date string ([see allowed date formats](https://loops.so/docs/contacts/properties#dates)). |
 | `mailingLists` | object | No       | An object of mailing list IDs and boolean subscription statuses.                                                                                                                                                                                                                                                                                                                                                     |
 
 #### Example
@@ -720,7 +764,7 @@ Send an event to trigger an email in Loops. [Read more about events](https://loo
 | `email`             | string | No       | The contact's email address. Required if `userId` is not present.                                                                                                                                                                                                                                                                                                                                                                                              |
 | `userId`            | string | No       | The contact's unique user ID. If you use `userId` without `email`, this value must have already been added to your contact in Loops. Required if `email` is not present.                                                                                                                                                                                                                                                                                       |
 | `eventName`         | string | Yes      |                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
-| `contactProperties` | object | No       | An object containing contact properties, which will be updated or added to the contact when the event is received.<br />Please [add custom properties](https://loops.so/docs/contacts/properties#custom-contact-properties) in your Loops account before using them with the SDK.<br />Values can be of type `string`, `number`, `null` (to reset a value), `boolean` or `date` ([see allowed date formats](https://loops.so/docs/contacts/properties#dates)). |
+| `contactProperties` | object | No       | An object containing default properties (such as `firstName` and `subscribed`) and custom properties, which will be updated or added to the contact when the event is received.<br />Please [add custom properties](https://loops.so/docs/contacts/properties#custom-contact-properties) in your Loops account before using them with the SDK.<br />Values can be of type `string`, `number`, `null` (to reset a custom property) or `boolean`. Send dates as a Unix timestamp in milliseconds or a date string ([see allowed date formats](https://loops.so/docs/contacts/properties#dates)). |
 | `eventProperties`   | object | No       | An object containing event properties, which will be made available in emails that are triggered by this event.<br />Values can be of type `string`, `number`, `boolean` or `date` ([see allowed date formats](https://loops.so/docs/events/properties#important-information-about-event-properties)).                                                                                                                                                         |
 | `mailingLists`      | object | No       | An object of mailing list IDs and boolean subscription statuses.                                                                                                                                                                                                                                                                                                                                                                                               |
 | `headers`           | object | No       | Additional headers to send with the request.                                                                                                                                                                                                                                                                                                                                                                                                                   |
