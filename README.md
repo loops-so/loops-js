@@ -48,6 +48,38 @@ try {
 }
 ```
 
+## Webhook payload types
+
+Import `WebhookEvent` to handle the payloads described in the
+[webhooks guide](https://loops.so/docs/webhooks). Checking `eventName` narrows the
+available fields, and email events also narrow their identifier by `sourceType`.
+
+```typescript
+import type { WebhookEvent } from "loops";
+
+function handleWebhook(event: WebhookEvent) {
+  switch (event.eventName) {
+    case "contact.created":
+      console.log("New contact", event.contact.email);
+      break;
+    case "email.delivered":
+      if (event.sourceType === "transactional") {
+        console.log("Transactional email delivered", event.transactionalId);
+      }
+      break;
+    case "testing.testEvent":
+      console.log(event.message);
+      break;
+  }
+}
+```
+
+These are TypeScript types, not a signature verifier or runtime JSON validator.
+Verify incoming requests using the [webhooks guide](https://loops.so/docs/webhooks#verify-requests)
+before processing them; a type assertion alone does not validate a request.
+Workflow payloads retain the `loop.email.sent`, `loopId`, and `loopName` names for
+compatibility.
+
 ## Handling rate limits
 
 If you import `RateLimitExceededError` you can check for rate limit issues with your requests.
