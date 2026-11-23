@@ -1,6 +1,6 @@
 {
   "name": "loops",
-  "version": "8.0.0",
+  "version": "8.1.0",
   "author": "Dan Rowden <dan@loops.so>",
   "license": "MIT",
   "main": "./dist/index.cjs",

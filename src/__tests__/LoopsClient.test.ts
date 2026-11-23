@@ -1681,6 +1681,48 @@ describe("LoopsClient", () => {
       );
     });
 
+    it("should update an email message footer", async () => {
+      const mockResponse = {
+        id: "clm9x3o5q002yl70a8b3c4d5e",
+        campaignId: "cln0y4p6r003yl70i1j2k3l4m",
+        subject: "Hello",
+        previewText: "Preview text",
+        fromName: "Loops",
+        fromEmail: "hello",
+        replyToEmail: "",
+        emailFormat: "styled",
+        lmx: "<Email />",
+        footerId: "clf0o1t2e3r4i5d6a7b8c9d0",
+        contentRevisionId: "clv8g2x4z012yl70n5o6p7q8r",
+        updatedAt: "2025-01-02T00:00:00.000Z",
+      };
+
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        text: () => Promise.resolve(JSON.stringify(mockResponse)),
+      });
+
+      const result = await client.updateEmailMessage(
+        "clm9x3o5q002yl70a8b3c4d5e",
+        {
+          expectedRevisionId: "clv8g2x4z012yl70n5o6p7q8r",
+          footerId: "clf0o1t2e3r4i5d6a7b8c9d0",
+        }
+      );
+
+      expect(result).toEqual(mockResponse);
+      expect(fetch).toHaveBeenCalledWith(
+        expect.stringContaining("v1/email-messages/clm9x3o5q002yl70a8b3c4d5e"),
+        expect.objectContaining({
+          method: "POST",
+          body: JSON.stringify({
+            expectedRevisionId: "clv8g2x4z012yl70n5o6p7q8r",
+            footerId: "clf0o1t2e3r4i5d6a7b8c9d0",
+          }),
+        })
+      );
+    });
+
     it("should handle API errors", async () => {
       const mockResponse = {
         success: false,
@@ -1819,6 +1861,328 @@ describe("LoopsClient", () => {
         expect.objectContaining({
           method: "POST",
           body: JSON.stringify({ lmx: "<Section updated />" }),
+        })
+      );
+    });
+  });
+
+  describe("listFooters", () => {
+    it("should list footers", async () => {
+      const mockResponse = {
+        pagination: {
+          totalResults: 1,
+          returnedResults: 1,
+          perPage: 20,
+          totalPages: 1,
+          nextCursor: null,
+          nextPage: null,
+        },
+        data: [
+          {
+            id: "clf0o1t2e3r4i5d6a7b8c9d0",
+            name: "Main footer",
+            isDefault: true,
+            placement: "inside",
+            createdAt: "2026-10-27T10:00:00.000Z",
+            updatedAt: "2026-11-02T08:30:00.000Z",
+          },
+        ],
+      };
+
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        text: () => Promise.resolve(JSON.stringify(mockResponse)),
+      });
+
+      const result = await client.listFooters({ perPage: 20 });
+
+      expect(result).toEqual(mockResponse);
+      expect(fetch).toHaveBeenCalledWith(
+        expect.stringContaining("v1/footers"),
+        expect.objectContaining({ method: "GET" })
+      );
+    });
+  });
+
+  describe("getFooter", () => {
+    it("should get a footer with variants", async () => {
+      const mockResponse = {
+        id: "clf0o1t2e3r4i5d6a7b8c9d0",
+        name: "Main footer",
+        isDefault: true,
+        placement: "inside",
+        createdAt: "2026-10-27T10:00:00.000Z",
+        updatedAt: "2026-11-02T08:30:00.000Z",
+        variants: [
+          {
+            id: "clv1a2r3i4a5n6t7i8d9e0f1",
+            footerId: "clf0o1t2e3r4i5d6a7b8c9d0",
+            contentRevisionId: "clr2e3v4i5s6i7o8n9i0d1e2",
+            publishedAt: "2026-11-02T08:30:00.000Z",
+            createdAt: "2026-10-27T10:00:00.000Z",
+            draftLmx: "{system.company_name}",
+            publishedLmx: "{system.company_name}",
+            updatedAt: "2026-11-02T08:30:00.000Z",
+          },
+        ],
+      };
+
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        text: () => Promise.resolve(JSON.stringify(mockResponse)),
+      });
+
+      const result = await client.getFooter("clf0o1t2e3r4i5d6a7b8c9d0");
+
+      expect(result).toEqual(mockResponse);
+      expect(fetch).toHaveBeenCalledWith(
+        expect.stringContaining("v1/footers/clf0o1t2e3r4i5d6a7b8c9d0"),
+        expect.objectContaining({ method: "GET" })
+      );
+    });
+  });
+
+  describe("createFooter", () => {
+    it("should create a footer", async () => {
+      const mockResponse = {
+        id: "clf0o1t2e3r4i5d6a7b8c9d0",
+        name: "Main footer",
+        isDefault: false,
+        placement: "inside",
+        createdAt: "2026-10-27T10:00:00.000Z",
+        updatedAt: "2026-10-27T10:00:00.000Z",
+        variants: [
+          {
+            id: "clv1a2r3i4a5n6t7i8d9e0f1",
+            footerId: "clf0o1t2e3r4i5d6a7b8c9d0",
+            contentRevisionId: "clr2e3v4i5s6i7o8n9i0d1e2",
+            publishedAt: null,
+            createdAt: "2026-10-27T10:00:00.000Z",
+            draftLmx: "{system.company_name}",
+            publishedLmx: null,
+            updatedAt: "2026-10-27T10:00:00.000Z",
+          },
+        ],
+      };
+
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        status: 201,
+        text: () => Promise.resolve(JSON.stringify(mockResponse)),
+      });
+
+      const result = await client.createFooter({ name: "Main footer" });
+
+      expect(result).toEqual(mockResponse);
+      expect(fetch).toHaveBeenCalledWith(
+        expect.stringContaining("v1/footers"),
+        expect.objectContaining({
+          method: "POST",
+          body: JSON.stringify({ name: "Main footer" }),
+        })
+      );
+    });
+  });
+
+  describe("updateFooter", () => {
+    it("should update a footer", async () => {
+      const mockResponse = {
+        id: "clf0o1t2e3r4i5d6a7b8c9d0",
+        name: "Marketing footer",
+        isDefault: false,
+        placement: "below",
+        createdAt: "2026-10-27T10:00:00.000Z",
+        updatedAt: "2026-11-02T08:30:00.000Z",
+        variants: [],
+      };
+
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        text: () => Promise.resolve(JSON.stringify(mockResponse)),
+      });
+
+      const result = await client.updateFooter("clf0o1t2e3r4i5d6a7b8c9d0", {
+        name: "Marketing footer",
+        placement: "below",
+      });
+
+      expect(result).toEqual(mockResponse);
+      expect(fetch).toHaveBeenCalledWith(
+        expect.stringContaining("v1/footers/clf0o1t2e3r4i5d6a7b8c9d0"),
+        expect.objectContaining({
+          method: "POST",
+          body: JSON.stringify({
+            name: "Marketing footer",
+            placement: "below",
+          }),
+        })
+      );
+    });
+  });
+
+  describe("deleteFooter", () => {
+    it("should delete a footer", async () => {
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        status: 204,
+        text: () => Promise.resolve(""),
+      });
+
+      const result = await client.deleteFooter("clf0o1t2e3r4i5d6a7b8c9d0");
+
+      expect(result).toBeUndefined();
+      expect(fetch).toHaveBeenCalledWith(
+        expect.stringContaining("v1/footers/clf0o1t2e3r4i5d6a7b8c9d0"),
+        expect.objectContaining({ method: "DELETE" })
+      );
+    });
+  });
+
+  describe("setDefaultFooter", () => {
+    it("should set the default footer", async () => {
+      const mockResponse = {
+        id: "clf0o1t2e3r4i5d6a7b8c9d0",
+        name: "Main footer",
+        isDefault: true,
+        placement: "inside",
+        createdAt: "2026-10-27T10:00:00.000Z",
+        updatedAt: "2026-11-02T08:30:00.000Z",
+        variants: [],
+        updatedEmailCount: 12,
+      };
+
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        text: () => Promise.resolve(JSON.stringify(mockResponse)),
+      });
+
+      const result = await client.setDefaultFooter("clf0o1t2e3r4i5d6a7b8c9d0", {
+        existingEmails: "all",
+      });
+
+      expect(result).toEqual(mockResponse);
+      expect(fetch).toHaveBeenCalledWith(
+        expect.stringContaining(
+          "v1/footers/clf0o1t2e3r4i5d6a7b8c9d0/set-default"
+        ),
+        expect.objectContaining({
+          method: "POST",
+          body: JSON.stringify({ existingEmails: "all" }),
+        })
+      );
+    });
+  });
+
+  describe("getFooterVariant", () => {
+    it("should get a footer variant", async () => {
+      const mockResponse = {
+        id: "clv1a2r3i4a5n6t7i8d9e0f1",
+        footerId: "clf0o1t2e3r4i5d6a7b8c9d0",
+        contentRevisionId: "clr2e3v4i5s6i7o8n9i0d1e2",
+        publishedAt: "2026-11-02T08:30:00.000Z",
+        createdAt: "2026-10-27T10:00:00.000Z",
+        draftLmx: "{system.company_name}",
+        publishedLmx: "{system.company_name}",
+        updatedAt: "2026-11-02T08:30:00.000Z",
+      };
+
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        text: () => Promise.resolve(JSON.stringify(mockResponse)),
+      });
+
+      const result = await client.getFooterVariant(
+        "clf0o1t2e3r4i5d6a7b8c9d0",
+        "clv1a2r3i4a5n6t7i8d9e0f1"
+      );
+
+      expect(result).toEqual(mockResponse);
+      expect(fetch).toHaveBeenCalledWith(
+        expect.stringContaining(
+          "v1/footers/clf0o1t2e3r4i5d6a7b8c9d0/variants/clv1a2r3i4a5n6t7i8d9e0f1"
+        ),
+        expect.objectContaining({ method: "GET" })
+      );
+    });
+  });
+
+  describe("updateFooterVariant", () => {
+    it("should update a footer variant", async () => {
+      const mockResponse = {
+        id: "clv1a2r3i4a5n6t7i8d9e0f1",
+        footerId: "clf0o1t2e3r4i5d6a7b8c9d0",
+        contentRevisionId: "clr3f4w5j6t7k8p9q0r1s2t3",
+        publishedAt: "2026-11-02T08:30:00.000Z",
+        createdAt: "2026-10-27T10:00:00.000Z",
+        draftLmx: "{system.company_name} Unsubscribe",
+        publishedLmx: "{system.company_name}",
+        updatedAt: "2026-11-03T08:30:00.000Z",
+      };
+
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        text: () => Promise.resolve(JSON.stringify(mockResponse)),
+      });
+
+      const result = await client.updateFooterVariant(
+        "clf0o1t2e3r4i5d6a7b8c9d0",
+        "clv1a2r3i4a5n6t7i8d9e0f1",
+        {
+          expectedRevisionId: "clr2e3v4i5s6i7o8n9i0d1e2",
+          lmx: "{system.company_name} Unsubscribe",
+        }
+      );
+
+      expect(result).toEqual(mockResponse);
+      expect(fetch).toHaveBeenCalledWith(
+        expect.stringContaining(
+          "v1/footers/clf0o1t2e3r4i5d6a7b8c9d0/variants/clv1a2r3i4a5n6t7i8d9e0f1"
+        ),
+        expect.objectContaining({
+          method: "POST",
+          body: JSON.stringify({
+            expectedRevisionId: "clr2e3v4i5s6i7o8n9i0d1e2",
+            lmx: "{system.company_name} Unsubscribe",
+          }),
+        })
+      );
+    });
+  });
+
+  describe("publishFooterVariant", () => {
+    it("should publish a footer variant", async () => {
+      const mockResponse = {
+        id: "clv1a2r3i4a5n6t7i8d9e0f1",
+        footerId: "clf0o1t2e3r4i5d6a7b8c9d0",
+        contentRevisionId: "clr3f4w5j6t7k8p9q0r1s2t3",
+        publishedAt: "2026-11-03T08:30:00.000Z",
+        createdAt: "2026-10-27T10:00:00.000Z",
+        draftLmx: "{system.company_name}",
+        publishedLmx: "{system.company_name}",
+        updatedAt: "2026-11-03T08:30:00.000Z",
+      };
+
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        text: () => Promise.resolve(JSON.stringify(mockResponse)),
+      });
+
+      const result = await client.publishFooterVariant(
+        "clf0o1t2e3r4i5d6a7b8c9d0",
+        "clv1a2r3i4a5n6t7i8d9e0f1",
+        { expectedRevisionId: "clr2e3v4i5s6i7o8n9i0d1e2" }
+      );
+
+      expect(result).toEqual(mockResponse);
+      expect(fetch).toHaveBeenCalledWith(
+        expect.stringContaining(
+          "v1/footers/clf0o1t2e3r4i5d6a7b8c9d0/variants/clv1a2r3i4a5n6t7i8d9e0f1/publish"
+        ),
+        expect.objectContaining({
+          method: "POST",
+          body: JSON.stringify({
+            expectedRevisionId: "clr2e3v4i5s6i7o8n9i0d1e2",
+          }),
         })
       );
     });

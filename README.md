@@ -159,6 +159,15 @@ You can use custom contact properties in API calls. Please make sure to [add cus
 - [getComponent()](#getcomponent)
 - [createComponent()](#createcomponent)
 - [updateComponent()](#updatecomponent)
+- [listFooters()](#listfooters)
+- [getFooter()](#getfooter)
+- [createFooter()](#createfooter)
+- [updateFooter()](#updatefooter)
+- [deleteFooter()](#deletefooter)
+- [setDefaultFooter()](#setdefaultfooter)
+- [getFooterVariant()](#getfootervariant)
+- [updateFooterVariant()](#updatefootervariant)
+- [publishFooterVariant()](#publishfootervariant)
 - [listCampaigns()](#listcampaigns)
 - [createCampaign()](#createcampaign)
 - [getCampaign()](#getcampaign)
@@ -1559,6 +1568,377 @@ const resp = await loops.updateComponent("clp2a6r8t005yl70d7e8f9g0h", {
 
 ---
 
+### listFooters()
+
+Retrieve a paginated list of footers, most recently created first.
+[API Reference](https://loops.so/docs/api-reference/list-footers)
+
+#### Parameters
+
+| Name      | Type    | Required | Notes                                                                                                                         |
+| --------- | ------- | -------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `perPage` | integer | No       | How many results to return per page. Must be between 10 and 50. Defaults to 20 if omitted.                                    |
+| `cursor`  | string  | No       | A cursor, to return a specific page of results. Cursors can be found from the `pagination.nextCursor` value in each response. |
+
+#### Example
+
+```javascript
+const resp = await loops.listFooters();
+
+const resp = await loops.listFooters({ perPage: 15, cursor: "clyo0q4wo01p59fsecyxqsh38" });
+```
+
+#### Response
+
+```json
+{
+  "pagination": {
+    "totalResults": 1,
+    "returnedResults": 1,
+    "perPage": 20,
+    "totalPages": 1,
+    "nextCursor": null,
+    "nextPage": null
+  },
+  "data": [
+    {
+      "id": "clf0o1t2e3r4i5d6a7b8c9d0",
+      "name": "Main footer",
+      "isDefault": true,
+      "placement": "inside",
+      "createdAt": "2026-10-27T10:00:00.000Z",
+      "updatedAt": "2026-11-02T08:30:00.000Z"
+    }
+  ]
+}
+```
+
+Error handling is done through the `APIError` class, which provides `statusCode` and `json` properties containing the API's error response details. For implementation examples, see the [Usage section](#usage).
+
+---
+
+### getFooter()
+
+Retrieve a single footer by ID, including its variants.
+[API Reference](https://loops.so/docs/api-reference/get-footer)
+
+#### Parameters
+
+| Name       | Type   | Required | Notes                 |
+| ---------- | ------ | -------- | --------------------- |
+| `footerId` | string | Yes      | The ID of the footer. |
+
+#### Example
+
+```javascript
+const resp = await loops.getFooter("clf0o1t2e3r4i5d6a7b8c9d0");
+```
+
+#### Response
+
+```json
+{
+  "id": "clf0o1t2e3r4i5d6a7b8c9d0",
+  "name": "Main footer",
+  "isDefault": true,
+  "placement": "inside",
+  "createdAt": "2026-10-27T10:00:00.000Z",
+  "updatedAt": "2026-11-02T08:30:00.000Z",
+  "variants": [
+    {
+      "id": "clv1a2r3i4a5n6t7i8d9e0f1",
+      "footerId": "clf0o1t2e3r4i5d6a7b8c9d0",
+      "contentRevisionId": "clr2e3v4i5s6i7o8n9i0d1e2",
+      "publishedAt": "2026-11-02T08:30:00.000Z",
+      "createdAt": "2026-10-27T10:00:00.000Z",
+      "draftLmx": "{system.company_name}, {system.company_address}. <Link href=\"{system.unsubscribe_link}\">Unsubscribe</Link>",
+      "publishedLmx": "{system.company_name}, {system.company_address}. <Link href=\"{system.unsubscribe_link}\">Unsubscribe</Link>",
+      "updatedAt": "2026-11-02T08:30:00.000Z"
+    }
+  ]
+}
+```
+
+Error handling is done through the `APIError` class, which provides `statusCode` and `json` properties containing the API's error response details. For implementation examples, see the [Usage section](#usage).
+
+---
+
+### createFooter()
+
+Create a footer with one variant. The variant starts with an unpublished draft that includes the company name, company address and unsubscribe link. Emails cannot use the footer until you publish the variant.
+[API Reference](https://loops.so/docs/api-reference/create-footer)
+
+#### Parameters
+
+| Name   | Type   | Required | Notes                                                         |
+| ------ | ------ | -------- | ------------------------------------------------------------- |
+| `name` | string | No       | The name of the footer. Defaults to "Custom footer" if omitted. |
+
+#### Example
+
+```javascript
+const resp = await loops.createFooter({
+  name: "Main footer",
+});
+```
+
+#### Response
+
+```json
+{
+  "id": "clf0o1t2e3r4i5d6a7b8c9d0",
+  "name": "Main footer",
+  "isDefault": false,
+  "placement": "inside",
+  "createdAt": "2026-10-27T10:00:00.000Z",
+  "updatedAt": "2026-10-27T10:00:00.000Z",
+  "variants": [
+    {
+      "id": "clv1a2r3i4a5n6t7i8d9e0f1",
+      "footerId": "clf0o1t2e3r4i5d6a7b8c9d0",
+      "contentRevisionId": "clr2e3v4i5s6i7o8n9i0d1e2",
+      "publishedAt": null,
+      "createdAt": "2026-10-27T10:00:00.000Z",
+      "draftLmx": "{system.company_name}, {system.company_address}. <Link href=\"{system.unsubscribe_link}\">Unsubscribe</Link>",
+      "publishedLmx": null,
+      "updatedAt": "2026-10-27T10:00:00.000Z"
+    }
+  ]
+}
+```
+
+---
+
+### updateFooter()
+
+Update a footer's name or placement. Changes apply at once, including to running workflows. Emails already sent don't change. To change the default footer, use [`setDefaultFooter()`](#setdefaultfooter).
+[API Reference](https://loops.so/docs/api-reference/update-footer)
+
+#### Parameters
+
+| Name         | Type   | Required | Notes                                                                                      |
+| ------------ | ------ | -------- | ------------------------------------------------------------------------------------------ |
+| `footerId`   | string | Yes      | The ID of the footer.                                                                      |
+| `name`       | string | No       | The new name of the footer.                                                                |
+| `placement`  | string | No       | Whether the footer is rendered inside the email body (`inside`) or below it (`below`).     |
+
+#### Example
+
+```javascript
+const resp = await loops.updateFooter("clf0o1t2e3r4i5d6a7b8c9d0", {
+  name: "Marketing footer",
+  placement: "below",
+});
+```
+
+#### Response
+
+```json
+{
+  "id": "clf0o1t2e3r4i5d6a7b8c9d0",
+  "name": "Marketing footer",
+  "isDefault": false,
+  "placement": "below",
+  "createdAt": "2026-10-27T10:00:00.000Z",
+  "updatedAt": "2026-11-02T08:30:00.000Z",
+  "variants": []
+}
+```
+
+---
+
+### deleteFooter()
+
+Delete a footer and its variants. You cannot delete the team's default footer or a footer that emails use.
+[API Reference](https://loops.so/docs/api-reference/delete-footer)
+
+#### Parameters
+
+| Name       | Type   | Required | Notes                 |
+| ---------- | ------ | -------- | --------------------- |
+| `footerId` | string | Yes      | The ID of the footer. |
+
+#### Example
+
+```javascript
+await loops.deleteFooter("clf0o1t2e3r4i5d6a7b8c9d0");
+```
+
+#### Response
+
+No response body (`204`).
+
+Error handling is done through the `APIError` class, which provides `statusCode` and `json` properties containing the API's error response details. For implementation examples, see the [Usage section](#usage).
+
+```json
+HTTP 409 Conflict
+{
+  "message": "3 emails use the footer. Change their footer before you delete it.",
+  "emailCount": 3
+}
+```
+
+---
+
+### setDefaultFooter()
+
+Make a published footer the team's default footer. New campaign and workflow emails use the default footer. `existingEmails` picks which existing emails switch to it.
+[API Reference](https://loops.so/docs/api-reference/set-default-footer)
+
+#### Parameters
+
+| Name             | Type   | Required | Notes                                                                                                                                                                              |
+| ---------------- | ------ | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `footerId`       | string | Yes      | The ID of the footer.                                                                                                                                                              |
+| `existingEmails` | string | Yes      | Which existing campaign and workflow emails switch to this footer: `previousDefault`, `all`, or `none`. With `none`, existing emails keep their footer and only new emails use this footer. |
+
+#### Example
+
+```javascript
+const resp = await loops.setDefaultFooter("clf0o1t2e3r4i5d6a7b8c9d0", {
+  existingEmails: "all",
+});
+```
+
+#### Response
+
+```json
+{
+  "id": "clf0o1t2e3r4i5d6a7b8c9d0",
+  "name": "Main footer",
+  "isDefault": true,
+  "placement": "inside",
+  "createdAt": "2026-10-27T10:00:00.000Z",
+  "updatedAt": "2026-11-02T08:30:00.000Z",
+  "variants": [],
+  "updatedEmailCount": 12
+}
+```
+
+---
+
+### getFooterVariant()
+
+Retrieve a footer variant's draft and published content as LMX.
+[API Reference](https://loops.so/docs/api-reference/get-footer-variant)
+
+#### Parameters
+
+| Name        | Type   | Required | Notes                  |
+| ----------- | ------ | -------- | ---------------------- |
+| `footerId`  | string | Yes      | The ID of the footer.  |
+| `variantId` | string | Yes      | The ID of the variant. |
+
+#### Example
+
+```javascript
+const resp = await loops.getFooterVariant(
+  "clf0o1t2e3r4i5d6a7b8c9d0",
+  "clv1a2r3i4a5n6t7i8d9e0f1"
+);
+```
+
+#### Response
+
+```json
+{
+  "id": "clv1a2r3i4a5n6t7i8d9e0f1",
+  "footerId": "clf0o1t2e3r4i5d6a7b8c9d0",
+  "contentRevisionId": "clr2e3v4i5s6i7o8n9i0d1e2",
+  "publishedAt": "2026-11-02T08:30:00.000Z",
+  "createdAt": "2026-10-27T10:00:00.000Z",
+  "draftLmx": "{system.company_name}, {system.company_address}. <Link href=\"{system.unsubscribe_link}\">Unsubscribe</Link>",
+  "publishedLmx": "{system.company_name}, {system.company_address}. <Link href=\"{system.unsubscribe_link}\">Unsubscribe</Link>",
+  "updatedAt": "2026-11-02T08:30:00.000Z"
+}
+```
+
+---
+
+### updateFooterVariant()
+
+Update a footer variant's draft LMX content. Emails keep the variant's published content until you publish the updated variant.
+[API Reference](https://loops.so/docs/api-reference/update-footer-variant)
+
+#### Parameters
+
+| Name                 | Type   | Required | Notes                                              |
+| -------------------- | ------ | -------- | -------------------------------------------------- |
+| `footerId`           | string | Yes      | The ID of the footer.                              |
+| `variantId`          | string | Yes      | The ID of the variant.                             |
+| `expectedRevisionId` | string | Yes      | The `contentRevisionId` you last fetched.          |
+| `lmx`                | string | Yes      | The new draft content as LMX.                      |
+
+#### Example
+
+```javascript
+const resp = await loops.updateFooterVariant(
+  "clf0o1t2e3r4i5d6a7b8c9d0",
+  "clv1a2r3i4a5n6t7i8d9e0f1",
+  {
+    expectedRevisionId: "clr2e3v4i5s6i7o8n9i0d1e2",
+    lmx: "{system.company_name}, {system.company_address}. <Link href=\"{system.unsubscribe_link}\">Unsubscribe</Link>",
+  }
+);
+```
+
+#### Response
+
+```json
+{
+  "id": "clv1a2r3i4a5n6t7i8d9e0f1",
+  "footerId": "clf0o1t2e3r4i5d6a7b8c9d0",
+  "contentRevisionId": "clr3f4w5j6t7k8p9q0r1s2t3",
+  "publishedAt": "2026-11-02T08:30:00.000Z",
+  "createdAt": "2026-10-27T10:00:00.000Z",
+  "draftLmx": "{system.company_name}, {system.company_address}. <Link href=\"{system.unsubscribe_link}\">Unsubscribe</Link>",
+  "publishedLmx": "{system.company_name}, {system.company_address}. <Link href=\"{system.unsubscribe_link}\">Unsubscribe</Link>",
+  "updatedAt": "2026-11-03T08:30:00.000Z"
+}
+```
+
+---
+
+### publishFooterVariant()
+
+Publish the variant's draft LMX content so emails that use the footer immediately use it. The draft must include `{system.company_name}` and `{system.company_address}` in the text, and `{system.unsubscribe_link}` as the URL of a link or button.
+[API Reference](https://loops.so/docs/api-reference/publish-footer-variant)
+
+#### Parameters
+
+| Name                 | Type   | Required | Notes                                     |
+| -------------------- | ------ | -------- | ----------------------------------------- |
+| `footerId`           | string | Yes      | The ID of the footer.                     |
+| `variantId`          | string | Yes      | The ID of the variant.                    |
+| `expectedRevisionId` | string | Yes      | The `contentRevisionId` you last fetched. |
+
+#### Example
+
+```javascript
+const resp = await loops.publishFooterVariant(
+  "clf0o1t2e3r4i5d6a7b8c9d0",
+  "clv1a2r3i4a5n6t7i8d9e0f1",
+  { expectedRevisionId: "clr2e3v4i5s6i7o8n9i0d1e2" }
+);
+```
+
+#### Response
+
+```json
+{
+  "id": "clv1a2r3i4a5n6t7i8d9e0f1",
+  "footerId": "clf0o1t2e3r4i5d6a7b8c9d0",
+  "contentRevisionId": "clr3f4w5j6t7k8p9q0r1s2t3",
+  "publishedAt": "2026-11-03T08:30:00.000Z",
+  "createdAt": "2026-10-27T10:00:00.000Z",
+  "draftLmx": "{system.company_name}, {system.company_address}. <Link href=\"{system.unsubscribe_link}\">Unsubscribe</Link>",
+  "publishedLmx": "{system.company_name}, {system.company_address}. <Link href=\"{system.unsubscribe_link}\">Unsubscribe</Link>",
+  "updatedAt": "2026-11-03T08:30:00.000Z"
+}
+```
+
+---
+
 ### listCampaigns()
 
 Retrieve a paginated list of campaigns.
@@ -1843,6 +2223,7 @@ const resp = await loops.getEmailMessage("clm9x3o5q002yl70a8b3c4d5e");
   "replyToEmail": "",
   "emailFormat": "styled",
   "lmx": "<H1>...</H1><Paragraph>...</Paragraph>",
+  "footerId": "clf0o1t2e3r4i5d6a7b8c9d0",
   "contentRevisionId": "clv8g2x4z012yl70n5o6p7q8r",
   "updatedAt": "2025-01-01T00:00:00.000Z"
 }
@@ -1872,6 +2253,7 @@ Update fields on an email message (subject, preview text, sender, LMX content). 
 | `bccEmail`                     | string | No       | BCC email address. Requires CC/BCC to be enabled for your team.                                                                               |
 | `languageCode`                 | string | No       | Language code for the email. Requires translation to be enabled for your team.                                                                 |
 | `emailFormat`                  | string | No       | The rendering format: `styled` or `plain`.                                                                                                   |
+| `footerId`                     | string \| null | No | Apply a specific footer to this email message. Use `null` for the system default footer. Omit to keep the current footer. Only for teams with footers enabled, and only for campaign and workflow emails. |
 | `lmx`                          | string | No       | The email body serialized as LMX. Styles must be embedded in the LMX `<Style />` tag.                                                          |
 | `contactPropertiesFallbacks`   | object | No       | Fallback values for contact properties, keyed by property name.                                                                                |
 | `eventPropertiesFallbacks`     | object | No       | Fallback values for event properties, keyed by property name.                                                                                  |
@@ -1903,6 +2285,7 @@ const resp = await loops.updateEmailMessage("clm9x3o5q002yl70a8b3c4d5e", {
   "replyToEmail": "",
   "emailFormat": "styled",
   "lmx": "<H1>...</H1><Paragraph>...</Paragraph>",
+  "footerId": "clf0o1t2e3r4i5d6a7b8c9d0",
   "contentRevisionId": "clv8g2x4z013yl70s9t0u1v2w",
   "updatedAt": "2025-01-02T00:00:00.000Z",
   "warnings": [
@@ -3522,7 +3905,11 @@ const resp = await loops.completeUpload("cla3s5s7e9t1i3d5f7g9h1j3");
 
 ## Version history
 
-- `v8.0.0` (Nov 12, 2026) - Added [`verifyWebhook()`](#verifying-webhooks). Updated minimum Node version to 20.0.0.
+- `v8.1.0` (Nov 23, 2026)
+  - Aligned with OpenAPI 1.24.0.
+  - Added footers ([`listFooters()`](#listfooters), [`getFooter()`](#getfooter), [`createFooter()`](#createfooter), [`updateFooter()`](#updatefooter), [`deleteFooter()`](#deletefooter), [`setDefaultFooter()`](#setdefaultfooter), [`getFooterVariant()`](#getfootervariant), [`updateFooterVariant()`](#updatefootervariant), [`publishFooterVariant()`](#publishfootervariant)).
+  - Expanded [`updateEmailMessage()`](#updateemailmessage) and email message responses with `footerId`.
+- `v8.0.0` (Nov 23, 2026) - Added [`verifyWebhook()`](#verifying-webhooks). Updated minimum Node version to 20.0.0.
 - `v7.5.0` (Nov 9, 2026)
   - Aligned with OpenAPI 1.23.0.
   - Added [`renderEmailMessage()`](#renderemailmessage) to render an email message as HTML without sending it.

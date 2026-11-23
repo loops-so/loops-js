@@ -974,6 +974,86 @@ interface UpdateComponentResponse extends ComponentResponse {
   affectedEmailCount: number;
 }
 
+type FooterPlacement = "inside" | "below";
+
+type SetDefaultFooterExistingEmails = "previousDefault" | "all" | "none";
+
+interface Footer {
+  /** The ID of the footer. */
+  id: string;
+  /** The name of the footer. */
+  name: string;
+  /**
+   * Whether this is the team's default footer. New campaign and workflow emails
+   * use the default footer.
+   */
+  isDefault: boolean;
+  /**
+   * Whether the footer is rendered inside the email body (`inside`) or below it
+   * (`below`).
+   */
+  placement: FooterPlacement;
+  /** ISO 8601 timestamp for when the footer was created. */
+  createdAt: string;
+  /**
+   * ISO 8601 timestamp for when the footer's own fields last changed, such as
+   * its name or placement. Not changed when a variant is updated.
+   */
+  updatedAt: string;
+}
+
+interface FooterVariant {
+  /** The ID of the variant. */
+  id: string;
+  /** The ID of the footer the variant belongs to. */
+  footerId: string;
+  /**
+   * The variant's current content revision. Pass it as `expectedRevisionId`
+   * when you update or publish the variant.
+   */
+  contentRevisionId: string;
+  /**
+   * ISO 8601 timestamp for when the variant was last published. `null` if it
+   * was never published.
+   */
+  publishedAt: string | null;
+  /** ISO 8601 timestamp for when the variant was created. */
+  createdAt: string;
+  /** The draft content as LMX. */
+  draftLmx: string;
+  /**
+   * The published content as LMX. `null` if the variant was never published.
+   */
+  publishedLmx: string | null;
+  /**
+   * ISO 8601 timestamp for when the variant's draft or published content last
+   * changed.
+   */
+  updatedAt: string;
+}
+
+interface FooterWithVariants extends Footer {
+  /**
+   * The footer's content variants. A footer has at most one variant. A footer
+   * created before variants has none.
+   */
+  variants: FooterVariant[];
+}
+
+interface ListFootersResponse {
+  /** Pagination metadata for the result set. */
+  pagination: PaginationData;
+  /** The footers returned for this page. */
+  data: Footer[];
+}
+
+type FooterResponse = FooterWithVariants;
+
+interface SetDefaultFooterResponse extends FooterWithVariants {
+  /** How many existing emails switched to this footer. */
+  updatedEmailCount: number;
+}
+
 interface Campaign {
   /** The ID of the campaign. */
   id: string;
@@ -1065,6 +1145,12 @@ interface EmailMessageResponse {
   emailFormat: "styled" | "plain";
   /** The email body serialized as LMX. */
   lmx: string;
+  /**
+   * The ID of the email's footer, or `null` for the system default footer.
+   * Only present for workflow emails and campaign emails that are not critical
+   * notices, when footers are enabled for the team.
+   */
+  footerId?: string | null;
   /**
    * The current content revision. Pass this as `expectedRevisionId` on your
    * next update.
@@ -2315,6 +2401,244 @@ class LoopsClient {
   }
 
   /**
+   * List footers.
+   *
+   * @param {Object} params
+   * @param {number} [params.perPage] How many results to return in each request. Must be between 10 and 50. Defaults to 20.
+   * @param {string} [params.cursor] A cursor, to return a specific page of results. Cursors can be found from the `pagination.nextCursor` value in each response.
+   *
+   * @see https://loops.so/docs/api-reference/list-footers
+   *
+   * @returns {Object} List of footers (JSON)
+   */
+  async listFooters({
+    perPage,
+    cursor,
+  }: {
+    perPage?: number;
+    cursor?: string;
+  } = {}): Promise<ListFootersResponse> {
+    const params: { perPage: string; cursor?: string } = {
+      perPage: (perPage || 20).toString(),
+    };
+    if (cursor) params["cursor"] = cursor;
+    return this._makeQuery({
+      path: "v1/footers",
+      params,
+    });
+  }
+
+  /**
+   * Get a footer by ID, including its variants.
+   *
+   * @param {string} footerId The ID of the footer.
+   *
+   * @see https://loops.so/docs/api-reference/get-footer
+   *
+   * @returns {Object} Footer with variants (JSON)
+   */
+  async getFooter(footerId: string): Promise<FooterResponse> {
+    return this._makeQuery({
+      path: `v1/footers/${footerId}`,
+    });
+  }
+
+  /**
+   * Create a footer with one variant.
+   *
+   * The variant starts with an unpublished draft that has the company name,
+   * company address and unsubscribe link. Emails cannot use the footer until
+   * you publish the variant.
+   *
+   * @param {Object} [params]
+   * @param {string} [params.name] The name of the footer. Defaults to "Custom footer" if omitted.
+   *
+   * @see https://loops.so/docs/api-reference/create-footer
+   *
+   * @returns {Object} Created footer with variants (JSON)
+   */
+  async createFooter({
+    name,
+  }: {
+    name?: string;
+  } = {}): Promise<FooterResponse> {
+    const payload: { name?: string } = {};
+    if (name !== undefined) payload.name = name;
+    return this._makeQuery({
+      path: "v1/footers",
+      method: "POST",
+      payload,
+    });
+  }
+
+  /**
+   * Update a footer's name or placement.
+   *
+   * Changes apply at once, including to running workflows. Emails already sent
+   * don't change. To change the default footer, use `setDefaultFooter()`.
+   *
+   * @param {string} footerId The ID of the footer.
+   * @param {Object} params
+   * @param {string} [params.name] The new name of the footer.
+   * @param {FooterPlacement} [params.placement] Whether the footer is rendered inside the email body (`inside`) or below it (`below`).
+   *
+   * @see https://loops.so/docs/api-reference/update-footer
+   *
+   * @returns {Object} Updated footer with variants (JSON)
+   */
+  async updateFooter(
+    footerId: string,
+    {
+      name,
+      placement,
+    }: {
+      name?: string;
+      placement?: FooterPlacement;
+    }
+  ): Promise<FooterResponse> {
+    const payload: { name?: string; placement?: FooterPlacement } = {};
+    if (name !== undefined) payload.name = name;
+    if (placement !== undefined) payload.placement = placement;
+    return this._makeQuery({
+      path: `v1/footers/${footerId}`,
+      method: "POST",
+      payload,
+    });
+  }
+
+  /**
+   * Delete a footer and its variants.
+   *
+   * You cannot delete the team's default footer or a footer that emails use.
+   *
+   * @param {string} footerId The ID of the footer.
+   *
+   * @see https://loops.so/docs/api-reference/delete-footer
+   */
+  async deleteFooter(footerId: string): Promise<void> {
+    await this._makeQuery({
+      path: `v1/footers/${footerId}`,
+      method: "DELETE",
+    });
+  }
+
+  /**
+   * Make a published footer the team's default footer.
+   *
+   * New campaign and workflow emails use the default footer. `existingEmails`
+   * picks which existing emails switch to it. With `none`, only new emails use
+   * it.
+   *
+   * @param {string} footerId The ID of the footer.
+   * @param {Object} params
+   * @param {SetDefaultFooterExistingEmails} params.existingEmails Which existing campaign and workflow emails switch to this footer: those using the previous default (`previousDefault`), all of them (`all`), or none (`none`).
+   *
+   * @see https://loops.so/docs/api-reference/set-default-footer
+   *
+   * @returns {Object} Updated footer with variants (JSON)
+   */
+  async setDefaultFooter(
+    footerId: string,
+    {
+      existingEmails,
+    }: {
+      existingEmails: SetDefaultFooterExistingEmails;
+    }
+  ): Promise<SetDefaultFooterResponse> {
+    return this._makeQuery({
+      path: `v1/footers/${footerId}/set-default`,
+      method: "POST",
+      payload: { existingEmails },
+    });
+  }
+
+  /**
+   * Get a footer variant by ID.
+   *
+   * @param {string} footerId The ID of the footer.
+   * @param {string} variantId The ID of the variant.
+   *
+   * @see https://loops.so/docs/api-reference/get-footer-variant
+   *
+   * @returns {Object} Footer variant (JSON)
+   */
+  async getFooterVariant(
+    footerId: string,
+    variantId: string
+  ): Promise<FooterVariant> {
+    return this._makeQuery({
+      path: `v1/footers/${footerId}/variants/${variantId}`,
+    });
+  }
+
+  /**
+   * Update a footer variant's draft LMX content.
+   *
+   * Emails keep the variant's published content until you publish the updated
+   * variant.
+   *
+   * @param {string} footerId The ID of the footer.
+   * @param {string} variantId The ID of the variant.
+   * @param {Object} params
+   * @param {string} params.expectedRevisionId The `contentRevisionId` you last fetched.
+   * @param {string} params.lmx The new draft content as LMX.
+   *
+   * @see https://loops.so/docs/api-reference/update-footer-variant
+   *
+   * @returns {Object} Updated footer variant (JSON)
+   */
+  async updateFooterVariant(
+    footerId: string,
+    variantId: string,
+    {
+      expectedRevisionId,
+      lmx,
+    }: {
+      expectedRevisionId: string;
+      lmx: string;
+    }
+  ): Promise<FooterVariant> {
+    return this._makeQuery({
+      path: `v1/footers/${footerId}/variants/${variantId}`,
+      method: "POST",
+      payload: { expectedRevisionId, lmx },
+    });
+  }
+
+  /**
+   * Publish a footer variant's draft LMX content.
+   *
+   * Emails that use the footer immediately use the newly published content. The
+   * draft must include `{system.company_name}` and `{system.company_address}`
+   * in the text, and `{system.unsubscribe_link}` as the URL of a link or
+   * button.
+   *
+   * @param {string} footerId The ID of the footer.
+   * @param {string} variantId The ID of the variant.
+   * @param {Object} params
+   * @param {string} params.expectedRevisionId The `contentRevisionId` you last fetched.
+   *
+   * @see https://loops.so/docs/api-reference/publish-footer-variant
+   *
+   * @returns {Object} Published footer variant (JSON)
+   */
+  async publishFooterVariant(
+    footerId: string,
+    variantId: string,
+    {
+      expectedRevisionId,
+    }: {
+      expectedRevisionId: string;
+    }
+  ): Promise<FooterVariant> {
+    return this._makeQuery({
+      path: `v1/footers/${footerId}/variants/${variantId}/publish`,
+      method: "POST",
+      payload: { expectedRevisionId },
+    });
+  }
+
+  /**
    * List campaigns.
    *
    * @param {Object} params
@@ -2523,6 +2847,7 @@ class LoopsClient {
    * @param {string} [params.bccEmail] BCC email address.
    * @param {string} [params.languageCode] Language code for the email.
    * @param {"styled" | "plain"} [params.emailFormat] The rendering format of the email.
+   * @param {string | null} [params.footerId] Apply a specific footer to this email message. Use `null` for the system default footer. Omit it to keep the current footer.
    * @param {string} [params.lmx] The email body serialized as LMX.
    * @param {Record<string, string | null>} [params.contactPropertiesFallbacks] Fallback values for contact properties.
    * @param {Record<string, string | null>} [params.eventPropertiesFallbacks] Fallback values for event properties.
@@ -2545,6 +2870,7 @@ class LoopsClient {
       bccEmail,
       languageCode,
       emailFormat,
+      footerId,
       lmx,
       contactPropertiesFallbacks,
       eventPropertiesFallbacks,
@@ -2560,6 +2886,7 @@ class LoopsClient {
       bccEmail?: string;
       languageCode?: string;
       emailFormat?: "styled" | "plain";
+      footerId?: string | null;
       lmx?: string;
       contactPropertiesFallbacks?: Record<string, string | null>;
       eventPropertiesFallbacks?: Record<string, string | null>;
@@ -2577,6 +2904,7 @@ class LoopsClient {
       bccEmail?: string;
       languageCode?: string;
       emailFormat?: "styled" | "plain";
+      footerId?: string | null;
       lmx?: string;
       contactPropertiesFallbacks?: Record<string, string | null>;
       eventPropertiesFallbacks?: Record<string, string | null>;
@@ -2593,6 +2921,7 @@ class LoopsClient {
     if (bccEmail !== undefined) payload.bccEmail = bccEmail;
     if (languageCode !== undefined) payload.languageCode = languageCode;
     if (emailFormat !== undefined) payload.emailFormat = emailFormat;
+    if (footerId !== undefined) payload.footerId = footerId;
     if (lmx !== undefined) payload.lmx = lmx;
     if (contactPropertiesFallbacks !== undefined) {
       payload.contactPropertiesFallbacks = contactPropertiesFallbacks;
@@ -3670,6 +3999,14 @@ export {
   ListComponentsResponse,
   ComponentResponse,
   UpdateComponentResponse,
+  FooterPlacement,
+  SetDefaultFooterExistingEmails,
+  Footer,
+  FooterVariant,
+  FooterWithVariants,
+  ListFootersResponse,
+  FooterResponse,
+  SetDefaultFooterResponse,
   Group,
   ListGroupsResponse,
   AudienceFilterBetweenValue,
