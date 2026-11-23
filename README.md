@@ -14,7 +14,7 @@ You can install the package [from npm](https://www.npmjs.com/package/loops):
 npm install loops
 ```
 
-Minimum Node version required: 18.0.0.
+Minimum Node version required: 20.0.0.
 
 You will need a Loops API key to use the package.
 
@@ -70,6 +70,45 @@ try {
   }
 }
 ```
+
+## Verifying webhooks
+
+Use `verifyWebhook` to confirm that an inbound webhook was signed by Loops. Pass the **raw request body string** (not a parsed JSON object) and your signing secret from [Settings → Webhooks](https://app.loops.so/settings?page=webhooks).
+
+```javascript
+import { verifyWebhook, WebhookVerificationError } from "loops";
+
+export async function POST(req) {
+  const rawBody = await req.text();
+
+  try {
+    const event = await verifyWebhook({
+      headers: req.headers,
+      rawBody,
+      secret: process.env.LOOPS_SIGNING_SECRET,
+    });
+
+    // process event...
+    return Response.json({ ok: true, eventName: event.eventName });
+  } catch (error) {
+    if (error instanceof WebhookVerificationError) {
+      const status =
+        error.code === "MISSING_SECRET"
+          ? 500
+          : error.code === "INVALID_SIGNATURE" ||
+              error.code === "INVALID_TIMESTAMP"
+            ? 401
+            : 400;
+      return Response.json({ message: error.message }, { status });
+    }
+    throw error;
+  }
+}
+```
+
+`verifyWebhook` throws `WebhookVerificationError` with a `code` of `MISSING_SECRET`, `MISSING_HEADERS`, `INVALID_TIMESTAMP`, `INVALID_SIGNATURE`, or `INVALID_BODY`.
+
+See the [webhooks docs](https://loops.so/docs/webhooks) for event payloads and setup.
 
 ## Default contact properties
 
@@ -3483,6 +3522,7 @@ const resp = await loops.completeUpload("cla3s5s7e9t1i3d5f7g9h1j3");
 
 ## Version history
 
+- `v8.0.0` (Nov 12, 2026) - Added [`verifyWebhook()`](#verifying-webhooks). Updated minimum Node version to 20.0.0.
 - `v7.5.0` (Nov 9, 2026)
   - Aligned with OpenAPI 1.23.0.
   - Added [`renderEmailMessage()`](#renderemailmessage) to render an email message as HTML without sending it.

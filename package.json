@@ -1,6 +1,6 @@
 {
   "name": "loops",
-  "version": "7.5.0",
+  "version": "8.0.0",
   "author": "Dan Rowden <dan@loops.so>",
   "license": "MIT",
   "main": "./dist/index.cjs",
@@ -45,6 +45,6 @@
     "ts-jest": "^29.1.2"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=20"
   }
 }

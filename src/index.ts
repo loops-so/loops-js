@@ -1149,6 +1149,224 @@ class ValidationError extends Error {
   }
 }
 
+type WebhookVerificationErrorCode =
+  | "MISSING_HEADERS"
+  | "MISSING_SECRET"
+  | "INVALID_TIMESTAMP"
+  | "INVALID_SIGNATURE"
+  | "INVALID_BODY";
+
+type WebhookHeaders =
+  | Headers
+  | Record<string, string | string[] | undefined>;
+
+type VerifyWebhookOptions = {
+  /**
+   * Request headers. Accepts a `Headers` object or a plain header map
+   * (for example Node's `IncomingHttpHeaders`).
+   */
+  headers: WebhookHeaders;
+  /**
+   * Exact raw request body as a string. Do not pass a parsed JSON object.
+   * Parsing or reformatting the body will break signature verification.
+   */
+  rawBody: string;
+  /**
+   * Webhook signing secret from Settings → Webhooks (often stored as
+   * `LOOPS_SIGNING_SECRET`). May include the `whsec_` prefix.
+   */
+  secret: string;
+  /**
+   * Maximum allowed age of the webhook timestamp, in seconds.
+   * Defaults to 300 (5 minutes).
+   */
+  toleranceSeconds?: number;
+};
+
+const WEBHOOK_SECRET_PREFIX = "whsec_";
+const DEFAULT_WEBHOOK_TOLERANCE_SECONDS = 300;
+
+class WebhookVerificationError extends Error {
+  readonly code: WebhookVerificationErrorCode;
+
+  constructor(message: string, code: WebhookVerificationErrorCode) {
+    super(message);
+    this.name = "WebhookVerificationError";
+    this.code = code;
+
+    if ((Error as any).captureStackTrace) {
+      (Error as any).captureStackTrace(this, WebhookVerificationError);
+    }
+  }
+}
+
+function getWebhookHeader(
+  headers: WebhookHeaders,
+  name: string
+): string | null {
+  if (typeof (headers as Headers).get === "function") {
+    return (headers as Headers).get(name);
+  }
+
+  const record = headers as Record<string, string | string[] | undefined>;
+  const target = name.toLowerCase();
+
+  for (const [key, value] of Object.entries(record)) {
+    if (key.toLowerCase() !== target) continue;
+    if (Array.isArray(value)) {
+      return value.length > 0 ? value.join(" ") : null;
+    }
+    return value ?? null;
+  }
+
+  return null;
+}
+
+function base64ToBytes(value: string): Uint8Array {
+  const binary = atob(value);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  return bytes;
+}
+
+function bytesToBase64(bytes: Uint8Array): string {
+  let binary = "";
+  for (let i = 0; i < bytes.length; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary);
+}
+
+function timingSafeEqualString(a: string, b: string): boolean {
+  const encoder = new TextEncoder();
+  const left = encoder.encode(a);
+  const right = encoder.encode(b);
+  if (left.length !== right.length) return false;
+  let diff = 0;
+  for (let i = 0; i < left.length; i++) {
+    diff |= left[i] ^ right[i];
+  }
+  return diff === 0;
+}
+
+async function hmacSha256Base64(
+  key: Uint8Array,
+  message: string
+): Promise<string> {
+  const cryptoKey = await globalThis.crypto.subtle.importKey(
+    "raw",
+    // Newer DOM libs type Uint8Array as ArrayBufferLike; BufferSource wants ArrayBuffer.
+    key as BufferSource,
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"]
+  );
+  const signature = await globalThis.crypto.subtle.sign(
+    "HMAC",
+    cryptoKey,
+    new TextEncoder().encode(message)
+  );
+  return bytesToBase64(new Uint8Array(signature));
+}
+
+/**
+ * Verifies that a webhook request was signed by Loops.
+ *
+ * Uses the signing secret from Settings → Webhooks. Pass the raw request
+ * body string, not a parsed JSON object. Uses the Web Crypto API, so it
+ * works in Node 20+, browsers, and edge runtimes.
+ *
+ * @returns The parsed JSON payload when verification succeeds.
+ * @throws {WebhookVerificationError} When headers, timestamp, signature,
+ *   secret, or body are invalid.
+ *
+ * @example
+ * ```ts
+ * import { verifyWebhook, WebhookVerificationError } from "loops";
+ *
+ * const event = await verifyWebhook({
+ *   headers: req.headers,
+ *   rawBody,
+ *   secret: process.env.LOOPS_SIGNING_SECRET!,
+ * });
+ * ```
+ */
+async function verifyWebhook({
+  headers,
+  rawBody,
+  secret,
+  toleranceSeconds = DEFAULT_WEBHOOK_TOLERANCE_SECONDS,
+}: VerifyWebhookOptions): Promise<unknown> {
+  if (!secret) {
+    throw new WebhookVerificationError(
+      "Missing webhook signing secret",
+      "MISSING_SECRET"
+    );
+  }
+
+  const id = getWebhookHeader(headers, "webhook-id");
+  const timestamp = getWebhookHeader(headers, "webhook-timestamp");
+  const signatureHeader = getWebhookHeader(headers, "webhook-signature");
+
+  if (!id || !timestamp || !signatureHeader) {
+    throw new WebhookVerificationError(
+      "Missing webhook-id, webhook-timestamp, or webhook-signature header",
+      "MISSING_HEADERS"
+    );
+  }
+
+  const ts = Number(timestamp);
+  if (!Number.isFinite(ts)) {
+    throw new WebhookVerificationError(
+      "webhook-timestamp is not a valid number",
+      "INVALID_TIMESTAMP"
+    );
+  }
+
+  const now = Math.floor(Date.now() / 1000);
+  if (Math.abs(now - ts) > toleranceSeconds) {
+    throw new WebhookVerificationError(
+      "webhook-timestamp is outside the allowed tolerance",
+      "INVALID_TIMESTAMP"
+    );
+  }
+
+  const encoded = secret.startsWith(WEBHOOK_SECRET_PREFIX)
+    ? secret.slice(WEBHOOK_SECRET_PREFIX.length)
+    : secret;
+  const key = base64ToBytes(encoded);
+  const expected = await hmacSha256Base64(
+    key,
+    `${id}.${timestamp}.${rawBody}`
+  );
+
+  const matched = signatureHeader.split(/\s+/).some((entry) => {
+    const comma = entry.indexOf(",");
+    if (comma === -1) return false;
+    const version = entry.slice(0, comma);
+    const value = entry.slice(comma + 1);
+    return version === "v1" && timingSafeEqualString(value, expected);
+  });
+
+  if (!matched) {
+    throw new WebhookVerificationError(
+      "Invalid signature",
+      "INVALID_SIGNATURE"
+    );
+  }
+
+  try {
+    return JSON.parse(rawBody) as unknown;
+  } catch {
+    throw new WebhookVerificationError(
+      "Webhook body is not valid JSON",
+      "INVALID_BODY"
+    );
+  }
+}
+
 class LoopsClient {
   apiKey: string;
   apiRoot = "https://app.loops.so/api/";
@@ -3408,6 +3626,11 @@ export {
   RateLimitExceededError,
   APIError,
   ValidationError,
+  WebhookVerificationError,
+  verifyWebhook,
+  WebhookVerificationErrorCode,
+  WebhookHeaders,
+  VerifyWebhookOptions,
   ApiKeySuccessResponse,
   ApiKeyErrorResponse,
   ContactSuccessResponse,
