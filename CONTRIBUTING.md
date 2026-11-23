@@ -5,7 +5,7 @@ Thank you for your interest in contributing to Loops JS SDK. We welcome contribu
 ## Getting Started
 
 1. Fork the repository on GitHub.
-2. Clone your fork locally: `git clone <https://github.com/Loops-so/loops-js.git`>
+2. Clone your fork locally: `git clone <https://github.com/loops-so/loops-js.git`>
 3. Create a new branch for your feature or bug fix: `git checkout -b your-branch-name`
 
 ## Making Changes

@@ -1,6 +1,6 @@
 {
   "name": "loops",
-  "version": "8.0.0",
+  "version": "8.1.0",
   "author": "Dan Rowden <dan@loops.so>",
   "license": "MIT",
   "main": "./dist/index.cjs",
@@ -31,10 +31,10 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Loops-so/loops-js.git"
+    "url": "git+https://github.com/loops-so/loops-js.git"
   },
   "bugs": {
-    "url": "https://github.com/Loops-so/loops-js/issues"
+    "url": "https://github.com/loops-so/loops-js/issues"
   },
   "type": "module",
   "devDependencies": {

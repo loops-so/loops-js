@@ -159,6 +159,15 @@ You can use custom contact properties in API calls. Please make sure to [add cus
 - [getComponent()](#getcomponent)
 - [createComponent()](#createcomponent)
 - [updateComponent()](#updatecomponent)
+- [listFooters()](#listfooters)
+- [getFooter()](#getfooter)
+- [createFooter()](#createfooter)
+- [updateFooter()](#updatefooter)
+- [deleteFooter()](#deletefooter)
+- [setDefaultFooter()](#setdefaultfooter)
+- [getFooterVariant()](#getfootervariant)
+- [updateFooterVariant()](#updatefootervariant)
+- [publishFooterVariant()](#publishfootervariant)
 - [listCampaigns()](#listcampaigns)
 - [createCampaign()](#createcampaign)
 - [getCampaign()](#getcampaign)
@@ -1254,6 +1263,7 @@ Error handling is done through the `APIError` class, which provides `statusCode`
 ### listThemes()
 
 Retrieve a paginated list of email themes, most recently created first.
+
 [API Reference](https://loops.so/docs/api-reference/list-themes)
 
 #### Parameters
@@ -1305,6 +1315,7 @@ Error handling is done through the `APIError` class, which provides `statusCode`
 ### getTheme()
 
 Retrieve a single theme by ID.
+
 [API Reference](https://loops.so/docs/api-reference/get-theme)
 
 #### Parameters
@@ -1341,6 +1352,7 @@ Error handling is done through the `APIError` class, which provides `statusCode`
 ### createTheme()
 
 Create a new email theme.
+
 [API Reference](https://loops.so/docs/api-reference/create-theme)
 
 #### Parameters
@@ -1379,6 +1391,7 @@ const resp = await loops.createTheme({
 ### updateTheme()
 
 Update a theme's name and/or styles. When `styles` change, the update cascades to emails using the theme; `affectedEmailCount` reports how many were affected.
+
 [API Reference](https://loops.so/docs/api-reference/update-theme)
 
 #### Parameters
@@ -1418,6 +1431,7 @@ const resp = await loops.updateTheme("clt3u5v7w9x1y3z5a7b9c1d3", {
 ### listComponents()
 
 Retrieve a paginated list of email components.
+
 [API Reference](https://loops.so/docs/api-reference/list-components)
 
 #### Parameters
@@ -1464,6 +1478,7 @@ Error handling is done through the `APIError` class, which provides `statusCode`
 ### getComponent()
 
 Retrieve a single component by ID.
+
 [API Reference](https://loops.so/docs/api-reference/get-component)
 
 #### Parameters
@@ -1495,6 +1510,7 @@ Error handling is done through the `APIError` class, which provides `statusCode`
 ### createComponent()
 
 Create a new email component.
+
 [API Reference](https://loops.so/docs/api-reference/create-component)
 
 #### Parameters
@@ -1528,6 +1544,7 @@ const resp = await loops.createComponent({
 ### updateComponent()
 
 Update a component's name and/or LMX body. When `lmx` changes, the update cascades to emails using the component; `affectedEmailCount` reports how many were affected.
+
 [API Reference](https://loops.so/docs/api-reference/update-component)
 
 #### Parameters
@@ -1559,9 +1576,390 @@ const resp = await loops.updateComponent("clp2a6r8t005yl70d7e8f9g0h", {
 
 ---
 
+### listFooters()
+
+Retrieve a paginated list of footers, most recently created first.
+
+[API Reference](https://loops.so/docs/api-reference/list-footers)
+
+#### Parameters
+
+| Name      | Type    | Required | Notes                                                                                                                         |
+| --------- | ------- | -------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `perPage` | integer | No       | How many results to return per page. Must be between 10 and 50. Defaults to 20 if omitted.                                    |
+| `cursor`  | string  | No       | A cursor, to return a specific page of results. Cursors can be found from the `pagination.nextCursor` value in each response. |
+
+#### Example
+
+```javascript
+const resp = await loops.listFooters();
+
+const resp = await loops.listFooters({ perPage: 15, cursor: "clyo0q4wo01p59fsecyxqsh38" });
+```
+
+#### Response
+
+```json
+{
+  "pagination": {
+    "totalResults": 1,
+    "returnedResults": 1,
+    "perPage": 20,
+    "totalPages": 1,
+    "nextCursor": null,
+    "nextPage": null
+  },
+  "data": [
+    {
+      "id": "clf0o1t2e3r4i5d6a7b8c9d0",
+      "name": "Main footer",
+      "isDefault": true,
+      "placement": "inside",
+      "createdAt": "2026-10-27T10:00:00.000Z",
+      "updatedAt": "2026-11-02T08:30:00.000Z"
+    }
+  ]
+}
+```
+
+Error handling is done through the `APIError` class, which provides `statusCode` and `json` properties containing the API's error response details. For implementation examples, see the [Usage section](#usage).
+
+---
+
+### getFooter()
+
+Retrieve a single footer by ID, including its variants.
+
+[API Reference](https://loops.so/docs/api-reference/get-footer)
+
+#### Parameters
+
+| Name       | Type   | Required | Notes                 |
+| ---------- | ------ | -------- | --------------------- |
+| `footerId` | string | Yes      | The ID of the footer. |
+
+#### Example
+
+```javascript
+const resp = await loops.getFooter("clf0o1t2e3r4i5d6a7b8c9d0");
+```
+
+#### Response
+
+```json
+{
+  "id": "clf0o1t2e3r4i5d6a7b8c9d0",
+  "name": "Main footer",
+  "isDefault": true,
+  "placement": "inside",
+  "createdAt": "2026-10-27T10:00:00.000Z",
+  "updatedAt": "2026-11-02T08:30:00.000Z",
+  "variants": [
+    {
+      "id": "clv1a2r3i4a5n6t7i8d9e0f1",
+      "footerId": "clf0o1t2e3r4i5d6a7b8c9d0",
+      "contentRevisionId": "clr2e3v4i5s6i7o8n9i0d1e2",
+      "publishedAt": "2026-11-02T08:30:00.000Z",
+      "createdAt": "2026-10-27T10:00:00.000Z",
+      "draftLmx": "{system.company_name}, {system.company_address}. <Link href=\"{system.unsubscribe_link}\">Unsubscribe</Link>",
+      "publishedLmx": "{system.company_name}, {system.company_address}. <Link href=\"{system.unsubscribe_link}\">Unsubscribe</Link>",
+      "updatedAt": "2026-11-02T08:30:00.000Z"
+    }
+  ]
+}
+```
+
+Error handling is done through the `APIError` class, which provides `statusCode` and `json` properties containing the API's error response details. For implementation examples, see the [Usage section](#usage).
+
+---
+
+### createFooter()
+
+Create a footer with one variant. The variant starts with an unpublished draft that includes the company name, company address and unsubscribe link. Emails cannot use the footer until you publish the variant.
+
+[API Reference](https://loops.so/docs/api-reference/create-footer)
+
+#### Parameters
+
+| Name   | Type   | Required | Notes                                                         |
+| ------ | ------ | -------- | ------------------------------------------------------------- |
+| `name` | string | No       | The name of the footer. Defaults to "Custom footer" if omitted. |
+
+#### Example
+
+```javascript
+const resp = await loops.createFooter({
+  name: "Main footer",
+});
+```
+
+#### Response
+
+```json
+{
+  "id": "clf0o1t2e3r4i5d6a7b8c9d0",
+  "name": "Main footer",
+  "isDefault": false,
+  "placement": "inside",
+  "createdAt": "2026-10-27T10:00:00.000Z",
+  "updatedAt": "2026-10-27T10:00:00.000Z",
+  "variants": [
+    {
+      "id": "clv1a2r3i4a5n6t7i8d9e0f1",
+      "footerId": "clf0o1t2e3r4i5d6a7b8c9d0",
+      "contentRevisionId": "clr2e3v4i5s6i7o8n9i0d1e2",
+      "publishedAt": null,
+      "createdAt": "2026-10-27T10:00:00.000Z",
+      "draftLmx": "{system.company_name}, {system.company_address}. <Link href=\"{system.unsubscribe_link}\">Unsubscribe</Link>",
+      "publishedLmx": null,
+      "updatedAt": "2026-10-27T10:00:00.000Z"
+    }
+  ]
+}
+```
+
+---
+
+### updateFooter()
+
+Update a footer's name or placement. Changes apply at once, including to running workflows. Emails already sent don't change. To change the default footer, use [`setDefaultFooter()`](#setdefaultfooter).
+
+[API Reference](https://loops.so/docs/api-reference/update-footer)
+
+#### Parameters
+
+| Name         | Type   | Required | Notes                                                                                      |
+| ------------ | ------ | -------- | ------------------------------------------------------------------------------------------ |
+| `footerId`   | string | Yes      | The ID of the footer.                                                                      |
+| `name`       | string | No       | The new name of the footer.                                                                |
+| `placement`  | string | No       | Whether the footer is rendered inside the email body (`inside`) or below it (`below`).     |
+
+#### Example
+
+```javascript
+const resp = await loops.updateFooter("clf0o1t2e3r4i5d6a7b8c9d0", {
+  name: "Marketing footer",
+  placement: "below",
+});
+```
+
+#### Response
+
+```json
+{
+  "id": "clf0o1t2e3r4i5d6a7b8c9d0",
+  "name": "Marketing footer",
+  "isDefault": false,
+  "placement": "below",
+  "createdAt": "2026-10-27T10:00:00.000Z",
+  "updatedAt": "2026-11-02T08:30:00.000Z",
+  "variants": []
+}
+```
+
+---
+
+### deleteFooter()
+
+Delete a footer and its variants. You cannot delete the team's default footer or a footer that emails use.
+
+[API Reference](https://loops.so/docs/api-reference/delete-footer)
+
+#### Parameters
+
+| Name       | Type   | Required | Notes                 |
+| ---------- | ------ | -------- | --------------------- |
+| `footerId` | string | Yes      | The ID of the footer. |
+
+#### Example
+
+```javascript
+await loops.deleteFooter("clf0o1t2e3r4i5d6a7b8c9d0");
+```
+
+#### Response
+
+No response body (`204`).
+
+Error handling is done through the `APIError` class, which provides `statusCode` and `json` properties containing the API's error response details. For implementation examples, see the [Usage section](#usage).
+
+```json
+HTTP 409 Conflict
+{
+  "message": "3 emails use the footer. Change their footer before you delete it.",
+  "emailCount": 3
+}
+```
+
+---
+
+### setDefaultFooter()
+
+Make a published footer the team's default footer. New campaign and workflow emails use the default footer. `existingEmails` picks which existing emails switch to it.
+
+[API Reference](https://loops.so/docs/api-reference/set-default-footer)
+
+#### Parameters
+
+| Name             | Type   | Required | Notes                                                                                                                                                                              |
+| ---------------- | ------ | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `footerId`       | string | Yes      | The ID of the footer.                                                                                                                                                              |
+| `existingEmails` | string | Yes      | Which existing campaign and workflow emails switch to this footer: `previousDefault`, `all`, or `none`. With `none`, existing emails keep their footer and only new emails use this footer. |
+
+#### Example
+
+```javascript
+const resp = await loops.setDefaultFooter("clf0o1t2e3r4i5d6a7b8c9d0", {
+  existingEmails: "all",
+});
+```
+
+#### Response
+
+```json
+{
+  "id": "clf0o1t2e3r4i5d6a7b8c9d0",
+  "name": "Main footer",
+  "isDefault": true,
+  "placement": "inside",
+  "createdAt": "2026-10-27T10:00:00.000Z",
+  "updatedAt": "2026-11-02T08:30:00.000Z",
+  "variants": [],
+  "updatedEmailCount": 12
+}
+```
+
+---
+
+### getFooterVariant()
+
+Retrieve a footer variant's draft and published content as LMX.
+
+[API Reference](https://loops.so/docs/api-reference/get-footer-variant)
+
+#### Parameters
+
+| Name        | Type   | Required | Notes                  |
+| ----------- | ------ | -------- | ---------------------- |
+| `footerId`  | string | Yes      | The ID of the footer.  |
+| `variantId` | string | Yes      | The ID of the variant. |
+
+#### Example
+
+```javascript
+const resp = await loops.getFooterVariant(
+  "clf0o1t2e3r4i5d6a7b8c9d0",
+  "clv1a2r3i4a5n6t7i8d9e0f1"
+);
+```
+
+#### Response
+
+```json
+{
+  "id": "clv1a2r3i4a5n6t7i8d9e0f1",
+  "footerId": "clf0o1t2e3r4i5d6a7b8c9d0",
+  "contentRevisionId": "clr2e3v4i5s6i7o8n9i0d1e2",
+  "publishedAt": "2026-11-02T08:30:00.000Z",
+  "createdAt": "2026-10-27T10:00:00.000Z",
+  "draftLmx": "{system.company_name}, {system.company_address}. <Link href=\"{system.unsubscribe_link}\">Unsubscribe</Link>",
+  "publishedLmx": "{system.company_name}, {system.company_address}. <Link href=\"{system.unsubscribe_link}\">Unsubscribe</Link>",
+  "updatedAt": "2026-11-02T08:30:00.000Z"
+}
+```
+
+---
+
+### updateFooterVariant()
+
+Update a footer variant's draft LMX content. Emails keep the variant's published content until you publish the updated variant.
+
+[API Reference](https://loops.so/docs/api-reference/update-footer-variant)
+
+#### Parameters
+
+| Name                 | Type   | Required | Notes                                              |
+| -------------------- | ------ | -------- | -------------------------------------------------- |
+| `footerId`           | string | Yes      | The ID of the footer.                              |
+| `variantId`          | string | Yes      | The ID of the variant.                             |
+| `expectedRevisionId` | string | Yes      | The `contentRevisionId` you last fetched.          |
+| `lmx`                | string | Yes      | The new draft content as LMX.                      |
+
+#### Example
+
+```javascript
+const resp = await loops.updateFooterVariant(
+  "clf0o1t2e3r4i5d6a7b8c9d0",
+  "clv1a2r3i4a5n6t7i8d9e0f1",
+  {
+    expectedRevisionId: "clr2e3v4i5s6i7o8n9i0d1e2",
+    lmx: "{system.company_name}, {system.company_address}. <Link href=\"{system.unsubscribe_link}\">Unsubscribe</Link>",
+  }
+);
+```
+
+#### Response
+
+```json
+{
+  "id": "clv1a2r3i4a5n6t7i8d9e0f1",
+  "footerId": "clf0o1t2e3r4i5d6a7b8c9d0",
+  "contentRevisionId": "clr3f4w5j6t7k8p9q0r1s2t3",
+  "publishedAt": "2026-11-02T08:30:00.000Z",
+  "createdAt": "2026-10-27T10:00:00.000Z",
+  "draftLmx": "{system.company_name}, {system.company_address}. <Link href=\"{system.unsubscribe_link}\">Unsubscribe</Link>",
+  "publishedLmx": "{system.company_name}, {system.company_address}. <Link href=\"{system.unsubscribe_link}\">Unsubscribe</Link>",
+  "updatedAt": "2026-11-03T08:30:00.000Z"
+}
+```
+
+---
+
+### publishFooterVariant()
+
+Publish the variant's draft LMX content so emails that use the footer immediately use it. The draft must include `{system.company_name}` and `{system.company_address}` in the text, and `{system.unsubscribe_link}` as the URL of a link or button.
+
+[API Reference](https://loops.so/docs/api-reference/publish-footer-variant)
+
+#### Parameters
+
+| Name                 | Type   | Required | Notes                                     |
+| -------------------- | ------ | -------- | ----------------------------------------- |
+| `footerId`           | string | Yes      | The ID of the footer.                     |
+| `variantId`          | string | Yes      | The ID of the variant.                    |
+| `expectedRevisionId` | string | Yes      | The `contentRevisionId` you last fetched. |
+
+#### Example
+
+```javascript
+const resp = await loops.publishFooterVariant(
+  "clf0o1t2e3r4i5d6a7b8c9d0",
+  "clv1a2r3i4a5n6t7i8d9e0f1",
+  { expectedRevisionId: "clr2e3v4i5s6i7o8n9i0d1e2" }
+);
+```
+
+#### Response
+
+```json
+{
+  "id": "clv1a2r3i4a5n6t7i8d9e0f1",
+  "footerId": "clf0o1t2e3r4i5d6a7b8c9d0",
+  "contentRevisionId": "clr3f4w5j6t7k8p9q0r1s2t3",
+  "publishedAt": "2026-11-03T08:30:00.000Z",
+  "createdAt": "2026-10-27T10:00:00.000Z",
+  "draftLmx": "{system.company_name}, {system.company_address}. <Link href=\"{system.unsubscribe_link}\">Unsubscribe</Link>",
+  "publishedLmx": "{system.company_name}, {system.company_address}. <Link href=\"{system.unsubscribe_link}\">Unsubscribe</Link>",
+  "updatedAt": "2026-11-03T08:30:00.000Z"
+}
+```
+
+---
+
 ### listCampaigns()
 
 Retrieve a paginated list of campaigns.
+
 [API Reference](https://loops.so/docs/api-reference/list-campaigns)
 
 #### Parameters
@@ -1625,6 +2023,7 @@ Error handling is done through the `APIError` class, which provides `statusCode`
 ### createCampaign()
 
 Create a new draft campaign. An empty email message is created automatically and its `emailMessageId` is returned. Use [`updateEmailMessage()`](#updateemailmessage) to set subject, sender, preview text, and LMX content. The audience (mailing list, segment, or filter), group, and scheduling can be set on create or later via update.
+
 [API Reference](https://loops.so/docs/api-reference/create-campaign)
 
 #### Parameters
@@ -1680,6 +2079,7 @@ Error handling is done through the `APIError` class, which provides `statusCode`
 ### getCampaign()
 
 Retrieve a single campaign by ID.
+
 [API Reference](https://loops.so/docs/api-reference/get-campaign)
 
 #### Parameters
@@ -1759,6 +2159,7 @@ Error handling is done through the `APIError` class, which provides `statusCode`
 ### updateCampaign()
 
 Update a draft campaign's name, group, audience, or scheduling. At least one field must be provided. Campaigns can only be updated while in draft status.
+
 [API Reference](https://loops.so/docs/api-reference/update-campaign)
 
 #### Parameters
@@ -1816,6 +2217,7 @@ HTTP 409 Conflict
 ### getEmailMessage()
 
 Retrieve an email message, including its compiled LMX content.
+
 [API Reference](https://loops.so/docs/api-reference/get-email-message)
 
 #### Parameters
@@ -1843,6 +2245,7 @@ const resp = await loops.getEmailMessage("clm9x3o5q002yl70a8b3c4d5e");
   "replyToEmail": "",
   "emailFormat": "styled",
   "lmx": "<H1>...</H1><Paragraph>...</Paragraph>",
+  "footerId": "clf0o1t2e3r4i5d6a7b8c9d0",
   "contentRevisionId": "clv8g2x4z012yl70n5o6p7q8r",
   "updatedAt": "2025-01-01T00:00:00.000Z"
 }
@@ -1855,6 +2258,7 @@ Error handling is done through the `APIError` class, which provides `statusCode`
 ### updateEmailMessage()
 
 Update fields on an email message (subject, preview text, sender, LMX content). The campaign must be in draft status. Supply `expectedRevisionId` matching the current `contentRevisionId` — the server rejects mismatched revisions with 409.
+
 [API Reference](https://loops.so/docs/api-reference/update-email-message)
 
 #### Parameters
@@ -1872,6 +2276,7 @@ Update fields on an email message (subject, preview text, sender, LMX content). 
 | `bccEmail`                     | string | No       | BCC email address. Requires CC/BCC to be enabled for your team.                                                                               |
 | `languageCode`                 | string | No       | Language code for the email. Requires translation to be enabled for your team.                                                                 |
 | `emailFormat`                  | string | No       | The rendering format: `styled` or `plain`.                                                                                                   |
+| `footerId`                     | string \| null | No | Apply a specific footer to this email message. Use `null` for the system default footer. Omit to keep the current footer. Only for teams with footers enabled, and only for campaign and workflow emails. |
 | `lmx`                          | string | No       | The email body serialized as LMX. Styles must be embedded in the LMX `<Style />` tag.                                                          |
 | `contactPropertiesFallbacks`   | object | No       | Fallback values for contact properties, keyed by property name.                                                                                |
 | `eventPropertiesFallbacks`     | object | No       | Fallback values for event properties, keyed by property name.                                                                                  |
@@ -1903,6 +2308,7 @@ const resp = await loops.updateEmailMessage("clm9x3o5q002yl70a8b3c4d5e", {
   "replyToEmail": "",
   "emailFormat": "styled",
   "lmx": "<H1>...</H1><Paragraph>...</Paragraph>",
+  "footerId": "clf0o1t2e3r4i5d6a7b8c9d0",
   "contentRevisionId": "clv8g2x4z013yl70s9t0u1v2w",
   "updatedAt": "2025-01-02T00:00:00.000Z",
   "warnings": [
@@ -1930,6 +2336,7 @@ HTTP 409 Conflict
 ### listTransactionalGroups()
 
 Retrieve a paginated list of transactional groups.
+
 [API Reference](https://loops.so/docs/api-reference/list-transactional-groups)
 
 #### Parameters
@@ -1974,6 +2381,7 @@ const resp = await loops.listTransactionalGroups();
 ### createTransactionalGroup()
 
 Create a new transactional group.
+
 [API Reference](https://loops.so/docs/api-reference/create-transactional-group)
 
 #### Parameters
@@ -2009,6 +2417,7 @@ const resp = await loops.createTransactionalGroup({
 ### getTransactionalGroup()
 
 Retrieve a single transactional group by ID.
+
 [API Reference](https://loops.so/docs/api-reference/get-transactional-group)
 
 #### Parameters
@@ -2040,6 +2449,7 @@ const resp = await loops.getTransactionalGroup("clg7n5p3q1r9s7t5u3v1w9y7");
 ### updateTransactionalGroup()
 
 Update a transactional group's name or description. At least one field must be provided. The reserved `"Unsorted"` group cannot be edited.
+
 [API Reference](https://loops.so/docs/api-reference/update-transactional-group)
 
 #### Parameters
@@ -2075,6 +2485,7 @@ const resp = await loops.updateTransactionalGroup("clg7n5p3q1r9s7t5u3v1w9y7", {
 ### listAudienceSegments()
 
 Retrieve a paginated list of audience segments.
+
 [API Reference](https://loops.so/docs/api-reference/list-audience-segments)
 
 #### Parameters
@@ -2130,6 +2541,7 @@ const resp = await loops.listAudienceSegments();
 ### getAudienceSegment()
 
 Retrieve a single audience segment by ID.
+
 [API Reference](https://loops.so/docs/api-reference/get-audience-segment)
 
 #### Parameters
@@ -2172,6 +2584,7 @@ const resp = await loops.getAudienceSegment("cls6e8g0i2k4m6o8q0s2u4w6");
 ### createAudienceSegment()
 
 Create a new audience segment.
+
 [API Reference](https://loops.so/docs/api-reference/create-audience-segment)
 
 #### Parameters
@@ -2230,6 +2643,7 @@ const resp = await loops.createAudienceSegment({
 ### listCampaignGroups()
 
 Retrieve a paginated list of campaign groups.
+
 [API Reference](https://loops.so/docs/api-reference/list-campaign-groups)
 
 #### Parameters
@@ -2273,6 +2687,7 @@ const resp = await loops.listCampaignGroups();
 ### createCampaignGroup()
 
 Create a new campaign group.
+
 [API Reference](https://loops.so/docs/api-reference/create-campaign-group)
 
 #### Parameters
@@ -2307,6 +2722,7 @@ const resp = await loops.createCampaignGroup({
 ### getCampaignGroup()
 
 Retrieve a single campaign group by ID.
+
 [API Reference](https://loops.so/docs/api-reference/get-campaign-group)
 
 #### Parameters
@@ -2338,6 +2754,7 @@ const resp = await loops.getCampaignGroup("clq3b7s9u007yl70u9v0w1x2y");
 ### updateCampaignGroup()
 
 Update a campaign group's name or description. At least one field must be provided. The reserved `"Unsorted"` group cannot be edited.
+
 [API Reference](https://loops.so/docs/api-reference/update-campaign-group)
 
 #### Parameters
@@ -2373,6 +2790,7 @@ const resp = await loops.updateCampaignGroup("clq3b7s9u007yl70u9v0w1x2y", {
 ### listWorkflowGroups()
 
 Retrieve a paginated list of workflow groups.
+
 [API Reference](https://loops.so/docs/api-reference/list-workflow-groups)
 
 #### Parameters
@@ -2417,6 +2835,7 @@ const resp = await loops.listWorkflowGroups();
 ### createWorkflowGroup()
 
 Create a new workflow group.
+
 [API Reference](https://loops.so/docs/api-reference/create-workflow-group)
 
 #### Parameters
@@ -2451,6 +2870,7 @@ const resp = await loops.createWorkflowGroup({
 ### getWorkflowGroup()
 
 Retrieve a single workflow group by ID.
+
 [API Reference](https://loops.so/docs/api-reference/get-workflow-group)
 
 #### Parameters
@@ -2482,6 +2902,7 @@ const resp = await loops.getWorkflowGroup("clg7n5p3q1r9s7t5u3v1w9y7");
 ### updateWorkflowGroup()
 
 Update a workflow group's name or description. At least one field must be provided. The reserved `"Unsorted"` group cannot be edited.
+
 [API Reference](https://loops.so/docs/api-reference/update-workflow-group)
 
 #### Parameters
@@ -2517,6 +2938,7 @@ const resp = await loops.updateWorkflowGroup("clg7n5p3q1r9s7t5u3v1w9y7", {
 ### sendEmailMessagePreview()
 
 Send a test preview of an email message to one or more addresses.
+
 [API Reference](https://loops.so/docs/api-reference/preview-email-message)
 
 #### Parameters
@@ -2553,6 +2975,7 @@ const resp = await loops.sendEmailMessagePreview("clm9x3o5q002yl70a8b3c4d5e", {
 ### renderEmailMessage()
 
 Render an email message as HTML without sending it. The HTML matches a preview email body. Accepted variable fields depend on the parent type.
+
 [API Reference](https://loops.so/docs/api-reference/render-email-message)
 
 #### Parameters
@@ -2587,6 +3010,7 @@ const resp = await loops.renderEmailMessage("clm9x3o5q002yl70a8b3c4d5e", {
 ### runEmailMessageGuardian()
 
 Validate an email message against Guardian rules. Errors must be resolved before publishing; warnings are advisory.
+
 [API Reference](https://loops.so/docs/api-reference/run-guardian-checks)
 
 #### Parameters
@@ -2636,6 +3060,7 @@ const resp = await loops.runEmailMessageGuardian("clm9x3o5q002yl70a8b3c4d5e");
 ### listEventPatterns()
 
 Retrieve a paginated list of event patterns available to workflow event trigger nodes.
+
 [API Reference](https://loops.so/docs/api-reference/list-event-patterns)
 
 #### Parameters
@@ -2678,6 +3103,7 @@ const resp = await loops.listEventPatterns();
 ### getEventPattern()
 
 Retrieve event pattern details by ID.
+
 [API Reference](https://loops.so/docs/api-reference/get-event-pattern)
 
 #### Parameters
@@ -2717,6 +3143,7 @@ const resp = await loops.getEventPattern("cle1a2b3c004yl70d5e6f7g8h");
 ### getEventPatternByName()
 
 Retrieve event pattern details by event name.
+
 [API Reference](https://loops.so/docs/api-reference/get-event-pattern-by-name)
 
 #### Parameters
@@ -2756,6 +3183,7 @@ const resp = await loops.getEventPatternByName("signup");
 ### listWorkflows()
 
 Retrieve a paginated list of workflows.
+
 [API Reference](https://loops.so/docs/api-reference/list-workflows)
 
 #### Parameters
@@ -2806,6 +3234,7 @@ const resp = await loops.listWorkflows({
 ### createWorkflow()
 
 Create a draft workflow with a blank trigger and exit node.
+
 [API Reference](https://loops.so/docs/api-reference/create-workflow)
 
 #### Parameters
@@ -2855,6 +3284,7 @@ const resp = await loops.createWorkflow({ name: "Onboarding" });
 ### getWorkflow()
 
 Retrieve a workflow graph with node type names, connections, and selected display fields. Includes `workflowRevisionId` (may be `null` for older workflows) for subsequent mutations.
+
 [API Reference](https://loops.so/docs/api-reference/get-workflow)
 
 #### Parameters
@@ -2901,6 +3331,7 @@ const resp = await loops.getWorkflow("clw1a3b5c7d9e1f3g5h7i9j1");
 ### updateWorkflow()
 
 Update a workflow's name, description, and/or workflow group. To change the mailing list, use [`changeWorkflowMailingList()`](#changeworkflowmailinglist).
+
 [API Reference](https://loops.so/docs/api-reference/update-workflow)
 
 #### Parameters
@@ -2989,6 +3420,7 @@ Successful deletion returns no content (`204 No Content`).
 ### changeWorkflowMailingList()
 
 Dry run or apply a workflow mailing list change. If queued contacts would be removed, the response status is `queuedContactsFound`; retry with `queuedContactPolicy: "discard"` to apply.
+
 [API Reference](https://loops.so/docs/api-reference/change-workflow-mailing-list)
 
 #### Parameters
@@ -3036,6 +3468,7 @@ const resp = await loops.changeWorkflowMailingList("clw1a3b5c7d9e1f3g5h7i9j1", {
 ### createWorkflowNode()
 
 Create a new default workflow node. Use `insertMode: "between"`, `insertMode: "before"` (with `toNodeId`), or `insertMode: "after"`, then configure with [`updateWorkflowNode()`](#updateworkflownode).
+
 [API Reference](https://loops.so/docs/api-reference/create-workflow-node)
 
 #### Parameters
@@ -3114,6 +3547,7 @@ const resp = await loops.createWorkflowNode("clw1a3b5c7d9e1f3g5h7i9j1", {
 ### getWorkflowNode()
 
 Retrieve detailed data for a single workflow node. Includes `workflowRevisionId` (may be `null` for older workflows).
+
 [API Reference](https://loops.so/docs/api-reference/get-workflow-node)
 
 #### Parameters
@@ -3150,6 +3584,7 @@ const resp = await loops.getWorkflowNode("clw1a3b5c7d9e1f3g5h7i9j1", "cln8p0q2r4
 ### getWorkflowNodeMetrics()
 
 Retrieve all-time email engagement metrics for a workflow `SendEmailAction` node. Nodes of any other type return a `400` response.
+
 [API Reference](https://loops.so/docs/api-reference/get-workflow-node-metrics)
 
 #### Parameters
@@ -3189,6 +3624,7 @@ Error handling is done through the `APIError` class, which provides `statusCode`
 ### updateWorkflowNode()
 
 Update workflow-node-owned fields for a single node.
+
 [API Reference](https://loops.so/docs/api-reference/update-workflow-node)
 
 #### Parameters
@@ -3244,6 +3680,7 @@ const resp = await loops.updateWorkflowNode(
 ### deleteWorkflowNode()
 
 Delete a single workflow node. If contacts are queued, the response status is `queuedContactsFound`; retry with `queuedContactPolicy: "discard"`.
+
 [API Reference](https://loops.so/docs/api-reference/delete-workflow-node)
 
 #### Parameters
@@ -3294,6 +3731,7 @@ const resp = await loops.deleteWorkflowNode(
 ### addWorkflowBranch()
 
 Add a branch and a child node under an existing Branch or Experiment node.
+
 [API Reference](https://loops.so/docs/api-reference/add-workflow-branch)
 
 #### Parameters
@@ -3357,6 +3795,7 @@ const resp = await loops.addWorkflowBranch(
 ### rerouteWorkflowNode()
 
 Reroute a source node's single outgoing connection to another valid target node. The source must have exactly one outgoing connection (branch/experiment nodes are not supported).
+
 [API Reference](https://loops.so/docs/api-reference/reroute-node-connection)
 
 #### Parameters
@@ -3410,6 +3849,7 @@ const resp = await loops.rerouteWorkflowNode(
 ### deleteWorkflowNodesRecursive()
 
 Delete a node and its downstream subtree. If contacts are queued, the response status is `queuedContactsFound`; retry with `queuedContactPolicy: "discard"`.
+
 [API Reference](https://loops.so/docs/api-reference/delete-workflow-nodes)
 
 #### Parameters
@@ -3522,7 +3962,11 @@ const resp = await loops.completeUpload("cla3s5s7e9t1i3d5f7g9h1j3");
 
 ## Version history
 
-- `v8.0.0` (Nov 12, 2026) - Added [`verifyWebhook()`](#verifying-webhooks). Updated minimum Node version to 20.0.0.
+- `v8.1.0` (Nov 23, 2026)
+  - Aligned with OpenAPI 1.24.0.
+  - Added footers ([`listFooters()`](#listfooters), [`getFooter()`](#getfooter), [`createFooter()`](#createfooter), [`updateFooter()`](#updatefooter), [`deleteFooter()`](#deletefooter), [`setDefaultFooter()`](#setdefaultfooter), [`getFooterVariant()`](#getfootervariant), [`updateFooterVariant()`](#updatefootervariant), [`publishFooterVariant()`](#publishfootervariant)).
+  - Expanded [`updateEmailMessage()`](#updateemailmessage) and email message responses with `footerId`.
+- `v8.0.0` (Nov 23, 2026) - Added [`verifyWebhook()`](#verifying-webhooks). Updated minimum Node version to 20.0.0.
 - `v7.5.0` (Nov 9, 2026)
   - Aligned with OpenAPI 1.23.0.
   - Added [`renderEmailMessage()`](#renderemailmessage) to render an email message as HTML without sending it.
